@@ -1,0 +1,361 @@
+/* Auth Styles */
+.auth-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 480px;
+    background: var(--ivory);
+    border-radius: 20px;
+    box-shadow:
+        0 10px 40px rgba(13, 95, 71, 0.12),
+        0 0 0 1px var(--border-light);
+    padding: 45px 40px;
+    text-align: center;
+    position: relative;
+    border-top: 3px solid var(--gold);
+    animation: fadeIn 0.6s ease-out;
+}
+
+.register-container {
+    max-width: 550px;
+}
+
+/* Logo Section */
+.auth-logo {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.auth-logo img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 16px rgba(13, 95, 71, 0.15));
+}
+
+.logo-text {
+    font-family: 'Scheherazade New', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--forest-green);
+    margin-top: 12px;
+    letter-spacing: 0.5px;
+}
+
+/* Titles */
+.auth-title {
+    font-family: 'Scheherazade New', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--forest-green);
+    margin-bottom: 8px;
+    direction: rtl;
+    line-height: 1.4;
+}
+
+.auth-subtitle {
+    font-size: 14px;
+    color: var(--medium-text);
+    margin-bottom: 28px;
+    font-weight: 400;
+}
+
+/* Versets coraniques */
+.islamic-quote {
+    font-family: 'Scheherazade New', serif;
+    font-size: 15px;
+    color: var(--forest-green);
+    direction: rtl;
+    margin: 24px 0;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(13, 95, 71, 0.04), rgba(201, 169, 97, 0.04));
+    border-radius: 12px;
+    border-right: 3px solid var(--gold);
+    border-left: 3px solid var(--gold);
+    line-height: 1.8;
+}
+
+.islamic-quote small {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--light-text);
+    margin-top: 10px;
+    direction: ltr;
+    text-align: center;
+    font-style: normal;
+}
+
+/* Divider */
+.divider {
+    margin: 24px 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-light), transparent);
+    position: relative;
+}
+
+.divider::after {
+    content: '✦';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--ivory);
+    padding: 0 12px;
+    color: var(--gold);
+    font-size: 10px;
+}
+
+/* Role Tabs */
+.role-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 28px;
+    background: rgba(13, 95, 71, 0.04);
+    border-radius: 14px;
+    padding: 5px;
+    border: 1px solid var(--border-light);
+}
+
+.role-tab {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: var(--medium-text);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.role-tab.active {
+    background: linear-gradient(135deg, var(--forest-green), var(--emerald));
+    color: white;
+    box-shadow: 0 4px 12px rgba(13, 95, 71, 0.25);
+    transform: scale(1.02);
+}
+
+.role-tab:hover:not(.active) {
+    background: rgba(13, 95, 71, 0.08);
+    color: var(--forest-green);
+}
+
+/* Form Section */
+.auth-form-section {
+    text-align: left;
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+    margin-top: 20px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.form-section-title {
+    font-family: 'Amiri', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 6px;
+}
+
+.form-section-subtitle {
+    font-size: 12px;
+    color: var(--light-text);
+    margin-bottom: 22px;
+    line-height: 1.5;
+}
+
+/* Form */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dark-text);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid rgba(13, 95, 71, 0.15);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--dark-text);
+    background-color: var(--cream);
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--forest-green);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(13, 95, 71, 0.08);
+}
+
+.form-control::placeholder {
+    color: var(--light-text);
+    opacity: 0.6;
+}
+
+select.form-control {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230d5f47' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+/* Button */
+.btn-primary {
+    width: 100%;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--forest-green) 0%, var(--emerald) 100%);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+    box-shadow: 0 4px 14px rgba(13, 95, 71, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 95, 71, 0.35);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Footer */
+.auth-footer {
+    text-align: center;
+    margin-top: 22px;
+    font-size: 13px;
+    color: var(--medium-text);
+}
+
+.auth-link {
+    color: var(--forest-green);
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+    position: relative;
+    border-bottom: 1.5px solid transparent;
+}
+
+.auth-link:hover {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-container {
+        padding: 35px 25px;
+    }
+
+    .role-tabs {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .auth-logo img {
+        width: 75px;
+        height: 75px;
+    }
+
+    .auth-title {
+        font-size: 24px;
+    }
+}

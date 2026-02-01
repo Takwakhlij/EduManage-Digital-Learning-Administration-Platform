@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Palette coranique raffinée */
+  --forest-green: #0d5f47;
+  --emerald: #2d8659;
+  --gold: #c9a961;
+  --cream: #f8f6f0;
+  --ivory: #fffef7;
+  --dark-text: #1a3020;
+  --medium-text: #4a5568;
+  --light-text: #718096;
+  --border-light: rgba(201, 169, 97, 0.15);
+
+  /* Status Colors */
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #2563eb;
+}
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  background-color: var(--cream);
+  background-image: url('/pattern-bg.png');
+  background-size: 400px 400px;
+  background-repeat: repeat;
+  position: relative;
+}
+
+/* Overlay subtil pour adoucir le pattern */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg,
+      rgba(248, 246, 240, 0.92) 0%,
+      rgba(255, 254, 247, 0.90) 50%,
+      rgba(248, 246, 240, 0.92) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* Bordure décorative en haut de page */
+.top-border {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--forest-green) 0%, var(--gold) 50%, var(--forest-green) 100%);
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(13, 95, 71, 0.15);
+}
+
+/* User Dashboard Styles */
+.dashboard-container {
+  width: 100%;
+  max-width: 850px;
+  margin: 40px auto;
+  background: var(--ivory);
+  border-radius: 20px;
+  padding: 40px;
+  border-top: 3px solid var(--gold);
+  box-shadow: 0 10px 40px rgba(13, 95, 71, 0.12);
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.dashboard-header h1 {
+  font-family: 'Scheherazade New', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--forest-green);
+  direction: rtl;
+}
+
+.btn-logout {
+  padding: 10px 20px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: white;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-logout:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.content {
+  padding: 20px;
+  text-align: center;
+}
+
+.content h2 {
+  font-family: 'Scheherazade New', serif;
+  font-size: 22px;
+  color: var(--dark-text);
+  margin-bottom: 18px;
+  direction: rtl;
+}
+
+.content p {
+  font-size: 15px;
+  color: var(--medium-text);
+  line-height: 1.7;
+}
+
+/* Shared Components & Utilities needed across files could also go here 
+   or in a shared components.css if strictly adhering to separations */
