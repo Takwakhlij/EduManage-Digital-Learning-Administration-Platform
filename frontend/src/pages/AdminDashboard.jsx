@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { getUsers, updateUserStatus, deleteUser } from '../features/admin/adminSlice';
+import { logout } from '../features/auth/authSlice';
+import { getUsers, updateUserStatus, deleteUser, updateUser } from '../features/admin/adminSlice';
 import './DashboardAdmin.css';
+import './EditUserModal.css';
 import logo from '../assets/logo.png';
 function AdminDashboard() {
     const navigate = useNavigate();
@@ -12,13 +14,17 @@ function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('tous');
     const [searchTerm, setSearchTerm] = useState('');
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingUser, setEditingUser] = useState(null);
 
     const handleLogout = () => {
         if (window.confirm('Voulez-vous vraiment vous déconnecter?')) {
-            localStorage.removeItem('user');
+            dispatch(logout());
             navigate('/login');
         }
     };
+
     useEffect(() => {
         if (!user) {
             navigate('/login');
@@ -31,6 +37,7 @@ function AdminDashboard() {
         // Fetch all users
         dispatch(getUsers());
     }, [user, navigate, dispatch]);
+
     // Generate avatar with initials and color OR use profile image
     const getAvatar = (userData) => {
         // If userData is undefined or null, return default
@@ -75,6 +82,7 @@ function AdminDashboard() {
             hasImage: false
         };
     };
+
     // Format date
     const formatDate = (dateString) => {
         if (!dateString) return '-';
@@ -84,12 +92,14 @@ function AdminDashboard() {
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
     };
+
     // Get current date in French format
     const getCurrentDate = () => {
         const date = new Date();
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         return date.toLocaleDateString('fr-FR', options);
     };
+
     // Role translation
     const getRoleLabel = (role) => {
         const roles = {
@@ -100,16 +110,19 @@ function AdminDashboard() {
         };
         return roles[role] || role;
     };
+
     // Filter users based on active tab and search
     const getFilteredUsers = () => {
         if (!users) return [];
         let filtered = [...users];
+
         // Filter by tab
         if (activeTab === 'pending') {
             filtered = filtered.filter(u => u.status === 'pending');
         } else if (activeTab === 'active') {
             filtered = filtered.filter(u => u.status === 'active');
         }
+
         // Filter by search term
         if (searchTerm) {
             const search = searchTerm.toLowerCase();
@@ -121,6 +134,7 @@ function AdminDashboard() {
         }
         return filtered;
     };
+
     // Calculate statistics
     const stats = {
         totalMembers: users?.length || 0,
@@ -132,11 +146,25 @@ function AdminDashboard() {
     if (!user) return null;
     return (
         <div className="admin-dashboard">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="sidebar-overlay"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="admin-sidebar">
+            <aside className={`admin-sidebar ${isSidebarOpen ? 'open' : ''}`}>
                 <div className="admin-sidebar-header">
                     <div className="admin-sidebar-title">
                         <img src={logo} alt="Logo Noor Tayyiba" className="admin-sidebar-logo" />
+                        <button
+                            className="close-sidebar-btn"
+                            onClick={() => setIsSidebarOpen(false)}
+                        >
+                            ✕
+                        </button>
                     </div>
                 </div>
 
@@ -186,6 +214,16 @@ function AdminDashboard() {
                 {/* Top Navbar */}
                 <nav className="top-navbar">
                     <div className="navbar-left">
+                        <button
+                            className="mobile-menu-btn"
+                            onClick={() => setIsSidebarOpen(true)}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </button>
                         <div className="search-bar">
                             <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="11" cy="11" r="8"></circle>
@@ -238,6 +276,10 @@ function AdminDashboard() {
                                 ) : (
                                     getAvatar(user).initials
                                 )}
+                            </div>
+                            <div className="navbar-profile-info">
+                                <span className="navbar-profile-name">{user.firstName} {user.lastName}</span>
+                                <span className="navbar-profile-role">Super Admin</span>
                             </div>
                             <svg className={`navbar-chevron ${showProfileMenu ? 'active' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <polyline points="6 9 12 15 18 9"></polyline>
@@ -482,7 +524,7 @@ function AdminDashboard() {
                                             </td>
                                             <td>
                                                 <span className={`status-badge ${member.status}`}>
-                                                    {member.status === 'active' ? 'ACTIF' : 'EN ATTENTE'}
+                                                    {member.status === 'active' ? 'ACTIF' : member.status === 'rejected' ? 'REJETÉ' : 'EN ATTENTE'}
                                                 </span>
                                             </td>
                                             <td>{formatDate(member.createdAt)}</td>
@@ -491,7 +533,10 @@ function AdminDashboard() {
                                                     <button
                                                         className="action-btn edit"
                                                         title="Modifier"
-                                                        onClick={() => navigate(`/profile`)}
+                                                        onClick={() => {
+                                                            setEditingUser(member);
+                                                            setShowEditModal(true);
+                                                        }}
                                                     >
                                                         ✏️
                                                     </button>
@@ -511,8 +556,11 @@ function AdminDashboard() {
                                                                 className="action-btn close"
                                                                 title="Rejeter"
                                                                 onClick={() => {
-                                                                    if (window.confirm(`Êtes-vous sûr de vouloir rejeter ${member.name}?`)) {
-                                                                        dispatch(deleteUser(member._id));
+                                                                    if (window.confirm(`Êtes-vous sûr de vouloir rejeter ${member.name} ?`)) {
+                                                                        dispatch(updateUserStatus({
+                                                                            id: member._id,
+                                                                            status: 'rejected'
+                                                                        }));
                                                                     }
                                                                 }}
                                                             >
@@ -540,8 +588,131 @@ function AdminDashboard() {
                         </table>
                     )}
                 </div>
-            </main>
-        </div>
+
+                {/* Edit User Modal */}
+                {
+                    showEditModal && editingUser && (
+                        <div className="edit-modal-overlay" onClick={() => setShowEditModal(false)}>
+                            <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+                                <div className="edit-modal-header">
+                                    <h3 className="edit-modal-title">Modifier l'utilisateur</h3>
+                                    <button className="modal-close-btn" onClick={() => setShowEditModal(false)}>
+                                        ×
+                                    </button>
+                                </div>
+                                <div className="edit-modal-body">
+                                    <form onSubmit={(e) => {
+                                        e.preventDefault();
+                                        const formData = new FormData(e.target);
+                                        const userData = {
+                                            firstName: formData.get('firstName'),
+                                            lastName: formData.get('lastName'),
+                                            email: formData.get('email'),
+                                            phoneNumber: formData.get('phoneNumber'),
+                                            role: formData.get('role'),
+                                            status: formData.get('status'),
+                                        };
+                                        dispatch(updateUser({ id: editingUser._id, userData }));
+                                        setShowEditModal(false);
+                                    }}>
+                                        <div className="modal-form-row">
+                                            <div className="modal-form-group">
+                                                <label className="modal-form-label">Prénom</label>
+                                                <input
+                                                    type="text"
+                                                    name="firstName"
+                                                    className="modal-form-input"
+                                                    defaultValue={editingUser.firstName}
+                                                    required
+                                                />
+                                            </div>
+                                            <div className="modal-form-group">
+                                                <label className="modal-form-label">Nom</label>
+                                                <input
+                                                    type="text"
+                                                    name="lastName"
+                                                    className="modal-form-input"
+                                                    defaultValue={editingUser.lastName}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="modal-form-group">
+                                            <label className="modal-form-label">Email</label>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                className="modal-form-input"
+                                                defaultValue={editingUser.email}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="modal-form-group">
+                                            <label className="modal-form-label">Téléphone</label>
+                                            <input
+                                                type="tel"
+                                                name="phoneNumber"
+                                                className="modal-form-input"
+                                                defaultValue={editingUser.phoneNumber}
+                                            />
+                                        </div>
+
+                                        <div className="modal-form-row">
+                                            <div className="modal-form-group">
+                                                <label className="modal-form-label">Rôle</label>
+                                                <select
+                                                    className="modal-form-select"
+                                                    name="role"
+                                                    defaultValue={editingUser.role}
+                                                    required
+                                                >
+                                                    <option value="student">Étudiant</option>
+                                                    <option value="teacher">Enseignant</option>
+                                                    <option value="parent">Parent</option>
+                                                    <option value="admin">Admin</option>
+                                                </select>
+                                            </div>
+                                            <div className="modal-form-group">
+                                                <label className="modal-form-label">Statut</label>
+                                                <select
+                                                    className="modal-form-select"
+                                                    name="status"
+                                                    defaultValue={editingUser.status}
+                                                    required
+                                                >
+                                                    <option value="active">Actif</option>
+                                                    <option value="pending">En attente</option>
+                                                    <option value="rejected">Rejeté</option>
+                                                    
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="edit-modal-footer">
+                                            <button
+                                                type="button"
+                                                className="modal-btn modal-btn-cancel"
+                                                onClick={() => setShowEditModal(false)}
+                                            >
+                                                Annuler
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="modal-btn modal-btn-save"
+                                            >
+                                                Enregistrer
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+            </main >
+        </div >
     );
 }
 export default AdminDashboard;

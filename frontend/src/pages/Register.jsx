@@ -47,11 +47,13 @@ function Register() {
             alert(message);
         }
 
-        if (isSuccess || user) {
-            navigate('/');
+        if (isSuccess) {
+            // If registration is successful, user is NOT logged in (no token).
+            // Alert user and redirect to login.
+            alert("Inscription réussie ! Votre compte est en attente de validation par un administrateur. Vous recevrez l'accès une fois validé.");
+            navigate('/login');
+            dispatch(reset()); // Clear any user state just in case
         }
-
-        dispatch(reset());
     }, [user, isError, isSuccess, message, navigate, dispatch]);
 
     const onChange = (e) => {

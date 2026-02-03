@@ -16,10 +16,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout, reset } from '../features/auth/authSlice';
 import './StudentDashboard.css';
+import logo from '../assets/logo.png';
 
 function StudentDashboard() {
     const { user } = useSelector((state) => state.auth);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default closed on mobile, dealt with CSS
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -38,17 +39,35 @@ function StudentDashboard() {
 
     return (
         <div className="dashboard-layout">
+            {/* Mobile Overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="sidebar-overlay"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
+            <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
-                    <img src="/quran-logo.png" alt="Logo" className="sidebar-logo" />
+                    <img src={logo} alt="Logo" className="sidebar-logo" />
+                    <button
+                        className="close-sidebar-btn"
+                        onClick={() => setIsSidebarOpen(false)}
+                    >
+                        ✕
+                    </button>
                     <span className="logo-text">الجمعية القرآنية</span>
                 </div>
 
                 <div className="sidebar-profile">
                     <div className="profile-img-container">
                         {user?.profileImage ? (
-                            <img src={user.profileImage} alt="Profile" className="profile-img" />
+                            <img
+                                src={user.profileImage.startsWith('http') ? user.profileImage : `http://localhost:5000${user.profileImage}`}
+                                alt="Profile"
+                                className="profile-img"
+                            />
                         ) : (
                             <div className="profile-img-placeholder">
                                 {user?.firstName?.charAt(0)}
@@ -89,10 +108,10 @@ function StudentDashboard() {
             <main className="main-content">
                 <header className="content-header">
                     <button
-                        className="toggle-sidebar"
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                        className="mobile-menu-btn"
+                        onClick={() => setIsSidebarOpen(true)}
                     >
-                        {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                        <Menu size={24} />
                     </button>
 
                     <div className="header-actions">

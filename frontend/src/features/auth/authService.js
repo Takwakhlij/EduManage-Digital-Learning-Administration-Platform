@@ -6,9 +6,8 @@ const API_URL = '/api/users/';
 const register = async (userData) => {
     const response = await axios.post(API_URL + 'register', userData);
 
-    if (response.data) {
-        localStorage.setItem('user', JSON.stringify(response.data)); //save user in local storage after register  باش user يبقى connecté حتى يعمل refresh
-        // JSON.stringify convert object to string khater localStorage may9belsh object 
+    if (response.data && response.data.token) {
+        localStorage.setItem('user', JSON.stringify(response.data));
     }
 
     return response.data; // return user data from backend
