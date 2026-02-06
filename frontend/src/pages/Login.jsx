@@ -98,7 +98,7 @@ function Login() {
                     {/* Role Selection Dropdown */}
                     <div className="role-select-container">
                         <label htmlFor="role-select" className="role-select-label">
-                            👤 Choisissez votre espace
+                            Choisissez votre espace
                         </label>
                         <div className="select-wrapper">
                             <select
@@ -109,7 +109,7 @@ function Login() {
                             >
                                 <option value="student">🎓 Espace Étudiant</option>
                                 <option value="teacher">👨‍🏫 Espace Enseignant</option>
-                                <option value="Parent">👨‍👩‍👧 Espace Parent</option>
+                                <option value="parent">👨‍👩‍👧 Espace Parent</option>
                             </select>
                         </div>
                     </div>

@@ -12,9 +12,9 @@ function Register() {
         password: '',
         confirmPassword: '',
         phoneNumber: '',
-        ageGroup: '',
-        currentLevel: '',
-        interestedProgram: '',
+        dateOfBirth: '',
+        childName: '',
+        childEmail: '',
         specialization: '',
         experience: '',
     });
@@ -26,9 +26,9 @@ function Register() {
         password,
         confirmPassword,
         phoneNumber,
-        ageGroup,
-        currentLevel,
-        interestedProgram,
+        dateOfBirth,
+        childName,
+        childEmail,
         specialization,
         experience,
     } = formData;
@@ -82,15 +82,19 @@ function Register() {
 
         // Only add specific fields for students
         if (role === 'student') {
-            userData.ageGroup = ageGroup;
-            userData.currentLevel = currentLevel;
-            userData.interestedProgram = interestedProgram;
+            userData.dateOfBirth = dateOfBirth;
         }
 
         // Add fields for teacher
         if (role === 'teacher') {
             userData.specialization = specialization;
             userData.experience = experience;
+        }
+
+        // Add fields for parent
+        if (role === 'parent') {
+            userData.childName = childName;
+            userData.childEmail = childEmail;
         }
 
         dispatch(register(userData));
@@ -106,9 +110,15 @@ function Register() {
             <div className="auth-wrapper">
                 <div className="auth-container register-container">
                     {/* Logo */}
+                    {/* Logo & Identity */}
                     <div className="auth-logo">
-                        <img src="/quran-logo.png" alt="Logo Association Coranique" />
-                        <div className="logo-text">الجمعية القرآنية</div>
+                        <img src="/src/assets/logo.png" alt="Logo Association Coranique" />
+                        <div className="association-identity">
+                            <h2 className="association-name-ar">الجمعية القرآنية</h2>
+                            <h3 className="association-name-fr">Association Coranique</h3>
+                            <div className="identity-divider"></div>
+                            <p className="association-slogan">Pour l'apprentissage et la mémorisation du Saint Coran</p>
+                        </div>
                     </div>
                     {/* Islamic Quote */}
                     <div className="islamic-quote">
@@ -121,32 +131,29 @@ function Register() {
 
                     <div className="divider"></div>
 
-                    {/* Role Tabs */}
-                    <div className="role-tabs">
-                        <button
-                            className={`role-tab ${role === 'student' ? 'active' : ''}`}
-                            onClick={() => setRole('student')}
-                        >
-                            Étudiant
-                        </button>
-                        <button
-                            className={`role-tab ${role === 'teacher' ? 'active' : ''}`}
-                            onClick={() => setRole('teacher')}
-                        >
-                            Enseignant
-                        </button>
-                        <button
-                            className={`role-tab ${role === 'parent' ? 'active' : ''}`}
-                            onClick={() => setRole('parent')}
-                        >
-                            Parent
-                        </button>
+                    {/* Role Selection Dropdown */}
+                    <div className="role-select-container">
+                        <label htmlFor="role-select" className="role-select-label">
+                            Choisissez votre espace
+                        </label>
+                        <div className="select-wrapper">
+                            <select
+                                id="role-select"
+                                className="role-select"
+                                value={role}
+                                onChange={(e) => setRole(e.target.value)}
+                            >
+                                <option value="student">🎓 Espace Étudiant</option>
+                                <option value="teacher">👨‍🏫 Espace Enseignant</option>
+                                <option value="parent">👨‍👩‍👧 Espace Parent</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* Form */}
                     <div className="auth-form-section">
                         <h2 className="form-section-title">
-                            Inscription {role === 'student' ? 'Étudiant' : role === 'teacher' ? 'Enseignant' : 'Parent'}
+                            Inscription {role === 'student' ? 'Étudiant' : role === 'teacher' ? 'Enseignant' : 'Parent / Tuteur'}
                         </h2>
                         <p className="form-section-subtitle">
                             Remplissez vos informations pour débuter votre parcours d&apos;apprentissage
@@ -176,7 +183,7 @@ function Register() {
                                         id="lastName"
                                         name="lastName"
                                         value={lastName}
-                                        placeholder="Mohamed"
+                                        placeholder="Ben salah"
                                         onChange={onChange}
                                         required
                                     />
@@ -243,61 +250,49 @@ function Register() {
                             </div>
 
                             {role === 'student' && (
+                                <div className="form-group">
+                                    <label htmlFor="dateOfBirth">Date de naissance</label>
+                                    <input
+                                        type="date"
+                                        className={`form-control ${!dateOfBirth ? 'empty-date' : 'has-value'}`}
+                                        id="dateOfBirth"
+                                        name="dateOfBirth"
+                                        value={dateOfBirth}
+                                        onChange={onChange}
+                                        required
+                                    />
+                                </div>
+                            )}
+
+                            {role === 'parent' && (
                                 <>
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label htmlFor="ageGroup">Tranche d&apos;âge</label>
-                                            <select
-                                                className="form-control"
-                                                id="ageGroup"
-                                                name="ageGroup"
-                                                value={ageGroup}
-                                                onChange={onChange}
-                                                required
-                                            >
-                                                <option value="">Sélectionnez votre âge</option>
-                                                <option value="under-18">Moins de 18 ans</option>
-                                                <option value="18-25">18 - 25 ans</option>
-                                                <option value="26-35">26 - 35 ans</option>
-                                                <option value="36-50">36 - 50 ans</option>
-                                                <option value="over-50">Plus de 50 ans</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label htmlFor="currentLevel">Niveau actuel</label>
-                                            <select
-                                                className="form-control"
-                                                id="currentLevel"
-                                                name="currentLevel"
-                                                value={currentLevel}
-                                                onChange={onChange}
-                                                required
-                                            >
-                                                <option value="">Sélectionnez votre niveau</option>
-                                                <option value="beginner">Débutant</option>
-                                                <option value="intermediate">Intermédiaire</option>
-                                                <option value="advanced">Avancé</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
                                     <div className="form-group">
-                                        <label htmlFor="interestedProgram">Programme d&apos;intérêt</label>
-                                        <select
+                                        <label htmlFor="childName">
+                                            Nom et prénom de l&apos;enfant (pour les mineurs)
+                                        </label>
+                                        <input
+                                            type="text"
                                             className="form-control"
-                                            id="interestedProgram"
-                                            name="interestedProgram"
-                                            value={interestedProgram}
+                                            id="childName"
+                                            name="childName"
+                                            value={childName}
+                                            placeholder="Ex: Amine Ben Ali"
                                             onChange={onChange}
-                                            required
-                                        >
-                                            <option value="">Choisissez un programme</option>
-                                            <option value="quran-memorization">Mémorisation du Coran (Hifz)</option>
-                                            <option value="tajweed">Tajweed et Récitation</option>
-                                            <option value="arabic-language">Langue Arabe</option>
-                                            <option value="islamic-studies">Sciences Islamiques</option>
-                                        </select>
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="childEmail">
+                                            OU Email de l&apos;enfant (s&apos;il a déjà un compte)
+                                        </label>
+                                        <input
+                                            type="email"
+                                            className="form-control"
+                                            id="childEmail"
+                                            name="childEmail"
+                                            value={childEmail}
+                                            placeholder="enfant@exemple.com"
+                                            onChange={onChange}
+                                        />
                                     </div>
                                 </>
                             )}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Save, User, Mail, Phone, Lock, ChevronLeft } from 'lucide-react';
+import { Camera, Save, User, Mail, Phone, Lock, ChevronLeft, Trash2 } from 'lucide-react';
 import { updateProfile, reset } from '../features/auth/authSlice';
 import './Profile.css';
 
@@ -22,7 +22,15 @@ function Profile() {
     const [imagePreview, setImagePreview] = useState(user?.profileImage || '');
     const [selectedFile, setSelectedFile] = useState(null);
 
+    const [updateInitiated, setUpdateInitiated] = useState(false);
+    const [deleteImage, setDeleteImage] = useState(false);
+
     const { firstName, lastName, email, phoneNumber, password, confirmPassword } = formData;
+
+    // Reset state on mount to ensure clean slate
+    useEffect(() => {
+        dispatch(reset());
+    }, [dispatch]);
 
     useEffect(() => {
         if (!user) {
@@ -31,14 +39,15 @@ function Profile() {
 
         if (isError) {
             alert(message);
+            setUpdateInitiated(false); // Reset on error
         }
 
-        if (isSuccess) {
-            alert('Profil mis à jour avec succès !');
+        if (isSuccess && updateInitiated) {
+            // Redirect with success message in state
+            dispatch(reset());
+            navigate('/', { state: { successMessage: 'Profil mis à jour avec succès !' } });
         }
-
-        dispatch(reset());
-    }, [user, isError, isSuccess, message, navigate, dispatch]);
+    }, [user, isError, isSuccess, message, navigate, dispatch, updateInitiated]);
 
     const onChange = (e) => {
         setFormData((prevState) => ({
@@ -79,12 +88,15 @@ function Profile() {
 
         if (selectedFile) {
             formDataToSend.append('profileImage', selectedFile);
+        } else if (deleteImage) {
+            formDataToSend.append('profileImage', 'null');
         }
 
         if (password) {
             formDataToSend.append('password', password);
         }
 
+        setUpdateInitiated(true);
         dispatch(updateProfile(formDataToSend));
     };
 
@@ -131,12 +143,43 @@ function Profile() {
                                         hidden
                                     />
                                 </div>
-                                <div className="avatar-text">
-                                    <h2>Photo de Profil</h2>
-                                    <p>Cliquez sur l&apos;icône pour changer votre photo</p>
-                                </div>
+                                <h2>Photo de Profil</h2>
+                                <p>Cliquez sur l'icône pour changer votre photo</p>
+                                {imagePreview && (
+                                    <button
+                                        type="button"
+                                        className="delete-photo-btn"
+                                        onClick={() => {
+                                            if (window.confirm('Voulez-vous vraiment supprimer votre photo ?')) {
+                                                setImagePreview('');
+                                                setSelectedFile(null);
+                                                setFormData(prev => ({ ...prev })); // Trigger re-render need? Not really but safe.
+                                                // We need a way to tell submit to send 'null'
+                                                // Let's use a ref or just state. 
+                                                // Ideally we set selectedFile to 'DELETE' or something distinct?
+                                                // Or just use a separate state `shouldDeleteImage`
+                                            }
+                                        }}
+                                        style={{
+                                            marginTop: '10px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            padding: '6px 12px',
+                                            background: '#fee2e2',
+                                            color: '#ef4444',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            fontSize: '0.85rem'
+                                        }}
+                                    >
+                                        <Trash2 size={16} /> Supprimer la photo
+                                    </button>
+                                )}
                             </div>
                         </div>
+
 
                         {/* Info Section */}
                         <div className="profile-card">
@@ -219,8 +262,8 @@ function Profile() {
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
 

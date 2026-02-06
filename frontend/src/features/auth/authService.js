@@ -49,11 +49,33 @@ const updateProfile = async (formData, token) => {
     return response.data;
 };
 
+// Get user data
+const getMe = async (token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+
+    const response = await axios.get(API_URL + 'me', config);
+
+    if (response.data) {
+        // Merge the new data with the existing token because /me might not return the token
+        const existingUser = JSON.parse(localStorage.getItem('user'));
+        const updatedUser = { ...existingUser, ...response.data };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        return updatedUser;
+    }
+
+    return response.data;
+};
+
 const authService = {
     register,
     login,
     logout,
     updateProfile,
+    getMe,
 };
 
 export default authService;

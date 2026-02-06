@@ -207,7 +207,7 @@
     font-weight: 600;
     color: var(--medium-text);
     margin-bottom: 12px;
-    text-align: left;
+    text-align: center;
 }
 
 .select-wrapper {
@@ -253,10 +253,44 @@
     box-shadow: 0 0 0 3px rgba(13, 95, 71, 0.1);
 }
 
-.role-select option {
-    padding: 12px;
-    font-size: 15px;
-    color: var(--dark-text);
+/* Role Tabs Box */
+.role-tabs {
+    display: flex;
+    justify-content: center;
+    background: var(--cream);
+    padding: 5px;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    margin-bottom: 24px;
+    position: relative;
+    user-select: none;
+}
+
+.role-tab {
+    flex: 1;
+    padding: 10px 4px;
+    border: none;
+    background: transparent;
+    color: var(--medium-text);
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+    position: relative;
+    z-index: 1;
+}
+
+.role-tab.active {
+    background: white;
+    color: var(--forest-green);
+    box-shadow: 0 2px 8px rgba(13, 95, 71, 0.1);
+    font-weight: 700;
+}
+
+.role-tab:hover:not(.active) {
+    background: rgba(13, 95, 71, 0.04);
 }
 
 /* Form Section */
@@ -353,6 +387,18 @@
 .form-control::placeholder {
     color: var(--light-text);
     opacity: 0.6;
+}
+
+/* Date Input Placeholder Style */
+input[type="date"].form-control:invalid,
+input[type="date"].form-control.empty-date {
+    color: rgba(107, 114, 128, 0.6);
+    /* Fallback or match placeholder opacity */
+}
+
+input[type="date"].form-control:focus,
+input[type="date"].form-control.has-value {
+    color: var(--dark-text);
 }
 
 select.form-control {

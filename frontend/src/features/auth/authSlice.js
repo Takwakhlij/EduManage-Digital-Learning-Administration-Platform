@@ -69,6 +69,25 @@ export const updateProfile = createAsyncThunk(
     }
 );
 
+// Get user data (refresh)
+export const getMe = createAsyncThunk(
+    'auth/getMe',
+    async (_, thunkAPI) => {
+        try {
+            const token = thunkAPI.getState().auth.user.token;
+            return await authService.getMe(token);
+        } catch (error) {
+            const message =
+                (error.response &&
+                    error.response.data &&
+                    error.response.data.message) ||
+                error.message ||
+                error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 export const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -125,6 +144,22 @@ export const authSlice = createSlice({
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;
+            })
+            .addCase(getMe.pending, (state) => {
+                // Don't set global loading true for background refresh to avoid flickering if desired
+                // or set it if you want to show a spinner
+                // state.isLoading = true; 
+            })
+            .addCase(getMe.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.user = action.payload;
+            })
+            .addCase(getMe.rejected, (state, action) => {
+                state.isLoading = false;
+                // Don't log out user on background refresh fail, just log error?
+                // state.isError = true;
+                // state.message = action.payload;
             });
     },
 });

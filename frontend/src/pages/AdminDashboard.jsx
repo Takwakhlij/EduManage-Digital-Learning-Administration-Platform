@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 import { getUsers, updateUserStatus, deleteUser, updateUser } from '../features/admin/adminSlice';
@@ -17,6 +17,21 @@ function AdminDashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [notification, setNotification] = useState('');
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.successMessage) {
+            setNotification(location.state.successMessage);
+            const timer = setTimeout(() => {
+                setNotification('');
+                // Optional: Clear state so it doesn't show on refresh? 
+                // Using history.replaceState is cleaner but simple timeout works for UI
+                navigate(location.pathname, { replace: true, state: {} });
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [location, navigate]);
 
     const handleLogout = () => {
         if (window.confirm('Voulez-vous vraiment vous déconnecter?')) {
@@ -111,6 +126,19 @@ function AdminDashboard() {
         return roles[role] || role;
     };
 
+    // Calculate Age
+    const calculateAge = (dob) => {
+        if (!dob) return null;
+        const birthDate = new Date(dob);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return `${age} ans`;
+    };
+
     // Filter users based on active tab and search
     const getFilteredUsers = () => {
         if (!users) return [];
@@ -146,6 +174,29 @@ function AdminDashboard() {
     if (!user) return null;
     return (
         <div className="admin-dashboard">
+            {/* Notification Toast */}
+            {notification && (
+                <div className="notification-toast" style={{
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    backgroundColor: '#10b981',
+                    color: 'white',
+                    padding: '16px 24px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    zIndex: 10000,
+                    animation: 'slideIn 0.3s ease-out'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <span style={{ fontWeight: '500' }}>{notification}</span>
+                    </div>
+                </div>
+            )}
             {/* Mobile Sidebar Overlay */}
             {isSidebarOpen && (
                 <div
@@ -481,8 +532,14 @@ function AdminDashboard() {
                                                         </div>
                                                     </div>
                                                     <div className="user-details">
-                                                        <span className="user-name">{member.name}</span>
-                                                        <span className="user-age">{member.ageRange || '18-25'}</span>
+                                                        <span className="user-name">
+                                                            {member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Utilisateur'}
+                                                        </span>
+                                                        <span className="user-age">
+                                                            {member.dateOfBirth
+                                                                ? calculateAge(member.dateOfBirth)
+                                                                : '-'}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </td>
@@ -685,7 +742,7 @@ function AdminDashboard() {
                                                     <option value="active">Actif</option>
                                                     <option value="pending">En attente</option>
                                                     <option value="rejected">Rejeté</option>
-                                                    
+
                                                 </select>
                                             </div>
                                         </div>
