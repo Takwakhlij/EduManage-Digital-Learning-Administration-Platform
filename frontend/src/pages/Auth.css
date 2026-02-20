@@ -1,52 +1,54 @@
-/* Auth Styles */
+/* ═══════════════════════════════════════════════════════════
+   AUTH PAGES — Islamic Premium Design
+   Login · Register · Shared Styles
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Wrapper ── */
 .auth-wrapper {
     width: 100%;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 24px 16px;
 }
 
+/* ── Container ── */
 .auth-container {
     width: 100%;
     max-width: 480px;
     background: var(--ivory);
-    border-radius: 20px;
-    box-shadow:
-        0 10px 40px rgba(13, 95, 71, 0.12),
-        0 0 0 1px var(--border-light);
-    padding: 45px 40px;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: 40px 36px;
     text-align: center;
     position: relative;
     border-top: 3px solid var(--gold);
-    animation: fadeIn 0.6s ease-out;
+    animation: fadeInUp 0.5s ease-out;
 }
 
 .register-container {
-    max-width: 550px;
+    max-width: 560px;
 }
 
-/* Logo Section */
+/* ── Logo ── */
 .auth-logo {
     position: relative;
     display: inline-flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 32px;
-    margin-top: -10px;
-    /* Réduction de l'espace au-dessus */
+    margin-bottom: 28px;
 }
 
 .auth-logo img {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     object-fit: contain;
-    filter: drop-shadow(0 8px 16px rgba(13, 95, 71, 0.15));
-    margin-bottom: 20px;
+    filter: drop-shadow(0 6px 16px rgba(13, 95, 71, 0.15));
+    margin-bottom: 16px;
 }
 
-/* Association Identity */
+/* ── Association Identity ── */
 .association-identity {
     text-align: center;
     max-width: 420px;
@@ -54,29 +56,28 @@
 
 .association-name-ar {
     font-family: 'Scheherazade New', serif;
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
-    color: var(--forest-green);
-    margin: 0 0 8px 0;
+    color: var(--green-deep);
+    margin: 0 0 6px 0;
     direction: rtl;
-    line-height: 1.3;
+    line-height: 1.4;
 }
 
 .association-name-fr {
     font-family: 'Amiri', serif;
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 600;
-    color: var(--forest-green);
-    margin: 0 0 16px 0;
-    letter-spacing: 0.5px;
+    color: var(--green-deep);
+    margin: 0 0 14px 0;
+    letter-spacing: 0.3px;
 }
 
-/* Identity Divider - Fine Golden Line */
 .identity-divider {
-    width: 120px;
-    height: 2px;
+    width: 100px;
+    height: 1px;
     background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    margin: 0 auto 14px auto;
+    margin: 0 auto 12px;
     position: relative;
 }
 
@@ -87,20 +88,20 @@
     top: 50%;
     transform: translateY(-50%);
     color: var(--gold);
-    font-size: 8px;
+    font-size: 7px;
 }
 
 .identity-divider::before {
-    left: -8px;
+    left: -10px;
 }
 
 .identity-divider::after {
-    right: -8px;
+    right: -10px;
 }
 
 .association-slogan {
-    font-size: 13px;
-    color: var(--medium-text);
+    font-size: 12px;
+    color: var(--text-gray);
     font-style: italic;
     font-weight: 500;
     margin: 0;
@@ -109,78 +110,65 @@
 
 .logo-text {
     font-family: 'Scheherazade New', serif;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
-    color: var(--forest-green);
-    margin-top: 12px;
-    letter-spacing: 0.5px;
+    color: var(--green-deep);
+    margin-top: 10px;
 }
 
-/* Titles */
+/* ── Titles ── */
 .auth-title {
     font-family: 'Amiri', serif;
-    font-size: 29px;
-    font-weight: 600;
-    color: var(--forest-green);
+    font-size: 27px;
+    font-weight: 700;
+    color: var(--green-deep);
     margin-bottom: 6px;
     line-height: 1.3;
-    letter-spacing: -0.02em;
 }
 
 .auth-subtitle {
     font-size: 14px;
-    color: var(--medium-text);
-    margin-bottom: 24px;
+    color: var(--text-gray);
+    margin-bottom: 22px;
     font-weight: 400;
-    opacity: 0.85;
 }
 
-/* Versets coraniques */
+/* ── Islamic Quote ── */
 .islamic-quote {
     font-family: 'Amiri', serif;
-    /* Police plus noble */
-    font-size: 18px;
-    /* Légèrement plus grande */
+    font-size: 17px;
     font-weight: 600;
-    color: var(--forest-green);
+    color: var(--green-deep);
     direction: rtl;
-    margin: 24px auto;
-    /* Centré */
-    max-width: 420px;
-    /* Largeur réduite */
-    padding: 22px 28px;
-    background: linear-gradient(135deg, rgba(13, 95, 71, 0.04), rgba(201, 169, 97, 0.04));
-    border-radius: 12px;
+    margin: 20px auto;
+    max-width: 400px;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(13, 95, 71, 0.03), rgba(201, 169, 97, 0.04));
+    border-radius: var(--radius-md);
     border-right: 3px solid var(--gold);
     border-left: 3px solid var(--gold);
     line-height: 2;
     position: relative;
-    /* Double border intérieure */
-    box-shadow:
-        inset 0 0 0 1px rgba(201, 169, 97, 0.2),
-        0 2px 8px rgba(13, 95, 71, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(201, 169, 97, 0.15), 0 2px 8px rgba(13, 95, 71, 0.05);
 }
 
 .islamic-quote small {
     display: block;
     font-family: 'Inter', sans-serif;
     font-size: 10px;
-    /* Plus petite */
-    color: #9ca3af;
-    /* Gris doux */
+    color: var(--text-light);
     font-weight: 400;
-    margin-top: 12px;
+    margin-top: 10px;
     direction: ltr;
     text-align: center;
     font-style: italic;
-    opacity: 0.85;
 }
 
-/* Divider */
+/* ── Divider ── */
 .divider {
-    margin: 24px 0;
+    margin: 20px 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border-light), transparent);
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
     position: relative;
 }
 
@@ -190,23 +178,61 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: var(--ivory);
+    background: white;
     padding: 0 12px;
     color: var(--gold);
     font-size: 10px;
 }
 
-/* Role Selection Dropdown */
+/* ── Role Tabs ── */
+.role-tabs {
+    display: flex;
+    justify-content: center;
+    background: var(--cream);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    margin-bottom: 22px;
+    gap: 2px;
+}
+
+.role-tab {
+    flex: 1;
+    padding: 10px 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-gray);
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.role-tab.active {
+    background: white;
+    color: var(--green-deep);
+    box-shadow: var(--shadow-sm);
+    font-weight: 700;
+}
+
+.role-tab:hover:not(.active) {
+    background: rgba(13, 95, 71, 0.04);
+    color: var(--green-medium);
+}
+
+/* ── Role Select ── */
 .role-select-container {
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
 .role-select-label {
     display: block;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    color: var(--medium-text);
-    margin-bottom: 12px;
+    color: var(--text-gray);
+    margin-bottom: 10px;
     text-align: center;
 }
 
@@ -217,130 +243,85 @@
 .select-wrapper::after {
     content: '▼';
     position: absolute;
-    right: 18px;
+    right: 16px;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
-    color: var(--medium-text);
-    font-size: 12px;
+    color: var(--text-gray);
+    font-size: 11px;
 }
 
 .role-select {
     width: 100%;
-    padding: 14px 45px 14px 18px;
-    border: 1.5px solid var(--border-light);
-    border-radius: 12px;
+    padding: 13px 44px 13px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
     background: white;
-    color: var(--dark-text);
-    font-size: 15px;
+    color: var(--text-dark);
+    font-size: 14px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition);
     appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
 }
 
 .role-select:hover {
-    border-color: var(--forest-green);
-    background: rgba(13, 95, 71, 0.02);
+    border-color: var(--green-deep);
 }
 
 .role-select:focus {
     outline: none;
-    border-color: var(--forest-green);
-    box-shadow: 0 0 0 3px rgba(13, 95, 71, 0.1);
+    border-color: var(--green-deep);
+    box-shadow: 0 0 0 3px rgba(13, 95, 71, 0.08);
 }
 
-/* Role Tabs Box */
-.role-tabs {
-    display: flex;
-    justify-content: center;
-    background: var(--cream);
-    padding: 5px;
-    border-radius: 12px;
-    border: 1px solid var(--border-light);
-    margin-bottom: 24px;
-    position: relative;
-    user-select: none;
-}
-
-.role-tab {
-    flex: 1;
-    padding: 10px 4px;
-    border: none;
-    background: transparent;
-    color: var(--medium-text);
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-family: inherit;
-    position: relative;
-    z-index: 1;
-}
-
-.role-tab.active {
-    background: white;
-    color: var(--forest-green);
-    box-shadow: 0 2px 8px rgba(13, 95, 71, 0.1);
-    font-weight: 700;
-}
-
-.role-tab:hover:not(.active) {
-    background: rgba(13, 95, 71, 0.04);
-}
-
-/* Form Section */
+/* ── Form Section ── */
 .auth-form-section {
     text-align: left;
     background: white;
-    padding: 36px 40px;
-    /* Padding augmenté */
-    border-radius: 16px;
-    margin-top: 20px;
-    border: 1px solid var(--border-light);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    /* Ombre plus douce et élégante */
+    padding: 28px 32px;
+    border-radius: var(--radius-lg);
+    margin-top: 18px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
 }
 
 .form-section-title {
     font-family: 'Amiri', serif;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
-    color: var(--dark-text);
-    margin-bottom: 6px;
+    color: var(--text-dark);
+    margin-bottom: 4px;
 }
 
 .form-section-subtitle {
     font-size: 12px;
-    color: var(--light-text);
-    margin-bottom: 22px;
+    color: var(--text-light);
+    margin-bottom: 20px;
     line-height: 1.5;
 }
 
-/* Form */
+/* ── Form ── */
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 16px;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 18px;
+    gap: 16px;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
 }
 
-/* Input Wrapper with Icon */
+/* Input Wrapper */
 .input-wrapper {
     position: relative;
     display: flex;
@@ -351,7 +332,7 @@
     position: absolute;
     left: 14px;
     font-size: 16px;
-    opacity: 0.6;
+    opacity: 0.5;
     pointer-events: none;
     z-index: 1;
 }
@@ -359,46 +340,42 @@
 .form-group label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--dark-text);
+    color: var(--text-medium);
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
 
 .form-control {
     width: 100%;
-    padding: 13px 16px;
+    padding: 12px 16px;
     border: 1.5px solid rgba(13, 95, 71, 0.15);
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     font-family: inherit;
     font-size: 14px;
-    color: var(--dark-text);
+    color: var(--text-dark);
     background-color: var(--cream);
-    transition: all 0.3s;
+    transition: var(--transition);
 }
 
 .form-control:focus {
     outline: none;
-    border-color: var(--forest-green);
+    border-color: var(--green-deep);
     background-color: white;
     box-shadow: 0 0 0 3px rgba(13, 95, 71, 0.08);
 }
 
 .form-control::placeholder {
-    color: var(--light-text);
-    opacity: 0.6;
+    color: var(--text-light);
+    opacity: 0.7;
 }
 
-/* Date Input Placeholder Style */
-input[type="date"].form-control:invalid,
-input[type="date"].form-control.empty-date {
+input[type="date"].form-control:invalid {
     color: rgba(107, 114, 128, 0.6);
-    /* Fallback or match placeholder opacity */
 }
 
-input[type="date"].form-control:focus,
 input[type="date"].form-control.has-value {
-    color: var(--dark-text);
+    color: var(--text-dark);
 }
 
 select.form-control {
@@ -410,22 +387,23 @@ select.form-control {
     padding-right: 36px;
 }
 
-/* Button */
+/* ── Primary Button ── */
 .btn-primary {
     width: 100%;
     padding: 14px 24px;
     border: none;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--forest-green) 0%, var(--emerald) 100%);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-medium) 100%);
     color: white;
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 8px;
+    transition: var(--transition);
+    margin-top: 6px;
     box-shadow: 0 4px 14px rgba(13, 95, 71, 0.25);
     position: relative;
     overflow: hidden;
+    font-family: inherit;
 }
 
 .btn-primary::before {
@@ -436,9 +414,9 @@ select.form-control {
     width: 0;
     height: 0;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.15);
     transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
+    transition: width 0.5s, height 0.5s;
 }
 
 .btn-primary:hover::before {
@@ -448,49 +426,54 @@ select.form-control {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(13, 95, 71, 0.35);
+    box-shadow: 0 8px 24px rgba(13, 95, 71, 0.35);
 }
 
 .btn-primary:active {
     transform: translateY(0);
 }
 
-/* Footer */
+.btn-primary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ── Footer ── */
 .auth-footer {
     text-align: center;
-    margin-top: 22px;
+    margin-top: 20px;
     font-size: 13px;
-    color: var(--medium-text);
+    color: var(--text-gray);
 }
 
 .auth-link {
-    color: var(--forest-green);
+    color: var(--green-deep);
     font-weight: 700;
     text-decoration: none;
-    transition: all 0.2s;
-    position: relative;
+    transition: var(--transition);
     border-bottom: 1.5px solid transparent;
 }
 
 .auth-link:hover {
-    color: var(--gold);
+    color: var(--gold-dark);
     border-bottom-color: var(--gold);
 }
 
-/* Admin Access Link */
+/* ── Admin Access Link ── */
 .admin-access-link {
     text-align: center;
-    margin-top: 18px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-light);
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
 }
 
 .admin-link {
-    color: var(--medium-text);
+    color: var(--text-gray);
     font-size: 12px;
     font-weight: 600;
     text-decoration: none;
-    transition: all 0.3s;
+    transition: var(--transition);
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -498,25 +481,24 @@ select.form-control {
 }
 
 .admin-link:hover {
-    color: var(--forest-green);
+    color: var(--green-deep);
     opacity: 1;
 }
 
-/* Premium Enhancements */
-
-/* Password Toggle Button */
+/* ── Password Toggle ── */
 .password-toggle {
     position: absolute;
-    right: 14px;
+    right: 12px;
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: 17px;
     cursor: pointer;
-    opacity: 0.6;
-    transition: all 0.3s ease;
-    padding: 4px 8px;
+    opacity: 0.5;
+    transition: var(--transition);
+    padding: 4px 6px;
     border-radius: 6px;
     z-index: 2;
+    color: var(--text-gray);
 }
 
 .password-toggle:hover {
@@ -524,11 +506,7 @@ select.form-control {
     background: rgba(13, 95, 71, 0.05);
 }
 
-.password-toggle:active {
-    transform: scale(0.95);
-}
-
-/* Loading Spinner */
+/* ── Spinner ── */
 .spinner {
     display: inline-block;
     width: 16px;
@@ -538,187 +516,75 @@ select.form-control {
     border-top-color: white;
     animation: spin 0.8s linear infinite;
     margin-right: 8px;
+    vertical-align: middle;
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Button Disabled State */
-.btn-primary:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-/* Responsive Mobile Optimization */
+/* ── Responsive ── */
 @media (max-width: 640px) {
     .auth-wrapper {
         padding: 12px;
     }
 
     .auth-container {
-        padding: 24px 20px;
+        padding: 28px 20px;
     }
 
     .form-row {
         grid-template-columns: 1fr;
     }
 
-    /* Logo compact */
     .auth-logo {
-        margin-bottom: 18px;
-        margin-top: 0;
+        margin-bottom: 16px;
     }
 
     .auth-logo img {
-        width: 85px;
-        height: 85px;
+        width: 90px;
+        height: 90px;
     }
 
-    /* Identité compacte */
     .association-name-ar {
         font-size: 20px;
-        margin-bottom: 6px;
     }
 
     .association-name-fr {
         font-size: 16px;
-        margin-bottom: 12px;
     }
 
     .association-slogan {
         font-size: 11px;
     }
 
-    .identity-divider {
-        width: 100px;
-        margin: 0 auto 10px auto;
-    }
-
-    /* Verset coranique compact */
     .islamic-quote {
         font-size: 15px;
-        padding: 16px 20px;
-        margin: 16px auto;
-        line-height: 1.7;
-        max-width: 100%;
+        padding: 16px 18px;
     }
 
-    .islamic-quote small {
-        font-size: 9px;
-        margin-top: 8px;
-    }
-
-    /* Titre */
     .auth-title {
-        font-size: 22px;
-        margin-bottom: 4px;
+        font-size: 23px;
     }
 
     .auth-subtitle {
         font-size: 13px;
-        margin-bottom: 20px;
     }
 
-    /* Divider */
-    .divider {
-        margin: 16px 0;
-    }
-
-    /* Onglets */
-    .role-tabs {
-        margin-bottom: 20px;
+    .auth-form-section {
+        padding: 20px 16px;
     }
 
     .role-tab {
-        padding: 12px 16px;
         font-size: 12px;
-    }
-
-    .role-icon {
-        font-size: 15px;
-    }
-
-    /* Formulaire */
-    .auth-form-section {
-        padding: 24px 20px;
-        margin-top: 16px;
-    }
-
-    .form-section-title {
-        font-size: 16px;
-    }
-
-    .form-section-subtitle {
-        font-size: 11px;
-        margin-bottom: 18px;
-    }
-
-    .auth-form {
-        gap: 16px;
-    }
-
-    .form-group {
-        gap: 6px;
-    }
-
-    .form-control {
-        padding: 11px 14px 11px 42px;
-        font-size: 15px;
-    }
-
-    .input-icon {
-        font-size: 15px;
-        left: 13px;
+        padding: 9px 4px;
     }
 
     .btn-primary {
-        padding: 13px 20px;
         font-size: 14px;
-    }
-
-    .auth-footer {
-        margin-top: 16px;
-        font-size: 12px;
-    }
-
-    .admin-access-link {
-        margin-top: 14px;
-        padding-top: 14px;
+        padding: 13px 20px;
     }
 }
 
-/* Extra petit mobile */
 @media (max-width: 380px) {
     .auth-container {
-        padding: 20px 16px;
+        padding: 22px 14px;
     }
 
     .auth-logo img {
@@ -730,21 +596,7 @@ select.form-control {
         font-size: 18px;
     }
 
-    .association-name-fr {
-        font-size: 15px;
-    }
-
-    .islamic-quote {
-        font-size: 14px;
-        padding: 14px 16px;
-    }
-
     .auth-title {
         font-size: 20px;
-    }
-
-    .role-tab {
-        padding: 10px 12px;
-        font-size: 11px;
     }
 }

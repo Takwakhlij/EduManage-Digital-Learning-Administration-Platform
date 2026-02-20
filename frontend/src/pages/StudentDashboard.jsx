@@ -99,6 +99,13 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                     <span className="logo-text">الجمعية القرآنية</span>
                 </div>
 
+                {/* ── Bismillah ── */}
+                <div className="sidebar-bismillah">
+                    <span className="bismillah-stars">✦</span>
+                    <span className="bismillah-text">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</span>
+                    <span className="bismillah-stars">✦</span>
+                </div>
+
                 <div className="sidebar-profile">
                     <div className="profile-img-container">
                         {user?.profileImage ? (
@@ -181,6 +188,12 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                         <span>Déconnexion</span>
                     </button>
                 </div>
+                {/* ── Islamic Footer ── */}
+                <div className="sidebar-islamic-footer">
+                    <div className="sidebar-ornament">❖ ✦ ❖</div>
+                    <p className="sidebar-arabic-name">نور طيبة</p>
+                    <div className="sidebar-footer-verse">﴾ خَيْرُكُم مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ ﴿</div>
+                </div>
             </aside>
 
             {/* Main Content */}
@@ -234,9 +247,15 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                                         ? `Suivi de l'apprentissage de ${user.firstName}`
                                         : "Bienvenue dans votre espace d'apprentissage du Saint Coran."}
                                 </p>
+                                {/* Tasbih ornament row */}
+                                <div className="tasbih-row" style={{ margin: '10px 0' }}>
+                                    {Array.from({ length: 11 }).map((_, i) => (
+                                        <span key={i} className="tasbih-bead"></span>
+                                    ))}
+                                </div>
                                 <div className="islamic-quote">
-                                    خَیۡرُكُمۡ مَنۡ تَعَلَّمَ ٱلۡقُرۡءَانَ وَعَلَّمَهُ
-                                    <small>«Le meilleur d&apos;entre vous est celui qui apprend le Coran et l&apos;enseigne»</small>
+                                    ﴿&nbsp;خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ&nbsp;﴾
+                                    <small>«Le meilleur d&apos;entre vous est celui qui apprend le Coran et l&apos;enseigne» — Bukhari</small>
                                 </div>
                             </div>
                             <div className="banner-img">

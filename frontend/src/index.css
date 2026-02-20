@@ -1,142 +1,262 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+/* ═══════════════════════════════════════════════════════════
+   ISLAMIC DESIGN SYSTEM — Association Coranique Noor Tayyiba
+   ═══════════════════════════════════════════════════════════ */
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Scheherazade+New:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Design Tokens ── */
+:root {
+    /* Primary Palette */
+    --green-deep: #0d5f47;
+    --green-dark: #094535;
+    --green-medium: #1a7a58;
+    --green-light: #2a9d74;
+    --green-pale: #e8f5ef;
+    --green-mist: #f0f9f4;
+
+    /* Gold Accents */
+    --gold: #c9a961;
+    --gold-light: #e8c97a;
+    --gold-dark: #a8893f;
+    --gold-pale: #fdf8ee;
+
+    /* Neutrals */
+    --cream: #faf8f4;
+    --ivory: #ffffff;
+    --beige: #f5f0e8;
+    --sand: #ede8de;
+
+    /* Text */
+    --text-dark: #1a1a2e;
+    --text-medium: #374151;
+    --text-gray: #64748b;
+    --text-light: #94a3b8;
+
+    /* Borders */
+    --border: #e8e4dc;
+    --border-green: rgba(13, 95, 71, 0.2);
+    --border-gold: rgba(201, 169, 97, 0.4);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(13, 95, 71, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 16px rgba(13, 95, 71, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 40px rgba(13, 95, 71, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-gold: 0 4px 20px rgba(201, 169, 97, 0.2);
+
+    /* Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+
+    /* Transitions */
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Legacy aliases (backward compat) */
+    --admin-green: var(--green-deep);
+    --admin-green-dark: var(--green-dark);
+    --admin-green-light: var(--green-medium);
+    --bg-cream: var(--cream);
+    --card-white: var(--ivory);
+    --border-light: var(--border);
+    --admin-gold: var(--gold);
+    --forest-green: var(--green-deep);
+    --emerald: var(--green-medium);
+    --dark-text: var(--text-dark);
+    --medium-text: var(--text-gray);
+    --light-text: var(--text-light);
 }
 
-:root {
-  /* Palette coranique raffinée */
-  --forest-green: #0d5f47;
-  --emerald: #2d8659;
-  --gold: #c9a961;
-  --cream: #f8f6f0;
-  --ivory: #fffef7;
-  --dark-text: #1a3020;
-  --medium-text: #4a5568;
-  --light-text: #718096;
-  --border-light: rgba(201, 169, 97, 0.15);
+/* ── Reset ── */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-  /* Status Colors */
-  --success: #059669;
-  --warning: #d97706;
-  --danger: #dc2626;
-  --info: #2563eb;
+/* ── Base ── */
+html {
+    scroll-behavior: smooth;
 }
 
 body {
-  font-family: 'Inter', -apple-system, sans-serif;
-  min-height: 100vh;
-  background-color: var(--cream);
-  background-image: url('/pattern-bg.png');
-  background-size: 400px 400px;
-  background-repeat: repeat;
-  position: relative;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-dark);
+    /* Global Background Pattern */
+    background-color: var(--cream);
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)),
+        url('/pattern-bg.png');
+    background-size: 350px auto;
+    background-repeat: repeat;
+    background-position: top center;
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Overlay subtil pour adoucir le pattern */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg,
-      rgba(248, 246, 240, 0.92) 0%,
-      rgba(255, 254, 247, 0.90) 50%,
-      rgba(248, 246, 240, 0.92) 100%);
-  pointer-events: none;
-  z-index: 0;
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul,
+ol {
+    list-style: none;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+button {
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    background: none;
+}
+
+input,
+select,
+textarea {
+    font-family: inherit;
 }
 
 #root {
-  width: 100%;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
+    min-height: 100vh;
 }
 
-/* Bordure décorative en haut de page */
-.top-border {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--forest-green) 0%, var(--gold) 50%, var(--forest-green) 100%);
-  z-index: 1000;
-  box-shadow: 0 2px 8px rgba(13, 95, 71, 0.15);
+/* ── Global Utility Classes ── */
+
+/* Islamic ornament divider */
+.islamic-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: var(--gold);
+    font-size: 12px;
 }
 
-/* User Dashboard Styles */
-.dashboard-container {
-  width: 100%;
-  max-width: 850px;
-  margin: 40px auto;
-  background: var(--ivory);
-  border-radius: 20px;
-  padding: 40px;
-  border-top: 3px solid var(--gold);
-  box-shadow: 0 10px 40px rgba(13, 95, 71, 0.12);
+.islamic-divider::before,
+.islamic-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
 }
 
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  padding-bottom: 24px;
-  border-bottom: 2px solid var(--border-light);
+/* Bismillah / Arabic text */
+.arabic-text {
+    font-family: 'Scheherazade New', serif;
+    direction: rtl;
+    text-align: right;
 }
 
-.dashboard-header h1 {
-  font-family: 'Scheherazade New', serif;
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--forest-green);
-  direction: rtl;
+/* Gold accent badge */
+.badge-gold {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    background: var(--gold-pale);
+    color: var(--gold-dark);
+    border: 1px solid var(--border-gold);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-.btn-logout {
-  padding: 10px 20px;
-  border: 1px solid var(--border-light);
-  border-radius: 10px;
-  background: white;
-  color: var(--danger);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* ── Animations ── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.btn-logout:hover {
-  background: #fef2f2;
-  border-color: #fecaca;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
-.content {
-  padding: 20px;
-  text-align: center;
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.content h2 {
-  font-family: 'Scheherazade New', serif;
-  font-size: 22px;
-  color: var(--dark-text);
-  margin-bottom: 18px;
-  direction: rtl;
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-.content p {
-  font-size: 15px;
-  color: var(--medium-text);
-  line-height: 1.7;
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
-/* Shared Components & Utilities needed across files could also go here 
-   or in a shared components.css if strictly adhering to separations */
+@keyframes shimmer {
+    0% {
+        background-position: -200% center;
+    }
+
+    100% {
+        background-position: 200% center;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ── Accessibility ── */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

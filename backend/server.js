@@ -4,6 +4,8 @@ import cors from 'cors';
 import connectDB from './config/db.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 import userRoutes from './routes/userRoutes.js';
+import classeRoutes from './routes/classeRoutes.js';
+import matiereRoutes from './routes/matiereRoutes.js';
 
 dotenv.config();
 
@@ -25,6 +27,8 @@ app.use('/uploads', express.static('uploads'));
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/classes', classeRoutes);
+app.use('/api/matieres', matiereRoutes);
 
 // Root route
 app.get('/', (req, res) => {

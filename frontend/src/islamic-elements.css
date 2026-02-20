@@ -1,0 +1,376 @@
+/* ═══════════════════════════════════════════════════════════
+   ISLAMIC DECORATIVE ELEMENTS — Shared Styles
+   Bismillah · Versets · Ornements · Motifs · Calligraphie
+   ═══════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════
+   🕌 BISMILLAH
+══════════════════════════════════ */
+.sidebar-bismillah {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: linear-gradient(90deg, transparent, rgba(201, 169, 97, 0.12), transparent);
+    border-top: 1px solid rgba(201, 169, 97, 0.2);
+    border-bottom: 1px solid rgba(201, 169, 97, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.bismillah-text {
+    font-family: 'Scheherazade New', 'Noto Naskh Arabic', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gold-light);
+    letter-spacing: 0.5px;
+    direction: rtl;
+    white-space: nowrap;
+    text-shadow: 0 1px 4px rgba(201, 169, 97, 0.3);
+}
+
+.bismillah-stars {
+    color: var(--gold);
+    font-size: 8px;
+    opacity: 0.8;
+}
+
+/* ══════════════════════════════════
+   📿 SIDEBAR ISLAMIC FOOTER
+══════════════════════════════════ */
+.sidebar-islamic-footer {
+    padding: 14px 16px 20px;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.15));
+}
+
+.sidebar-ornament {
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.sidebar-arabic-name {
+    font-family: 'Scheherazade New', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+    direction: rtl;
+    margin: 0 0 2px 0;
+    line-height: 1.5;
+}
+
+.sidebar-arabic-sub {
+    font-family: 'Noto Naskh Arabic', serif;
+    font-size: 12px;
+    color: var(--gold-light);
+    direction: rtl;
+    margin: 0 0 10px 0;
+    opacity: 0.9;
+}
+
+.sidebar-footer-verse {
+    font-family: 'Amiri', serif;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    direction: rtl;
+    line-height: 1.8;
+    font-style: italic;
+}
+
+/* ══════════════════════════════════
+   📖 QURANIC VERSE BOXES
+══════════════════════════════════ */
+
+/* Premium Quranic card for dashboard */
+.quran-verse-card {
+    background: linear-gradient(135deg, rgba(13, 95, 71, 0.04), rgba(201, 169, 97, 0.06));
+    border: 1px solid rgba(201, 169, 97, 0.25);
+    border-radius: var(--radius-lg);
+    padding: 22px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin: 0 32px 24px;
+}
+
+.quran-verse-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23c9a961' stroke-width='0.3' opacity='0.15'%3E%3Cpolygon points='40,4 52,16 52,36 40,48 28,36 28,16'/%3E%3Cpolygon points='40,12 48,20 48,34 40,42 32,34 32,20'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 80px 80px;
+    pointer-events: none;
+}
+
+.quran-verse-card>* {
+    position: relative;
+    z-index: 1;
+}
+
+.quran-opening {
+    font-size: 11px;
+    color: var(--gold-dark);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.quran-opening::before,
+.quran-opening::after {
+    content: '❖';
+    color: var(--gold);
+    font-size: 8px;
+}
+
+.quran-arabic-text {
+    font-family: 'Noto Naskh Arabic', 'Scheherazade New', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--green-deep);
+    direction: rtl;
+    line-height: 2;
+    margin-bottom: 10px;
+    text-shadow: 0 1px 2px rgba(13, 95, 71, 0.1);
+}
+
+.quran-bracket-open {
+    color: var(--gold);
+    font-size: 26px;
+}
+
+.quran-bracket-close {
+    color: var(--gold);
+    font-size: 26px;
+}
+
+.quran-translation {
+    font-size: 13px;
+    color: var(--text-gray);
+    font-style: italic;
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.quran-reference {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold-dark);
+    background: var(--gold-pale);
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-gold);
+}
+
+/* ══════════════════════════════════
+   🌙 ISLAMIC HEADER BAND
+══════════════════════════════════ */
+.islamic-header-band {
+    background: linear-gradient(90deg, var(--green-dark), var(--green-deep), var(--green-dark));
+    padding: 6px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+}
+
+.islamic-band-text {
+    font-family: 'Noto Naskh Arabic', serif;
+    color: rgba(255, 255, 255, 0.7);
+    direction: rtl;
+    font-size: 12px;
+}
+
+.islamic-band-ornament {
+    color: var(--gold);
+    font-size: 10px;
+    letter-spacing: 6px;
+    opacity: 0.7;
+}
+
+/* ══════════════════════════════════
+   ✨ ORNAMENTAL DIVIDERS
+══════════════════════════════════ */
+.ornament-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    color: var(--gold);
+}
+
+.ornament-divider::before,
+.ornament-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
+}
+
+.ornament-divider span {
+    font-size: 14px;
+    letter-spacing: 6px;
+    opacity: 0.8;
+}
+
+/* ══════════════════════════════════
+   🏷️ ISLAMIC BADGE
+══════════════════════════════════ */
+.islamic-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: linear-gradient(135deg, var(--gold-pale), rgba(201, 169, 97, 0.1));
+    border: 1px solid var(--border-gold);
+    border-radius: 20px;
+    font-family: 'Noto Naskh Arabic', serif;
+    font-size: 12px;
+    color: var(--gold-dark);
+    direction: rtl;
+}
+
+/* ══════════════════════════════════
+   🕌 SVG ISLAMIC PATTERNS (inline)
+══════════════════════════════════ */
+
+/* Dense arabesque pattern */
+.pattern-arabesque {
+    position: relative;
+    overflow: hidden;
+}
+
+.pattern-arabesque::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%230d5f47' stroke-width='0.5' opacity='0.08'%3E%3Ccircle cx='50' cy='50' r='25'/%3E%3Ccircle cx='50' cy='50' r='15'/%3E%3Ccircle cx='50' cy='50' r='5'/%3E%3Cline x1='25' y1='50' x2='75' y2='50'/%3E%3Cline x1='50' y1='25' x2='50' y2='75'/%3E%3Cline x1='32' y1='32' x2='68' y2='68'/%3E%3Cline x1='68' y1='32' x2='32' y2='68'/%3E%3Cpolygon points='50,10 61,39 93,39 68,57 79,87 50,68 21,87 32,57 7,39 39,39'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 100px 100px;
+    pointer-events: none;
+}
+
+/* Star of Islam motif */
+.pattern-star {
+    position: relative;
+    overflow: hidden;
+}
+
+.pattern-star::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23c9a961' stroke-width='0.4' opacity='0.12'%3E%3Cpolygon points='60,5 72,40 110,40 80,62 92,97 60,75 28,97 40,62 10,40 48,40'/%3E%3Ccircle cx='60' cy='60' r='20'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 120px 120px;
+    pointer-events: none;
+}
+
+/* ══════════════════════════════════
+   📌 PAGE TITLE WITH ISLAMIC STYLE
+══════════════════════════════════ */
+.islamic-page-title {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.islamic-page-title h1 {
+    font-family: 'Amiri', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--green-deep);
+    margin: 0;
+}
+
+.islamic-page-title .arabic-subtitle {
+    font-family: 'Noto Naskh Arabic', serif;
+    font-size: 14px;
+    color: var(--gold-dark);
+    direction: rtl;
+    opacity: 0.85;
+}
+
+/* ══════════════════════════════════
+   🌙☪️ ISLAMIC SYMBOLS in auth pages
+══════════════════════════════════ */
+.auth-islamic-symbols {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 16px 0;
+    font-size: 20px;
+    opacity: 0.35;
+}
+
+/* Crescent & Star combo */
+.symbol-crescent {
+    color: var(--gold);
+    letter-spacing: -2px;
+}
+
+.symbol-star {
+    color: var(--green-deep);
+}
+
+/* ══════════════════════════════════
+   99 NAMES / TASBIH BEAD ROW
+══════════════════════════════════ */
+.tasbih-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 0;
+}
+
+.tasbih-bead {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    opacity: 0.4;
+    transition: opacity 0.3s;
+}
+
+.tasbih-bead:hover {
+    opacity: 1;
+}
+
+.tasbih-bead:nth-child(3n) {
+    width: 10px;
+    height: 10px;
+    background: var(--green-deep);
+    opacity: 0.5;
+}
+
+/* ══════════════════════════════════
+   📜 SCROLL DECORATIONS
+══════════════════════════════════ */
+.quran-card-decor {
+    position: absolute;
+    top: 10px;
+    font-size: 18px;
+    opacity: 0.15;
+    color: var(--gold);
+    pointer-events: none;
+}
+
+.quran-card-decor.left {
+    left: 12px;
+}
+
+.quran-card-decor.right {
+    right: 12px;
+}
