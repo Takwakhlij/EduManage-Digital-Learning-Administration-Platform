@@ -69,6 +69,35 @@
     --light-text: var(--text-light);
 }
 
+/* ── Dark Theme Tokens ── */
+.dark-theme {
+    /* Backgrounds */
+    --cream: #121212;
+    --ivory: #1e1e1e;
+    --beige: #2a2a2a;
+    --sand: #333333;
+
+    /* Text */
+    --text-dark: #f3f4f6;
+    --text-medium: #d1d5db;
+    --text-gray: #9ca3af;
+    --text-light: #6b7280;
+
+    /* Borders */
+    --border: #333333;
+    --border-green: rgba(26, 122, 88, 0.3);
+    --border-gold: rgba(201, 169, 97, 0.3);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+
+    /* Adjusted surface colors */
+    --green-pale: #0d2b20;
+    --green-mist: #11221b;
+}
+
 /* ── Reset ── */
 *,
 *::before,
@@ -99,6 +128,12 @@ body {
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+body.dark-theme {
+    background-image:
+        linear-gradient(rgba(18, 18, 18, 0.94), rgba(18, 18, 18, 0.94)),
+        url('/pattern-bg.png');
 }
 
 a {

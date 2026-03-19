@@ -1,0 +1,557 @@
+.tsd-page {
+    min-height: 100vh;
+    background-color: var(--td-bg, #fdfbf7);
+    color: var(--td-text, #334155);
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+body.dark-theme .tsd-page {
+    background-color: #0c0f14 !important; /* Very dark background */
+    color: #f8fafc;
+    background-image:
+        linear-gradient(rgba(12, 15, 20, 0.974), rgba(12, 15, 20, 0.947)),
+        url('/pattern-bg.png') !important;
+    background-size: 400px;
+    background-attachment: fixed;
+}
+
+.tsd-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 2.5rem;
+}
+
+.tsd-loading, .tsd-error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-size: 1.2rem;
+    color: var(--td-text-mute, #64748b);
+    background-color: var(--td-bg, #fdfbf7);
+}
+
+.tsd-error {
+    color: var(--td-red, #ef4444);
+}
+
+.tsd-header {
+    background: linear-gradient(135deg, rgba(3, 63, 40, 0.95) 0%, rgba(6, 78, 59, 0.95) 100%);
+    margin-bottom: 0;
+    padding: 2.5rem 0;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+body.dark-theme .tsd-header {
+    background: linear-gradient(135deg, #04291b 0%, #092c23 100%);
+    border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.tsd-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease;
+    z-index: 10;
+}
+
+.tsd-back-btn:hover {
+    color: #ffffff;
+}
+
+.tsd-header-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.tsd-header-info h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+}
+
+.tsd-badges {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.tsd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.tsd-badge-class {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 500;
+}
+
+.tsd-badge-time {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 500;
+}
+
+.tsd-section-header {
+    margin-bottom: 2rem;
+}
+
+.tsd-section-header h2 {
+    font-size: 1.5rem;
+    color: var(--td-text-dark, #0f172a);
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.tsd-section-header p {
+    color: var(--td-text-mute, #64748b);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.tsd-content {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+.tsd-chapters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.tsd-chapter-card {
+    background-color: #1e2025 !important; /* Very dark neutral-blue */
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: none !important;
+}
+
+body.dark-theme .tsd-chapter-card {
+    background-color: #1a1c23 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: none !important;
+}
+
+.tsd-chapter-card:hover {
+    box-shadow: none !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    transform: translateY(-2px) !important;
+}
+
+body.dark-theme .tsd-chapter-card:hover {
+    background-color: #232730 !important;
+}
+
+.tsd-chapter-card.open {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.tsd-chapter-header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background-color: transparent;
+    transition: background-color 0.2s ease;
+}
+
+.tsd-chapter-header:hover {
+    background-color: rgba(3, 63, 40, 0.015);
+}
+
+.tsd-chapter-title-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+}
+
+.tsd-chapter-number {
+    background-color: #164233 !important; /* Emerald circle */
+    color: #ffffff !important;
+    width: 36px;
+    height: 36px;
+    border-radius: 50% !important; /* Perfect circle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.tsd-chapter-card:hover .tsd-chapter-number {
+    transform: scale(1.05);
+}
+
+.tsd-chapter-title {
+    margin: 0 0 0.35rem 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--td-text-dark, #0f172a);
+    letter-spacing: -0.3px;
+}
+
+body.dark-theme .tsd-chapter-title {
+    color: #ffffff !important; /* Absolute white for visibility */
+}
+
+.tsd-chapter-desc {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--td-text-mute, #64748b);
+    line-height: 1.5;
+}
+
+.tsd-chapter-toggle {
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    background: transparent !important;
+    border: none !important;
+    padding: 0;
+    box-shadow: none !important;
+}
+
+.tsd-chapter-card:hover .tsd-chapter-toggle {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #cbd5e1 !important;
+    box-shadow: none !important;
+}
+
+.tsd-chapter-body {
+    padding: 0 2rem 2rem 5rem; /* Indented body */
+    background-color: transparent !important;
+    border-top: none !important;
+}
+
+.tsd-documents-empty {
+    padding: 1rem;
+    background-color: var(--td-surface, #ffffff);
+    border-radius: 8px;
+    border: 1px dashed var(--td-border, #e2e8f0);
+    color: var(--td-text-mute, #64748b);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.tsd-add-doc-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem;
+    background-color: transparent !important;
+    color: #94a3b8 !important;
+    border: 1px dashed rgba(255, 255, 255, 0.2) !important;
+    border-radius: 8px !important;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tsd-add-doc-btn:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    color: #f8fafc !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.tsd-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: var(--td-surface, #ffffff);
+    border-radius: 12px;
+    border: 1px dashed var(--td-border, #e2e8f0);
+    color: var(--td-text-mute, #64748b);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.tsd-empty-state svg {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+    color: var(--td-text-mute, #64748b);
+}
+
+.tsd-empty-state h3 {
+    color: var(--td-text-dark, #0f172a);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+/* Document Item Styles for inside Chapter Body */
+.tsd-documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.tsd-document-item {
+    display: flex;
+    align-items: center;
+    background-color: #14151a !important; /* even darker for rows */
+    border: 1px solid rgba(255, 255, 255, 0.03) !important;
+    border-radius: 8px !important;
+    padding: 1rem 1.25rem;
+    gap: 1.25rem;
+    transition: all 0.2s ease;
+    box-shadow: none !important;
+}
+
+.tsd-document-item:hover {
+    background-color: #1b1d24 !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.tsd-doc-info {
+    flex: 1;
+}
+
+.tsd-doc-info h4 {
+    margin: 0;
+    color: #e2e8f0;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.tsd-doc-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    background-color: #164233 !important; /* Matcha circle color used by user */
+    color: #ffffff !important;
+    border-radius: 999px; /* "In a circle" / Pill shape */
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tsd-doc-link:hover {
+    background-color: #1d5542 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(22, 66, 51, 0.3);
+}
+
+.tsd-doc-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.tsd-document-item:hover .tsd-doc-icon {
+    opacity: 0.8;
+}
+
+.tsd-doc-info h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #f8fafc !important;
+}
+
+.tsd-doc-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--td-text-mute, #64748b);
+}
+
+.tsd-doc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #94a3b8 !important;
+    background-color: transparent !important;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.5rem;
+    border: none !important;
+    transition: color 0.2s ease;
+}
+
+.tsd-doc-link:hover {
+    color: #f8fafc !important;
+}
+
+/* Tabs for switching views */
+.tsd-tabs {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 0.5rem;
+}
+
+.tsd-tab-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.tsd-tab-btn:hover {
+    color: #f8fafc;
+}
+
+.tsd-tab-btn.active {
+    color: #10b981;
+}
+
+.tsd-tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #10b981;
+}
+
+/* Student List Styles */
+.tsd-students-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tsd-student-item {
+    display: flex;
+    align-items: center;
+    background-color: #1a1c23;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    gap: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.tsd-student-item:hover {
+    border-color: rgba(16, 185, 129, 0.2);
+    background-color: #1e2025;
+}
+
+.tsd-student-avatar {
+    width: 45px;
+    height: 45px;
+    background-color: #164233;
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    overflow: hidden;
+}
+
+.tsd-student-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tsd-student-info {
+    flex: 1;
+}
+
+.tsd-student-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #f8fafc;
+}
+
+.tsd-student-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.tsd-student-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.tsd-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.tsd-status-paye {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.tsd-status-non-paye {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.tsd-status-avance {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+@media (max-width: 640px) {
+    .tsd-student-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .tsd-student-status {
+        align-items: flex-start;
+        width: 100%;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 0.75rem;
+    }
+}

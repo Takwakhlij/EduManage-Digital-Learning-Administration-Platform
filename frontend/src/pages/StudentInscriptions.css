@@ -1,0 +1,1728 @@
+/* ════════════════════════════════════════════════════════════
+   EXACT SCREENSHOT REPLICA CSS - STUDENT CLASSES
+   ════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    /* Base UI Colors from legacy CSS */
+    --sc-gold: #c39c57;
+    --sc-gold-hover: #d1ab68;
+    --sc-text-green: #5cc284;
+
+    /* New Dynamic Theme Colors (Light Default) */
+    --sc-topbar-bg: #ffffff;
+    --sc-main-bg: #f8fbf9;
+    --sc-panel-bg: #ffffff;
+    --sc-list-bg: #ffffff;
+    --sc-panel-border: rgba(32, 92, 54, 0.1);
+    --sc-text-title: #102619;
+    --sc-text-subtitle: #4b6655;
+
+    /* Cards and inner elements */
+    --sc-card-bg: #ffffff;
+    --sc-card-hover: #f1f5f3;
+    --sc-card-border: rgba(32, 92, 54, 0.15);
+    --sc-inner-bg: #f8fbf9;
+
+    /* Text and accents */
+    --sc-gold-text: #b88a3b;
+    --sc-white-text: #ffffff;
+    --sc-primary-text: #102619;
+
+    /* Overlays and Shadows */
+    --sc-overlay: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(248, 251, 249, 0.4) 60%, rgba(248, 251, 249, 1) 100%);
+    --sc-badge-bg: rgba(32, 92, 54, 0.05);
+    --sc-shadow: -1px 1px 0px 1px #b88a3b;
+
+    /* Buttons and Pattern */
+    --sc-icon-btn-hover: rgba(0, 0, 0, 0.05);
+    --sc-icon-btn-active: rgba(0, 0, 0, 0.1);
+    --sc-bg-opacity: 0.06;
+    /* Very subtle watermark for light mode */
+    --sc-bg-blend: multiply;
+}
+
+body.dark-theme {
+    /* Dark Theme Overrides (from the exact copy-paste screenshot) */
+    --sc-topbar-bg: #205c36;
+    --sc-main-bg: #0d1210;
+    --sc-panel-bg: #101614;
+    --sc-panel-border: rgba(255, 255, 255, 0.08);
+    /* Actually exa-list background is #102619 */
+    --sc-list-bg: #102619;
+    --sc-text-title: #ffffff;
+    --sc-text-subtitle: #a4b3ac;
+    --sc-card-bg: #1a3726;
+    --sc-card-hover: #1d402b;
+    --sc-card-border: rgba(255, 255, 255, 0.15);
+    --sc-inner-bg: #0f1c16;
+    --sc-gold-text: #ceaa5f;
+    --sc-primary-text: #ffffff;
+    --sc-overlay: linear-gradient(to bottom, rgba(16, 54, 33, 0) 0%, rgba(16, 38, 25, 0.5) 60%, rgba(10, 22, 15, 0.95) 100%);
+    --sc-badge-bg: rgba(255, 255, 255, 0.05);
+    --sc-shadow: -1px 1px 0px 1px #d0ab5f;
+    --sc-icon-btn-hover: rgba(255, 255, 255, 0.05);
+    --sc-icon-btn-active: rgba(255, 255, 255, 0.15);
+    --sc-bg-opacity: 0.15;
+    /* Clean watermark for dark mode */
+    --sc-bg-blend: lighten;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body.dark-theme,
+body {
+    /* Override any body themes for this specific page layout */
+    margin: 0;
+    padding: 0;
+}
+
+.exa-layout {
+    font-family: 'Cairo', 'Inter', sans-serif;
+    color: var(--sc-text-main);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--sc-detail-bg);
+}
+
+/* ── TOP BAR ── */
+.exa-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--sc-topbar-bg);
+    height: 64px;
+    padding: 0 24px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--sc-panel-border);
+}
+
+.exa-topbar-start,
+.exa-topbar-end {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+}
+
+.exa-topbar-end {
+    justify-content: flex-end;
+}
+
+.exa-topbar-center {
+    flex: 0 1 auto;
+    text-align: center;
+}
+
+.exa-topbar-center h1 {
+    font-family: 'Amiri', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0 0 2px;
+    color: var(--sc-text-title);
+    line-height: 1.2;
+}
+
+.exa-topbar-center p {
+    font-size: 0.7rem;
+    color: var(--sc-text-muted);
+    margin: 0;
+}
+
+.exa-back-btn {
+    background: transparent;
+    border: none;
+    color: var(--sc-gold);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    padding: 0;
+}
+
+.exa-back-btn:hover {
+    opacity: 0.8;
+}
+
+.exa-lang-pills {
+    display: flex;
+    background: var(--sc-badge-bg);
+    border-radius: 20px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.exa-top-icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--sc-text-subtitle);
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.exa-top-icon-btn:hover {
+    background: var(--sc-icon-btn-hover);
+}
+
+.exa-top-icon-btn.active {
+    background: var(--sc-icon-btn-active);
+    color: var(--sc-primary-text);
+}
+
+.exa-enroll-btn {
+    background: var(--sc-gold);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.exa-enroll-btn:hover {
+    background: var(--sc-gold-hover);
+}
+
+/* Enroll Dropdown area */
+.exa-enroll-panel {
+    background: var(--sc-card-bg);
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--sc-panel-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.exa-enroll-form {
+    display: flex;
+    gap: 12px;
+}
+
+.exa-enroll-select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--sc-card-border);
+    background: var(--sc-inner-bg);
+    color: var(--sc-primary-text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    width: 300px;
+}
+
+.exa-enroll-submit {
+    background: var(--sc-gold);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-family: 'Cairo';
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.exa-enroll-none {
+    color: #fca5a5;
+    font-size: 0.8rem;
+    margin-top: 8px;
+}
+
+/* ── MAIN AREA ── */
+.exa-main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    padding: 24px;
+    gap: 24px;
+    background-color: var(--sc-main-bg);
+    position: relative;
+    z-index: 1;
+}
+
+.exa-main::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--bg-pattern);
+    background-size: 400px;
+    background-repeat: repeat;
+    background-blend-mode: var(--sc-bg-blend);
+    opacity: var(--sc-bg-opacity);
+    z-index: -1;
+}
+
+/* ── LIST SIDEBAR ── */
+/* In RTL, the second element in the DOM appears on the LEFT. */
+.exa-list {
+    width: 420px;
+    background: var(--sc-list-bg);
+    /* Very dark green background from screenshot */
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    border-radius: 16px;
+    border: 1px solid var(--sc-panel-border);
+    /* Slightly brighter edge */
+}
+
+.exa-list-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--sc-panel-border);
+    text-align: start;
+    /* Aligned based on direction */
+}
+
+.exa-list-header h2 {
+    font-family: 'Amiri', serif;
+    font-size: 1.6rem;
+    color: var(--sc-gold);
+    /* Gold title in screenshot */
+    font-weight: 700;
+    margin: 0;
+}
+
+.exa-list-header p {
+    font-size: 0.7rem;
+    color: var(--sc-text-muted);
+    margin: 4px 0 0;
+}
+
+.exa-list-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px;
+    /* Padding to allow discrete cards */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* Space between class cards */
+}
+
+/* Custom Scrollbar for list sidebar */
+.exa-list-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.exa-list-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.exa-list-scroll::-webkit-scrollbar-thumb {
+    background: #8e918f;
+    border-radius: 4px;
+}
+
+
+/* Custom list Item card */
+.exa-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    cursor: pointer;
+    background: var(--sc-card-bg);
+    border-radius: 12px;
+    transition: all 0.2s;
+    border: 1px solid var(--sc-card-border);
+}
+
+.exa-item:hover {
+    background: var(--sc-card-hover);
+}
+
+.exa-item.active {
+    border: 1px solid var(--sc-gold);
+    box-shadow: 0 0 0 transparent;
+    /* No outer glow in screenshot, just border */
+    position: relative;
+}
+
+/* Add that little gold vertical highlight on the left edge if active */
+.exa-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 38px;
+    width: 3px;
+    background: var(--sc-gold);
+    border-radius: 0 4px 4px 0;
+    box-shadow: 2px 0 6px rgba(195, 156, 87, 0.6);
+}
+
+.exa-item-text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: start;
+    flex: 1;
+    margin-inline-end: 0;
+    margin-inline-start: 16px;
+    /* spacing between text and image */
+}
+
+.exa-item-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--sc-primary-text);
+    font-family: 'Cairo', sans-serif;
+    margin-bottom: -4px;
+    /* tight spacing with subject */
+}
+
+.exa-item-subject {
+    font-size: 0.85rem;
+    color: var(--sc-text-subtitle);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.exa-item-nivel {
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: 'Cairo', sans-serif;
+    padding: 2px 14px;
+    border-radius: 6px;
+    background: var(--sc-badge-bg);
+    /* subtle fill */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    /* will be overridden by style tag */
+    align-self: flex-end;
+    /* Align right */
+    display: inline-block;
+}
+
+.exa-item-img {
+    width: 68px;
+    height: 68px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    flex-shrink: 0;
+    background: #fff;
+}
+
+/* ── FILTERS ── */
+.exa-filters {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: start;
+}
+
+.exa-search-bar {
+    display: flex;
+    align-items: center;
+    background: var(--sc-inner-bg);
+    border: 1px solid var(--sc-panel-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    gap: 8px;
+    transition: border-color 0.2s;
+}
+
+.exa-search-bar:focus-within {
+    border-color: var(--sc-gold);
+}
+
+.exa-search-icon {
+    color: var(--sc-text-muted);
+}
+
+.exa-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--sc-primary-text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.95rem;
+}
+
+.exa-search-input::placeholder {
+    color: var(--sc-text-muted);
+}
+
+.exa-subject-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.exa-filter-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--sc-gold);
+    font-weight: 600;
+}
+
+.exa-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 120px;
+    overflow-y: auto;
+    padding-inline-start: 4px;
+    /* for scrollbar */
+}
+
+.exa-checkbox-group::-webkit-scrollbar {
+    width: 4px;
+}
+
+.exa-checkbox-group::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.exa-checkbox-group::-webkit-scrollbar-thumb {
+    background: var(--sc-panel-border);
+    border-radius: 4px;
+}
+
+.exa-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--sc-text-subtitle);
+    transition: color 0.2s;
+    background: var(--sc-inner-bg);
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--sc-panel-border);
+}
+
+.exa-checkbox-label:hover {
+    color: var(--sc-primary-text);
+    border-color: var(--sc-gold);
+}
+
+.exa-checkbox-input {
+    display: none;
+}
+
+.exa-checkbox-custom {
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--sc-panel-border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: var(--sc-inner-bg);
+}
+
+.exa-checkbox-input:checked+.exa-checkbox-custom {
+    background: var(--sc-gold);
+    border-color: var(--sc-gold);
+}
+
+.exa-checkbox-input:checked+.exa-checkbox-custom::after {
+    content: '';
+    width: 3px;
+    height: 6px;
+    border: solid #000;
+    /* Black checkmark on gold */
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-bottom: 2px;
+}
+
+.exa-checkbox-input:checked~.exa-checkbox-text {
+    color: var(--sc-gold);
+}
+
+/* ── COURSE INNER FILTERS ── */
+.exa-course-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.exa-course-search {
+    display: flex;
+    align-items: center;
+    background: var(--sc-inner-bg);
+    border: 1px solid var(--sc-panel-border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    gap: 8px;
+    transition: border-color 0.2s;
+    width: 220px;
+}
+
+.exa-course-search:focus-within {
+    border-color: var(--sc-gold);
+}
+
+.exa-course-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--sc-primary-text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.exa-course-search-input::placeholder {
+    color: var(--sc-text-muted);
+}
+
+.exa-course-select {
+    background: var(--sc-inner-bg);
+    border: 1px solid var(--sc-panel-border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: var(--sc-primary-text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.exa-course-select:focus {
+    border-color: var(--sc-gold);
+}
+
+/* ── GLOBAL VIEW CARD (Toutes mes classes) ── */
+.exa-item--all .exa-item-img--all {
+    width: 68px;
+    height: 68px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--sc-gold), #b07c2a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.exa-file-type-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.exa-type-filter-btn {
+    background-color: var(--sc-surface);
+    color: var(--sc-text-muted);
+    border: 1px solid var(--sc-border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.exa-type-filter-btn:hover {
+    background-color: var(--sc-border);
+    color: var(--sc-text-main);
+}
+
+.exa-type-filter-btn.active {
+    background-color: var(--sc-primary);
+    color: #ffffff;
+    border-color: var(--sc-primary);
+}
+
+/* ── COURSE GRID CARD (New Layout) ── */
+.exa-course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    width: 100%;
+}
+
+.exa-course-grid-card {
+    background: rgba(255, 255, 255, 0.02);
+    /* More transparent background */
+    border: 1px solid rgba(206, 170, 95, 0.3);
+    /* Premium gold tint */
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.exa-course-grid-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 0 12px rgba(206, 170, 95, 0.15);
+    border-color: rgba(206, 170, 95, 0.6);
+}
+
+.exa-cgc-main {
+    padding: 16px;
+    display: flex;
+    gap: 16px;
+    flex: 1;
+}
+
+.exa-cgc-icon-wrapper {
+    width: 44px;
+    height: 54px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 2px;
+    border: none;
+    position: relative;
+}
+
+.exa-cgc-icon-label {
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0px;
+    color: #ffffff;
+}
+
+.exa-cgc-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    justify-content: center;
+}
+
+.exa-cgc-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 2px;
+}
+
+.exa-cgc-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--sc-primary-text);
+    font-family: 'Amiri', 'Cairo', sans-serif;
+    text-align: start; /* Respect RTL/LTR */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.exa-cgc-desc {
+    font-family: 'Inter', 'Cairo', sans-serif;
+    color: var(--sc-text-subtitle);
+    font-size: 0.85rem;
+    text-align: start;  /* Respect RTL/LTR */
+    margin: 0;
+    font-weight: 500;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.exa-cgc-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--sc-text-subtitle);
+    font-family: 'Inter', sans-serif;
+}
+
+.exa-cgc-date {
+    font-weight: 500;
+}
+
+.exa-cgc-size {
+    font-weight: 600;
+}
+
+.exa-cgc-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.exa-cgc-actions {
+    display: flex;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.exa-cgc-action-btn {
+    flex: 1;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    transition: background 0.2s, color 0.2s;
+}
+
+.exa-cgc-action-btn.dl-btn {
+    color: var(--sc-text-subtitle);
+    border-inline-end: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.exa-cgc-action-btn.dl-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.exa-cgc-action-btn.view-btn {
+    color: var(--sc-gold);
+}
+
+.exa-cgc-action-btn.view-btn.single-action {
+    border-inline-start: none;
+    flex: 1;
+}
+
+.exa-cgc-action-btn.view-btn:hover {
+    background: rgba(206, 170, 95, 0.1);
+}
+
+.exa-cours-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.exa-cours-tag--class {
+    background: rgba(195, 156, 87, 0.12);
+    color: var(--sc-gold);
+    border: 1px solid rgba(195, 156, 87, 0.3);
+}
+
+.exa-cours-tag--subject {
+    background: rgba(47, 179, 139, 0.1);
+    color: var(--sc-text-green);
+    border: 1px solid rgba(47, 179, 139, 0.2);
+}
+
+/* ── COURS TITLE MULTI-CHECKBOX FILTER ── */
+.exa-cours-title-filter {
+    padding: 12px 16px;
+    background: var(--sc-inner-bg);
+    border: 1px solid var(--sc-panel-border);
+    border-radius: 10px;
+    margin-top: 4px;
+}
+
+.exa-item-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ── DETAIL COMPONENT ── */
+.exa-detail {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--sc-panel-bg);
+    /* very dark almost black green background of the detail pane */
+    overflow-y: auto;
+    border-radius: 16px;
+    /* Detached look */
+    border: 1px solid var(--sc-panel-border);
+    /* Slightly brighter edge */
+}
+
+/* Custom Scrollbar for Detail pane */
+.exa-detail::-webkit-scrollbar {
+    width: 6px;
+}
+
+.exa-detail::-webkit-scrollbar-track {
+    background: var(--sc-detail-bg);
+}
+
+.exa-detail::-webkit-scrollbar-thumb {
+    background: var(--sc-panel-border);
+    border-radius: 4px;
+}
+
+/* Hero Container - provides padding around the inner hero card */
+.exa-hero-container {
+    padding: 24px;
+    flex-shrink: 0;
+}
+
+/* Hero */
+.exa-hero {
+    height: 320px;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    /* Centré au milieu pour convenir à la fois à la photo Coran et Bibliothèque */
+    border-radius: 16px;
+    overflow: hidden;
+    /* There's a subtle gold glow/border effect on the bottom and left in the screenshot */
+    box-shadow: var(--sc-shadow);
+    border: 1px solid rgba(208, 171, 95, 0.3);
+}
+
+.exa-hero-overlay {
+    position: absolute;
+    inset: 0;
+    /* Green to Dark Green gradient from top to bottom matching the image's fade */
+    background: var(--sc-overlay);
+}
+
+/* (Deleted Hero Toggles) */
+
+
+.exa-hero-content {
+    position: absolute;
+    bottom: 32px;
+    inset-inline-end: 40px;
+    text-align: start;
+    z-index: 10;
+}
+
+.exa-hero-name {
+    font-family: 'Amiri', serif;
+    font-size: 3.5rem;
+    /* Larger, like the screenshot */
+    color: var(--sc-white-text);
+    /* Always white */
+    margin: 0 0 16px;
+    font-weight: 700;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.exa-hero-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 1rem;
+    color: var(--sc-text-subtitle);
+}
+
+/* Explicit badge styling for the hero (like the MUTAQADIM one in the image) */
+.exa-hero-badge {
+    padding: 4px 16px;
+    border-radius: 8px;
+    border: 1px solid;
+    /* color provided by inline style */
+    background: var(--sc-badge-bg);
+    font-weight: 700;
+}
+
+/* Body area padding */
+.exa-detail-body {
+    padding: 0 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* Section Shared elements (Right Aligned) */
+.exa-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.exa-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    color: var(--sc-primary-text);
+    font-family: 'Amiri', serif;
+    font-size: 1.4rem;
+    margin: 0;
+    font-weight: 700;
+}
+
+.exa-sect-icon {
+    color: var(--sc-gold-text);
+    /* exact yellow/gold from screenshot icons */
+}
+
+.exa-empty-text {
+    text-align: start;
+    color: var(--sc-text-muted);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin: 0;
+}
+
+/* Teachers Pill */
+.exa-profs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-start;
+}
+
+.exa-prof-pill {
+    padding: 10px 24px;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid var(--sc-card-border);
+    /* screenshot shows subtle whiteish/grey border, not green */
+    color: var(--sc-primary-text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Schedule Rows */
+.exa-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.exa-day-group {
+    display: flex;
+    flex-direction: column;
+    background: var(--sc-card-bg);
+    /* Dark green schedule wrapper */
+    border-radius: 16px;
+    border: 1px solid var(--sc-card-border);
+    overflow: hidden;
+}
+
+.exa-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    color: var(--sc-gold-text);
+    font-family: 'Amiri', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    padding: 16px 24px;
+}
+
+.exa-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--sc-gold-text);
+}
+
+/* Schedule Row Card */
+.exa-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--sc-inner-bg);
+    /* Inner very dark green */
+    margin: 0 16px 16px;
+    /* offset inside the wrapper */
+    padding: 16px 20px;
+    border-radius: 12px;
+    direction: ltr;
+    /* Ensure left/right works logically */
+}
+
+/* Screenshot: Matiere C on left */
+.exa-slot-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Inter', 'Cairo', sans-serif;
+    font-size: 1rem;
+    /* Slightly smaller text */
+    font-weight: 700;
+    color: var(--sc-primary-text);
+}
+
+.exa-slot-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--sc-gold-text);
+    /* the time is gold in the screenshot */
+    font-size: 0.95rem;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 600;
+}
+
+/* Screenshots: time is gold, subject is white */
+/* Loading/Empty State */
+.exa-empty {
+    padding: 60px;
+    text-align: center;
+    color: var(--sc-text-muted);
+    font-size: 1.1rem;
+    font-family: 'Cairo', sans-serif;
+}
+
+/* Toasts */
+.exa-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 14px 24px;
+    border-radius: 10px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Cairo';
+    font-weight: 600;
+    animation: fadeIn 0.3s ease;
+    z-index: 1000;
+}
+
+.exa-toast.success {
+    background: linear-gradient(to right, #22c55e, #16a34a);
+    box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+}
+
+.exa-toast.error {
+    background: linear-gradient(to right, #ef4444, #dc2626);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .exa-main {
+        flex-direction: column-reverse;
+        /* Detail top, Sidebar bottom */
+        overflow-y: auto;
+    }
+
+    .exa-detail {
+        flex: 0 0 auto;
+        overflow: visible;
+    }
+
+    .exa-list {
+        width: 100%;
+        border-inline-end: none;
+        border-top: 1px solid var(--sc-card-border);
+    }
+
+    .exa-layout {
+        overflow-y: auto;
+    }
+}
+
+/* ════════════════════════════════════════
+   MULTI-SELECT DROPDOWN
+   ════════════════════════════════════════ */
+.exa-multiselect {
+    position: relative;
+    margin-top: 12px;
+    z-index: 50;
+}
+
+.exa-multiselect-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 6px 10px;
+    background: var(--sc-inner-bg);
+    border: 1px solid var(--sc-panel-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    user-select: none;
+}
+
+.exa-multiselect-tags:hover {
+    border-color: var(--sc-gold);
+}
+
+.exa-multiselect-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--sc-text-muted);
+    font-size: 0.88rem;
+    font-family: 'Cairo', sans-serif;
+    flex: 1;
+}
+
+.exa-multiselect-chevron {
+    color: var(--sc-text-muted);
+    margin-inline-start: auto;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.exa-multiselect-chevron.open {
+    transform: rotate(180deg);
+}
+
+/* Individual class tag */
+.exa-multiselect-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(195, 156, 87, 0.15);
+    color: var(--sc-gold);
+    border: 1px solid rgba(195, 156, 87, 0.4);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.exa-multiselect-tag-remove {
+    background: none;
+    border: none;
+    color: var(--sc-gold);
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+}
+
+.exa-multiselect-tag-remove:hover {
+    opacity: 1;
+}
+
+/* Dropdown panel */
+.exa-multiselect-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    background: var(--sc-list-bg);
+    border: 1px solid var(--sc-panel-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: dropdownFadeIn 0.15s ease;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.exa-multiselect-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--sc-panel-border);
+    position: sticky;
+    top: 0;
+    background: var(--sc-list-bg);
+    color: var(--sc-text-muted);
+}
+
+.exa-multiselect-search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    color: var(--sc-primary-text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.88rem;
+}
+
+.exa-multiselect-search input::placeholder {
+    color: var(--sc-text-muted);
+}
+
+/* Dropdown row */
+.exa-multiselect-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    color: var(--sc-primary-text);
+    transition: background 0.15s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.exa-multiselect-item:hover {
+    background: rgba(195, 156, 87, 0.07);
+}
+
+.exa-multiselect-item--all {
+    font-weight: 700;
+    color: var(--sc-gold);
+    background: rgba(195, 156, 87, 0.05);
+}
+
+/* Custom checkbox */
+.exa-multiselect-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid var(--sc-panel-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    color: #fff;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.exa-multiselect-checkbox.checked {
+    background: var(--sc-gold);
+    border-color: var(--sc-gold);
+}
+
+.exa-multiselect-empty {
+    padding: 14px;
+    text-align: center;
+    color: var(--sc-text-muted);
+    font-size: 0.85rem;
+    font-family: 'Cairo', sans-serif;
+}
+
+/* "Nouveau" badge for fresh course cards (< 24h old) */
+.exa-cours-new-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 8px;
+    border-radius: 20px;
+    background: rgba(47, 179, 139, 0.15);
+    border: 1px solid rgba(47, 179, 139, 0.5);
+    color: #2fb38b;
+    font-size: 0.65rem;
+    font-weight: 700;
+    font-family: 'Cairo', sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* File link displayed below the tags */
+.exa-cours-file-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    font-size: 0.78rem;
+    font-family: 'Cairo', sans-serif;
+    color: var(--sc-gold-text);
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(206, 170, 95, 0.5);
+    transition: color 0.2s, border-color 0.2s;
+    word-break: break-all;
+}
+
+.exa-cours-file-link:hover {
+    color: #e8c56a;
+    border-bottom-color: #e8c56a;
+}
+
+@keyframes pulse-new {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Enrollment Sidebar Button */
+.exa-sidebar-enroll-btn {
+    background: var(--sc-gold-gold);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(206, 170, 95, 0.3);
+}
+
+.exa-sidebar-enroll-btn:hover {
+    background: #e8c56a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(206, 170, 95, 0.4);
+}
+
+/* Enrollment Modal */
+.exa-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: exaFadeIn 0.3s ease;
+}
+
+.exa-modal-content {
+    background: var(--sc-bg-surface);
+    width: 100%;
+    max-width: 550px;
+    border-radius: 20px;
+    border: 1px solid rgba(206, 170, 95, 0.4);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(206, 170, 95, 0.05);
+    animation: exaSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.exa-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--sc-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.exa-modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--sc-primary-text);
+    font-family: 'Cairo', sans-serif;
+}
+
+.exa-modal-close {
+    background: none;
+    border: none;
+    color: var(--sc-text-subtitle);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    transition: all 0.2s;
+}
+
+.exa-modal-close:hover {
+    background: var(--sc-bg-hover);
+    color: var(--sc-primary-text);
+}
+
+.exa-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.exa-enroll-select-group {
+    margin-bottom: 20px;
+}
+
+.exa-enroll-select-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--sc-text-subtitle);
+    margin-bottom: 8px;
+    font-family: 'Cairo', sans-serif;
+}
+
+.exa-enroll-select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #1a1b1e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    font-family: 'Cairo', sans-serif;
+    outline: none;
+    transition: all 0.2s;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.exa-enroll-select:focus {
+    border-color: var(--sc-gold-gold);
+    box-shadow: 0 0 0 2px rgba(206, 170, 95, 0.2);
+}
+
+.exa-enroll-select option {
+    background-color: #1a1b1e;
+    color: #ffffff;
+    padding: 10px;
+}
+
+.exa-enroll-preview {
+    background: var(--sc-bg-card);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px dashed rgba(206, 170, 95, 0.3);
+}
+
+.exa-enroll-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.exa-enroll-preview-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--sc-primary-text);
+}
+
+.exa-enroll-preview-section {
+    margin-bottom: 16px;
+}
+
+.exa-enroll-preview-section h5 {
+    margin: 0 0 8px 0;
+    font-size: 0.85rem;
+    color: var(--sc-gold-text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.exa-enroll-preview-section p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--sc-text-subtitle);
+    line-height: 1.5;
+}
+
+.exa-enroll-mini-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.exa-mini-slot {
+    display: grid;
+    grid-template-columns: 80px 110px 1fr;
+    gap: 12px;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    background: var(--sc-bg-surface);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.exa-mini-day {
+    font-weight: 600;
+    color: var(--sc-primary-text);
+}
+
+.exa-mini-time {
+    color: var(--sc-text-subtitle);
+}
+
+.exa-mini-subject {
+    color: var(--sc-gold-text);
+    text-align: right;
+}
+
+.exa-enroll-empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--sc-text-muted);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.exa-modal-footer {
+    padding: 20px 24px;
+    border-top: 1px solid var(--sc-border);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.exa-modal-btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.exa-modal-btn--secondary {
+    background: transparent;
+    border: 1px solid var(--sc-border);
+    color: var(--sc-text-subtitle);
+}
+
+.exa-modal-btn--secondary:hover {
+    background: var(--sc-bg-hover);
+    color: var(--sc-primary-text);
+}
+
+.exa-modal-btn--primary {
+    background: var(--sc-gold-gold);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(206, 170, 95, 0.3);
+}
+
+.exa-modal-btn--primary:hover:not(:disabled) {
+    background: #e8c56a;
+    transform: translateY(-1px);
+}
+
+.exa-modal-btn--primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@keyframes exaFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes exaSlideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ── STATUS & PENDING STYLES ── */
+.exa-item.pending {
+    opacity: 0.7;
+    border-style: dashed;
+}
+
+.exa-item-img {
+    position: relative;
+}
+
+.exa-item-pending-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.exa-item-status-tag {
+    font-size: 0.65rem;
+    background: #fef3c7;
+    color: #92400e;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.exa-status-banner {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    align-items: flex-start;
+}
+
+.exa-status-banner.warning {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #ceaa5f;
+}
+
+.exa-status-banner strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.exa-status-banner p {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.9;
+}

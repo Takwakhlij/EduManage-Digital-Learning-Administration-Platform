@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { getClasses, deleteClasse, reset } from '../features/classes/classeSlice';
 import CreateClasseModal from '../components/CreateClasseModal';
 import EditClasseModal from '../components/EditClasseModal';
+import PlanningManagerModal from '../components/PlanningManagerModal';
 import './ClassesList.css';
 
 /* ── Inline SVG Icons ── */
@@ -56,22 +57,6 @@ const IconBook = () => (
     </svg>
 );
 
-const IconUser = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-    </svg>
-);
-
-const IconUsers = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-        <circle cx="9" cy="7" r="4"></circle>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-    </svg>
-);
-
 const IconCalendar = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -103,7 +88,6 @@ function ClasseDetailsModal({ classe, onClose, onEdit }) {
     };
     const nColor = niveauColors[classe.niveau] || niveauColors['Débutant'];
 
-    // Jours de la semaine pour le planning (données futures)
     const joursPlanning = ['Samedi', 'Dimanche', 'Lundi', 'Mardi', 'Mercredi'];
 
     return (
@@ -127,7 +111,6 @@ function ClasseDetailsModal({ classe, onClose, onEdit }) {
                     </button>
                 </div>
 
-                {/* ── Arabic ornament ── */}
                 <div className="details-ornament">
                     <span>❖</span>
                     <span style={{ fontFamily: "'Amiri', serif", fontSize: '13px', color: 'var(--gold-dark)' }}>
@@ -157,6 +140,19 @@ function ClasseDetailsModal({ classe, onClose, onEdit }) {
                                 <span className="details-info-label">Année scolaire</span>
                                 <span className="details-info-value">{classe.anneeScolaire}</span>
                             </div>
+                            {classe.chapitresTemplate && classe.chapitresTemplate.length > 0 && (
+                                <div className="details-info-item" style={{ gridColumn: '1 / -1' }}>
+                                    <span className="details-info-label">Programme ({classe.chapitresTemplate.length} chapitres)</span>
+                                    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                        {classe.chapitresTemplate.map((chap, idx) => (
+                                            <div key={idx} style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '6px', borderLeft: '3px solid var(--gold)' }}>
+                                                <div style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--text-dark)' }}>{idx + 1}. {chap.titre}</div>
+                                                {chap.description && <div style={{ fontSize: '12px', color: 'var(--text-gray)', marginTop: '2px' }}>{chap.description}</div>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             <div className="details-info-item">
                                 <span className="details-info-label">Créée le</span>
                                 <span className="details-info-value">
@@ -166,36 +162,6 @@ function ClasseDetailsModal({ classe, onClose, onEdit }) {
                                 </span>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Section: Enseignants */}
-                    <div className="details-section">
-                        <div className="details-section-title">
-                            <IconUser /> Enseignants
-                        </div>
-                        {classe.professeurs && classe.professeurs.length > 0 ? (
-                            <div className="details-teachers-list">
-                                {classe.professeurs.map((prof, i) => (
-                                    <div key={i} className="details-teacher-chip">
-                                        <div className="details-teacher-avatar">
-                                            {typeof prof === 'object'
-                                                ? (prof.firstName?.charAt(0) || prof.name?.charAt(0) || '?')
-                                                : (i + 1)}
-                                        </div>
-                                        <span>
-                                            {typeof prof === 'object'
-                                                ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim()
-                                                : `Enseignant ${i + 1}`}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="details-empty-slot">
-                                <IconUser />
-                                <span>Aucun enseignant assigné pour le moment</span>
-                            </div>
-                        )}
                     </div>
 
                     {/* Section: Matières */}
@@ -219,33 +185,6 @@ function ClasseDetailsModal({ classe, onClose, onEdit }) {
                         )}
                     </div>
 
-                    {/* Section: Élèves */}
-                    <div className="details-section">
-                        <div className="details-section-title">
-                            <IconUsers /> Élèves inscrits
-                        </div>
-                        <div className="details-stat-row">
-                            <div className="details-stat-box">
-                                <span className="details-stat-number">
-                                    {classe.eleves?.length ?? 0}
-                                </span>
-                                <span className="details-stat-label">Total élèves</span>
-                            </div>
-                            <div className="details-stat-box">
-                                <span className="details-stat-number">
-                                    {classe.professeurs?.length ?? 0}
-                                </span>
-                                <span className="details-stat-label">Enseignants</span>
-                            </div>
-                            <div className="details-stat-box">
-                                <span className="details-stat-number">
-                                    {classe.matieres?.length ?? 0}
-                                </span>
-                                <span className="details-stat-label">Matières</span>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Section: Planning */}
                     <div className="details-section">
                         <div className="details-section-title">
@@ -253,12 +192,22 @@ function ClasseDetailsModal({ classe, onClose, onEdit }) {
                         </div>
                         {classe.planning && classe.planning.length > 0 ? (
                             <div className="details-planning-grid">
-                                {classe.planning.map((session, i) => (
-                                    <div key={i} className="details-planning-slot">
-                                        <span className="planning-day">{session.jour}</span>
-                                        <span className="planning-time">{session.heureDebut} – {session.heureFin}</span>
-                                    </div>
-                                ))}
+                                {classe.planning.map((session, i) => {
+                                    const mName = typeof session.matiere === 'object' ? session.matiere?.nomMatiere : 'Matière';
+                                    const pName = typeof session.professeur === 'object' ? `${session.professeur?.firstName} ${session.professeur?.lastName}` : 'Enseignant';
+                                    return (
+                                        <div key={i} className="details-planning-slot">
+                                            <div className="slot-header-main">
+                                                <span className="planning-day">{session.jour}</span>
+                                                <span className="planning-time">{session.heureDebut} – {session.heureFin}</span>
+                                            </div>
+                                            <div className="slot-sub-info">
+                                                <span style={{ fontWeight: 600, color: 'var(--text-dark)', fontSize: '12px' }}>{mName}</span>
+                                                <span style={{ color: 'var(--text-gray)', fontSize: '11px' }}>{pName}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         ) : (
                             <div className="details-planning-week">
@@ -299,7 +248,6 @@ function ClasseDetailsModal({ classe, onClose, onEdit }) {
    MAIN COMPONENT
    ════════════════════════════════════════════════════ */
 
-
 function ClassesList() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -310,16 +258,20 @@ function ClassesList() {
     const { user } = useSelector((state) => state.auth);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [editingClasse, setEditingClasse] = useState(null); // Added state for edit modal
+    const [editingClasse, setEditingClasse] = useState(null); 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [classeToDelete, setClasseToDelete] = useState(null);
-    const [selectedClasse, setSelectedClasse] = useState(null); // for details modal
+    const [selectedClasse, setSelectedClasse] = useState(null); 
+    const [planningClasse, setPlanningClasse] = useState(null); 
+
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        if (isError) console.error(message);
         dispatch(getClasses());
-        return () => { dispatch(reset()); };
-    }, [dispatch, isError, message]);
+        return () => {
+            dispatch(reset());
+        };
+    }, [dispatch]);
 
     const handleDelete = (classe) => { setClasseToDelete(classe); setShowDeleteModal(true); };
     const confirmDelete = () => {
@@ -338,8 +290,6 @@ function ClassesList() {
     const handleViewDetails = (classe) => setSelectedClasse(classe);
     const closeDetails = () => setSelectedClasse(null);
 
-    // Don't show full loading spinner for just open/close modal interactions if data is already loaded,
-    // but do show if initial load.
     if (isLoading && (!classes || classes.length === 0)) {
         return (
             <div className="loading-container">
@@ -363,7 +313,7 @@ function ClassesList() {
                 {user && user.role === 'admin' && (
                     <div
                         className="classe-card create-card"
-                        onClick={() => setShowCreateModal(true)} // Updated onClick
+                        onClick={() => setShowCreateModal(true)} 
                         role="button"
                         tabIndex={0}
                         style={{ cursor: 'pointer' }}
@@ -396,23 +346,25 @@ function ClassesList() {
                                     {new Date(classe.createdAt).toLocaleDateString('fr-FR')}
                                 </span>
                             </div>
-                            {classe.professeurs && classe.professeurs.length > 0 && (
-                                <div className="classe-info">
-                                    <span className="info-label">Enseignants :</span>
-                                    <span className="info-value">{classe.professeurs.length}</span>
-                                </div>
-                            )}
+                            {/* Affichage des matières (Ken mawjoudin) */}
                             {classe.matieres && classe.matieres.length > 0 && (
                                 <div className="classe-info">
                                     <span className="info-label">Matières :</span>
                                     <span className="info-value">{classe.matieres.length}</span>
                                 </div>
                             )}
+
+                            {/* Affichage des chapitres */}
+                            {classe.chapitresTemplate && classe.chapitresTemplate.length > 0 && (
+                                <div className="classe-info">
+                                    <span className="info-label">Chapitres :</span>
+                                    <span className="info-value" style={{ color: 'var(--gold-dark)', fontWeight: 'bold' }}>{classe.chapitresTemplate.length}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* ── Actions ── */}
                         <div className="classe-card-actions">
-                            {/* 👁 Voir détails — available to all */}
                             <button
                                 type="button"
                                 className="btn-icon btn-view"
@@ -426,11 +378,25 @@ function ClassesList() {
                                 <>
                                     <button
                                         type="button"
+                                        className="btn-icon btn-planning"
+                                        title="Gérer le Planning"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setPlanningClasse(classe);
+                                        }}
+                                    >
+                                        <IconCalendar />
+                                    </button>
+                                    
+                                    {/* Na7ina l'bouton mta3 les étudiants men houni */}
+                                    
+                                    <button
+                                        type="button"
                                         className="btn-icon btn-edit"
                                         title="Modifier"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            setEditingClasse(classe); // Open edit modal
+                                            setEditingClasse(classe); 
                                         }}
                                     >
                                         <FaEdit />
@@ -450,7 +416,6 @@ function ClassesList() {
                 ))}
             </div>
 
-            {/* ── Empty State (Only if no classes and NOT admin, since admin sees Create Card) ── */}
             {(!classes || classes.length === 0) && user?.role !== 'admin' && (
                 <div className="empty-state">
                     <FaGraduationCap size={64} />
@@ -482,18 +447,25 @@ function ClassesList() {
                 />
             )}
 
-            {/* Modal de création */}
             {showCreateModal && (
                 <CreateClasseModal onClose={() => setShowCreateModal(false)} />
             )}
 
-            {/* Modal de modification */}
             {editingClasse && (
                 <EditClasseModal
                     classe={editingClasse}
                     onClose={() => setEditingClasse(null)}
                 />
             )}
+
+            {planningClasse && (
+                <PlanningManagerModal
+                    classe={planningClasse}
+                    onClose={() => setPlanningClasse(null)}
+                />
+            )}
+            
+            {/* Na7ina l'StudentManagerModal jemla men page l'Classe */}
         </div>
     );
 }

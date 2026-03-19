@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Camera, Save, User, Mail, Phone, Lock, ChevronLeft, Trash2 } from 'lucide-react';
-import { updateProfile, reset } from '../features/auth/authSlice';
+import { updateProfile, deactivateAccount, logout, reset } from '../features/auth/authSlice';
 import './Profile.css';
 
 function Profile() {
@@ -98,6 +98,16 @@ function Profile() {
 
         setUpdateInitiated(true);
         dispatch(updateProfile(formDataToSend));
+    };
+
+    const handleDeactivate = async () => {
+        const confirmed = window.confirm(
+            '⚠️ Voulez-vous vraiment désactiver votre compte ?\n\nVotre compte passera en mode inactif. Vous serez déconnecté(e) immédiatement.\nSeul un administrateur pourra le réactiver.'
+        );
+        if (!confirmed) return;
+        await dispatch(deactivateAccount());
+        dispatch(logout());
+        navigate('/login');
     };
 
     return (
@@ -261,6 +271,40 @@ function Profile() {
                             </button>
                         </div>
                     </form>
+
+                    {/* Danger Zone */}
+                    <div className="profile-card" style={{
+                        border: '1.5px solid #fee2e2',
+                        background: '#fff8f8',
+                        marginTop: '16px'
+                    }}>
+                        <h3 className="card-title" style={{ color: '#dc2626' }}>⚠️ Zone de danger</h3>
+                        <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px', lineHeight: '1.6' }}>
+                            La désactivation de votre compte vous déconnectera immédiatement. Votre compte deviendra inactif et vous ne pourrez plus vous connecter. Seul un administrateur peut réactiver votre compte par la suite.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={handleDeactivate}
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '10px 20px',
+                                background: 'white',
+                                color: '#dc2626',
+                                border: '1.5px solid #dc2626',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseOver={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.color = 'white'; }}
+                            onMouseOut={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#dc2626'; }}
+                        >
+                            <Trash2 size={16} /> Désactiver mon compte
+                        </button>
+                    </div>
                 </div>
             </div >
         </div >

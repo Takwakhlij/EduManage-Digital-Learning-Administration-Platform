@@ -23,12 +23,13 @@ const userSchema = mongoose.Schema(
         },
         role: {
             type: String,
+            // Limite les rôles possibles pour éviter les erreurs
             enum: ['student', 'teacher', 'parent', 'admin'],
             default: 'student',
         },
         status: {
             type: String,
-            enum: ['pending', 'active', 'rejected'],
+            enum: ['pending', 'active', 'rejected', 'inactive'],
             default: 'pending',
         },
         phoneNumber: {

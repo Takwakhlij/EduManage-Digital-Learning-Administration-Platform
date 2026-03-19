@@ -1,40 +1,69 @@
+// Importation de React Router pour la navigation SPA (Single Page Application)
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './islamic-elements.css';
+import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 
+// Importation des différentes Pages  de l'application
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import LandingPage from './pages/LandingPage';
+
 import TeacherDashboard from './pages/TeacherDashboard';
+import TeacherSessionDetails from './pages/TeacherSessionDetails';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import Profile from './pages/Profile';
 import ClassesList from './pages/ClassesList';
 import MatieresList from './pages/MatieresList';
-// import CreateClasse from './pages/CreateClasse'; // Removed
-// import EditClasse from './pages/EditClasse'; // Removed
-import AdminLayout from './components/AdminLayout';
-import CreateClasseModal from './components/CreateClasseModal';
+import AdminMembers from './pages/AdminMembers';
+import StudentInscriptions from './pages/StudentInscriptions';
+import Formations from './pages/Formations';
+import SessionsList from './pages/SessionsList';
+import InscriptionsList from './pages/InscriptionsList';
+import AdminLayout from './components/AdminLayout'; // Composant qui structure l'interface Admin (Sidebar + NavBar)
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/teacher" element={<TeacherDashboard />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="classes" element={<ClassesList />} />
-          <Route path="matieres" element={<MatieresList />} />
-          {/* <Route path="classes/create" element={<CreateClasse />} /> // Removed */}
-          {/* <Route path="classes/edit/:id" element={<EditClasse />} /> // Removed */}
-        </Route>
-        <Route path="/profile" element={<Profile />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Router>
+    // Les *Providers* enveloppent l'application pour fournir des données à tous les composants enfants
+    <ThemeProvider>
+      <LanguageProvider>
+        {/* Router : Gère l'historique de navigation de l'utilisateur dans le navigateur web */}
+        <Router>
+          {/* Routes : Vérifie l'URL actuelle et affiche le composant de Route correspondant */}
+          <Routes>
+            {/* Routes publiques */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* Routes "Protégées" (L'accès est géré dans les composants eux-mêmes, ex: redirection si non connecté) */}
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/inscriptions" element={<StudentInscriptions />} />
+            <Route path="/formations" element={<Formations />} />
+            <Route path="/teacher" element={<TeacherDashboard />} />
+            <Route path="/teacher/sessions/:id" element={<TeacherSessionDetails />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+
+            {/* Routes d'administration "Imbriquées" avec un Layout commun (Sidebar partagée) */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} /> 
+              <Route path="classes" element={<ClassesList />} /> 
+              <Route path="matieres" element={<MatieresList />} /> 
+              <Route path="membres" element={<AdminMembers />} /> 
+              <Route path="sessions" element={<SessionsList />} />
+              <Route path="inscriptions" element={<InscriptionsList />} />
+            </Route>
+
+            <Route path="/profile" element={<Profile />} />
+
+            {/* Route Catch-all : Si l'utilisateur tape une URL qui n'existe pas, on le redirige vers /login */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Router>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 

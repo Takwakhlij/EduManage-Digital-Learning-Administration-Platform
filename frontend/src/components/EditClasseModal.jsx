@@ -18,10 +18,12 @@ const EditClasseModal = ({ classe, onClose }) => {
     const [formData, setFormData] = useState({
         nomClasse: '',
         niveau: '',
-        anneeScolaire: '',
     });
 
-    const { nomClasse, niveau, anneeScolaire } = formData;
+    const { nomClasse, niveau } = formData;
+    
+    // NOUVEAU: Gérer les chapitres dynamiquement
+    const [chapitres, setChapitres] = useState([{ titre: '', description: '' }]);
 
     const { isLoading, isError, isSuccess, message } = useSelector(
         (state) => state.classes
@@ -46,8 +48,15 @@ const EditClasseModal = ({ classe, onClose }) => {
             setFormData({
                 nomClasse: classe.nomClasse || '',
                 niveau: classe.niveau || '',
-                anneeScolaire: classe.anneeScolaire || '',
             });
+            
+            // Initialiser les chapitres avec ceux existants s'ils existent, sinon un champ vide
+            if (classe.chapitresTemplate && classe.chapitresTemplate.length > 0) {
+                setChapitres(classe.chapitresTemplate);
+            } else {
+                setChapitres([{ titre: '', description: '' }]);
+            }
+            
             // Pre-fill selections
             // Assuming classe.professeurs and classe.matieres are arrays of objects or IDs
             // If they are populated objects, map to _id. If IDs, use directly.
@@ -77,23 +86,15 @@ const EditClasseModal = ({ classe, onClose }) => {
 
     const onSubmit = (e) => {
         e.preventDefault();
-        if (!nomClasse || !niveau || !anneeScolaire) {
+        if (!nomClasse || !niveau) {
             alert('Veuillez remplir tous les champs');
-            return;
-        }
-
-        const yearRegex = /^\d{4}-\d{4}$/;
-        if (!yearRegex.test(anneeScolaire)) {
-            alert("Format de l'année scolaire invalide. Utilisez YYYY-YYYY (ex: 2025-2026)");
             return;
         }
 
         const classeData = {
             nomClasse,
             niveau,
-            anneeScolaire,
-            anneeScolaire,
-            professeurs: selectedProfessors,
+            chapitresTemplate: chapitres.filter(ch => ch.titre.trim() !== '')
         };
 
         setIsSubmitting(true);
@@ -106,6 +107,23 @@ const EditClasseModal = ({ classe, onClose }) => {
         } else {
             setList([...list, id]);
         }
+    };
+
+    // Fonctions pour gérer les chapitres
+    const handleAddChapitre = () => {
+        setChapitres([...chapitres, { titre: '', description: '' }]);
+    };
+
+    const handleRemoveChapitre = (index) => {
+        const newChapitres = [...chapitres];
+        newChapitres.splice(index, 1);
+        setChapitres(newChapitres);
+    };
+
+    const handleChapitreChange = (index, field, value) => {
+        const newChapitres = [...chapitres];
+        newChapitres[index][field] = value;
+        setChapitres(newChapitres);
     };
 
     if (!classe) return null;
@@ -169,48 +187,59 @@ const EditClasseModal = ({ classe, onClose }) => {
                             </div>
                         </div>
 
-                        <div className="islamic-form-group">
-                            <label htmlFor="anneeScolaire">ANNÉE SCOLAIRE <span className="required">*</span></label>
-                            <div className="islamic-input-wrapper">
-                                <input
-                                    type="text"
-                                    id="anneeScolaire"
-                                    name="anneeScolaire"
-                                    value={anneeScolaire}
-                                    onChange={onChange}
-                                    placeholder="Ex: 2025-2026"
-                                    pattern="\d{4}-\d{4}"
-                                    title="Format: YYYY-YYYY (ex: 2025-2026)"
-                                    className="islamic-input"
-                                    required
-                                />
-                            </div>
-                            <small className="hint">Format: YYYY-YYYY (ex: 2025-2026)</small>
-                        </div>
 
-                        {/* Multi-select for Teachers */}
+
                         <div className="islamic-form-group">
-                            <label>ENSEIGNANTS</label>
-                            <div className="islamic-multiselect">
-                                {teachers.length > 0 ? (
-                                    teachers.map((teacher) => (
-                                        <div
-                                            key={teacher._id}
-                                            className={`multiselect-item ${selectedProfessors.includes(teacher._id) ? 'selected' : ''}`}
-                                            onClick={() => toggleSelection(teacher._id, selectedProfessors, setSelectedProfessors)}
-                                        >
-                                            {teacher.firstName} {teacher.lastName}
+                            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                PROGRAMME (CHAPITRES)
+                                <button 
+                                    type="button" 
+                                    onClick={handleAddChapitre}
+                                    style={{ background: 'var(--green-mist)', color: 'var(--green-deep)', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
+                                >
+                                    + Ajouter
+                                </button>
+                            </label>
+                            
+                            <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '5px', marginTop: '10px' }}>
+                                {chapitres.map((chapitre, index) => (
+                                    <div key={index} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '10px', marginBottom: '10px', position: 'relative' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#6b7280' }}>Chapitre {index + 1}</span>
+                                            {chapitres.length > 1 && (
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => handleRemoveChapitre(index)}
+                                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '14px' }}
+                                                >
+                                                    &times;
+                                                </button>
+                                            )}
                                         </div>
-                                    ))
-                                ) : (
-                                    <p className="no-data">Aucun enseignant disponible</p>
-                                )}
+                                        <input
+                                            type="text"
+                                            placeholder="Titre du chapitre *"
+                                            value={chapitre.titre}
+                                            onChange={(e) => handleChapitreChange(index, 'titre', e.target.value)}
+                                            className="islamic-input"
+                                            style={{ marginBottom: '8px', padding: '8px', fontSize: '14px' }}
+                                            required
+                                        />
+                                        <textarea
+                                            placeholder="Description (Optionnel)"
+                                            value={chapitre.description}
+                                            onChange={(e) => handleChapitreChange(index, 'description', e.target.value)}
+                                            className="islamic-input"
+                                            style={{ padding: '8px', fontSize: '13px', resize: 'vertical', minHeight: '50px' }}
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
                         {/* Matières removed: Managed via Subject Management */}
-                        <div style={{ marginBottom: '20px', fontSize: '13px', color: '#6b7280', fontStyle: 'italic' }}>
-                            Note: Les matières sont gérées dans la section "Gestion des Matières".
+                        <div style={{ marginBottom: '20px', fontSize: '13px', color: '#6b7280', fontStyle: 'italic', textAlign: 'center' }}>
+                            Les matières sont gérées dans la section "Mentions/Matières".
                         </div>
 
                         {isError && (

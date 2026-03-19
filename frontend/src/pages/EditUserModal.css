@@ -14,7 +14,7 @@
 }
 
 .edit-modal {
-    background: white;
+    background: var(--ivory);
     border-radius: 12px;
     width: 90%;
     max-width: 600px;
@@ -133,4 +133,81 @@
 
 .modal-btn-save:hover {
     background: #07511b;
+}
+
+/* ═══════════════════════════════════════
+   Dark Theme  (body.dark-theme)
+═══════════════════════════════════════ */
+
+body.dark-theme .edit-modal {
+    background: #020202;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-theme .edit-modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Title in gold */
+body.dark-theme .edit-modal-title {
+    color: #f1cc51;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+body.dark-theme .modal-close-btn {
+    color: #94a3b8;
+}
+
+body.dark-theme .modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+}
+
+/* Labels in gold */
+body.dark-theme .modal-form-label {
+    color: #f4f3ef;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* Input text in blue */
+body.dark-theme .modal-form-input,
+body.dark-theme .modal-form-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #d0dcec;
+    border-radius: 8px;
+}
+
+body.dark-theme .modal-form-input::placeholder {
+    color: rgba(236, 238, 241, 0.4);
+}
+
+body.dark-theme .modal-form-input:focus,
+body.dark-theme .modal-form-select:focus {
+    border-color: #f6f6f6;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+    color: #c8d9ec;
+    outline: none;
+}
+
+body.dark-theme .modal-form-select option {
+    background: #1a2235;
+    color: #f4f5f6;
+}
+
+body.dark-theme .edit-modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .modal-btn-cancel {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .modal-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
 }

@@ -28,6 +28,25 @@ export const getUsers = createAsyncThunk(
     }
 );
 
+// Create new user (Admin)
+export const createUserAdmin = createAsyncThunk(
+    'admin/createUser',
+    async (userData, thunkAPI) => {
+        try {
+            const token = thunkAPI.getState().auth.user.token;
+            return await adminService.createUserAdmin(userData, token);
+        } catch (error) {
+            const message =
+                (error.response &&
+                    error.response.data &&
+                    error.response.data.message) ||
+                error.message ||
+                error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 // Update user status
 export const updateUserStatus = createAsyncThunk(
     'admin/updateStatus',
@@ -107,6 +126,20 @@ export const adminSlice = createSlice({
                 state.users = action.payload;
             })
             .addCase(getUsers.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            .addCase(createUserAdmin.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(createUserAdmin.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                // Prepend the new user to the list
+                state.users = [action.payload, ...state.users];
+            })
+            .addCase(createUserAdmin.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;

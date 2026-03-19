@@ -4,6 +4,8 @@
 
 .profile-page {
     min-height: 100vh;
+    direction: ltr;
+    text-align: left;
 }
 
 .profile-wrapper {
@@ -22,7 +24,7 @@
 }
 
 .back-btn {
-    background: white;
+    background: var(--ivory);
     border: 1px solid var(--border);
     color: var(--text-gray);
     display: flex;
@@ -53,7 +55,7 @@
 
 /* ── Profile Card ── */
 .profile-card {
-    background: white;
+    background: var(--ivory);
     border-radius: var(--radius-xl);
     padding: 28px;
     box-shadow: var(--shadow-sm);
@@ -199,7 +201,7 @@
 .form-group input:focus {
     outline: none;
     border-color: var(--green-deep);
-    background: white;
+    background: var(--ivory);
     box-shadow: 0 0 0 3px rgba(13, 95, 71, 0.08);
 }
 

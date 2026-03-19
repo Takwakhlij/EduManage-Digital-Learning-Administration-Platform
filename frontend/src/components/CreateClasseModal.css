@@ -15,7 +15,7 @@
 }
 
 .create-modal-content {
-    background: #ffffff;
+    background: var(--ivory);
     width: 90%;
     max-width: 500px;
     border-radius: 20px;
@@ -128,13 +128,14 @@
     border-radius: 10px;
     font-size: 15px;
     transition: all 0.2s;
-    background: #f9fafb;
+    background: #243c2766;
+    color: #f1f3f8; /* Force dark text for visibility in dark mode */
 }
 
 .islamic-input:focus {
     outline: none;
     border-color: var(--gold, #d97706);
-    background: #fff;
+    background: var(--ivory);
     box-shadow: 0 0 0 3px var(--gold-pale, rgba(217, 119, 6, 0.1));
 }
 
@@ -166,7 +167,7 @@
 }
 
 .btn-cancel {
-    background: #fff;
+    background: var(--ivory);
     border: 1px solid #d1d5db;
     color: #4b5563;
 }
@@ -235,7 +236,7 @@
 .multiselect-item {
     padding: 6px 12px;
     border-radius: 20px;
-    background: #fff;
+    background: var(--ivory);
     border: 1px solid #e5e7eb;
     font-size: 13px;
     color: #4b5563;

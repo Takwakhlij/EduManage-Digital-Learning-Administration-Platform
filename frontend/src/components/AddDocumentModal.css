@@ -1,0 +1,288 @@
+.doc-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75); /* Darker backdrop */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+}
+
+.doc-modal-container {
+    background-color: #1a1c23; /* Neutral dark modal background */
+    width: 90%;
+    max-width: 500px;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+    animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.doc-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--td-text-mute, #64748b);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    padding: 5px;
+}
+
+.doc-modal-close:hover {
+    color: var(--td-red, #ef4444);
+}
+
+.doc-modal-header {
+    background-color: transparent;
+    padding: 1.5rem 2rem 0.5rem;
+    border-bottom: none;
+}
+
+.doc-modal-header h2 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #ffffff;
+}
+
+.doc-modal-subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--td-text-mute, #64748b);
+}
+
+.doc-modal-subtitle span {
+    color: var(--td-text-dark, #0f172a);
+    font-weight: 600;
+}
+
+.doc-modal-form {
+    padding: 1.75rem 2rem 2rem;
+}
+
+.doc-modal-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
+}
+
+.doc-form-group {
+    margin-bottom: 1.25rem;
+}
+
+.doc-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.doc-form-group input[type="text"],
+.doc-form-group input[type="url"] {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background-color: #0c0f14; /* Inner darker */
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #f8fafc;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.doc-form-group input:focus {
+    outline: none;
+    border-color: #10b981;
+    background-color: #0c0f14;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.doc-file-input {
+    color: var(--td-text-mute, #64748b);
+    cursor: pointer;
+}
+
+.doc-file-input::-webkit-file-upload-button {
+    background-color: var(--td-surface, #ffffff);
+    color: var(--td-text-dark, #0f172a);
+    border: 1px solid var(--td-border, #e2e8f0);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin-right: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.doc-file-input::-webkit-file-upload-button:hover {
+    background-color: rgba(3, 63, 40, 0.05);
+    color: var(--td-brand-title, #033f28);
+    border-color: var(--td-brand-title, #033f28);
+}
+
+.doc-type-selector {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.doc-type-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.875rem;
+    background-color: #0c0f14;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.doc-type-btn.active {
+    background-color: #10b981;
+    color: #ffffff;
+}
+
+.doc-type-btn:hover:not(.active) {
+    background-color: #1e2025;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.doc-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.doc-btn-cancel,
+.doc-btn-submit {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1; /* Make them equal width for bottom nav style */
+}
+
+.doc-btn-cancel {
+    background-color: #0c0f14;
+    border: 1px solid transparent;
+    color: #cbd5e1;
+}
+
+.doc-btn-cancel:hover {
+    background-color: #1e2025;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.doc-btn-submit {
+    background-color: #10b981;
+    color: #ffffff;
+    border: 1px solid #10b981;
+}
+
+.doc-btn-submit:hover:not(:disabled) {
+    background-color: #059669;
+    border-color: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+}
+
+.doc-btn-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Dropzone Styles */
+.doc-dropzone {
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 2.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.doc-dropzone:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.doc-upload-icon {
+    color: #94a3b8;
+    margin-bottom: 1rem;
+}
+
+.doc-dropzone-title {
+    color: #f8fafc;
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0 0 0.5rem 0;
+}
+
+.doc-dropzone-or {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin: 0 0 1rem 0;
+}
+
+.doc-browse-btn {
+    background-color: #0c0f14;
+    color: #f8fafc;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.doc-browse-btn:hover {
+    background-color: #1e2025;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.doc-dropzone-hints {
+    color: #64748b;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+.doc-selected-file {
+    margin-top: 1rem;
+    color: #10b981;
+    font-size: 0.9rem;
+    font-weight: 500;
+}

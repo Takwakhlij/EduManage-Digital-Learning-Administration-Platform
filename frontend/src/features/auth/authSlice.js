@@ -88,6 +88,26 @@ export const getMe = createAsyncThunk(
     }
 );
 
+// Deactivate own account (Soft Delete)
+export const deactivateAccount = createAsyncThunk(
+    'auth/deactivate',
+    async (_, thunkAPI) => {
+        try {
+            const token = thunkAPI.getState().auth.user.token;
+            return await authService.deactivateAccount(token);
+        } catch (error) {
+            const message =
+                (error.response &&
+                    error.response.data &&
+                    error.response.data.message) ||
+                error.message ||
+                error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
+
 export const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -157,9 +177,19 @@ export const authSlice = createSlice({
             })
             .addCase(getMe.rejected, (state, action) => {
                 state.isLoading = false;
-                // Don't log out user on background refresh fail, just log error?
-                // state.isError = true;
-                // state.message = action.payload;
+            })
+            .addCase(deactivateAccount.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(deactivateAccount.fulfilled, (state) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.user = null; // Log out the user locally
+            })
+            .addCase(deactivateAccount.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
             });
     },
 });

@@ -1,22 +1,16 @@
-import { useSelector } from 'react-redux';
-import {
-    BookOpen,
-    GraduationCap,
-    FileText,
-    Award,
-    User,
-    Settings,
-    LogOut,
-    Menu,
-    X,
-    Bell
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { BookOpen, GraduationCap, FileText, Award, User, Settings, LogOut, Menu, X, Bell, Users, Clock, Calendar, ChevronRight, UserPlus, Globe } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
 import { logout, reset } from '../features/auth/authSlice';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import axios from 'axios';
 import './StudentDashboard.css';
 import logo from '../assets/logo.png';
+import quranImg from '../assets/quran-hifz.png';
+import libraryImg from '../assets/library-study.png';
+import patternImg from '../assets/islamic-pattern.jpg';
 
 function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMessage }) {
     const { user: authUser } = useSelector((state) => state.auth);
@@ -25,20 +19,87 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [notification, setNotification] = useState('');
+    // 🔒 Inscriptions privées: ne contient QUE les inscriptions de cet étudiant
+    const [myInscriptions, setMyInscriptions] = useState([]);
+    const [publishedSessions, setPublishedSessions] = useState([]);
+    const [inscriptionsLoading, setInscriptionsLoading] = useState(true);
+    const [sessionsLoading, setSessionsLoading] = useState(true);
+    const [isRequesting, setIsRequesting] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { isDarkMode, toggleTheme } = useTheme();
+    const { t, lang, setLang } = useLanguage();
 
     useEffect(() => {
         if (successMessage) {
             setNotification(successMessage);
             const timer = setTimeout(() => {
                 setNotification('');
-                // Clear state without reloading
                 navigate(window.location.pathname, { replace: true, state: {} });
             }, 3000);
             return () => clearTimeout(timer);
         }
     }, [successMessage, navigate]);
+
+    const fetchRef = useRef(false);
+
+    useEffect(() => {
+        // 🔒 Fetch UNIQUEMENT les sessions de l'étudiant connecté via la route sécurisée
+        if (authUser?.token && !fetchRef.current) {
+            fetchRef.current = true;
+            
+            const fetchData = async () => {
+                const config = { headers: { Authorization: `Bearer ${authUser.token}` } };
+                
+                try {
+                    setInscriptionsLoading(true);
+                    const response = await axios.get('/api/inscriptions/my', config);
+                    if (response.data.success) {
+                        setMyInscriptions(response.data.inscriptions);
+                    }
+                } catch (error) {
+                    console.error('Erreur inscriptions :', error);
+                } finally {
+                    setInscriptionsLoading(false);
+                }
+
+                try {
+                    setSessionsLoading(true);
+                    const sessionsRes = await axios.get('/api/sessions/published');
+                    if (sessionsRes.data.success) {
+                        setPublishedSessions(sessionsRes.data.sessions);
+                    }
+                } catch (error) {
+                    console.error('Erreur catalogue :', error);
+                } finally {
+                    setSessionsLoading(false);
+                }
+            };
+            fetchData();
+        }
+    }, [authUser?.token]);
+
+    const handleRequestEnroll = async (sessionId) => {
+        setIsRequesting(true);
+        try {
+            const config = { headers: { Authorization: `Bearer ${authUser.token}` } };
+            const response = await axios.post('/api/inscriptions', {
+                etudiant: user._id,
+                session: sessionId
+            }, config);
+
+            if (response.data.success) {
+                setNotification("Votre demande d'inscription a bien été envoyée.");
+                // Update local list
+                setMyInscriptions([...myInscriptions, response.data.inscription]);
+                setTimeout(() => setNotification(''), 4000);
+            }
+        } catch (error) {
+            alert(error.response?.data?.message || "Erreur lors de la demande");
+        } finally {
+            setIsRequesting(false);
+        }
+    };
 
     const onLogout = () => {
         dispatch(logout());
@@ -47,11 +108,31 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
     };
 
     const navItems = [
-        { icon: <BookOpen size={20} />, label: 'Formations', path: '/formations' },
-        { icon: <GraduationCap size={20} />, label: 'Mes Classes', path: '/classes' },
-        { icon: <FileText size={20} />, label: 'Mes Examens', path: '/examens' },
-        { icon: <Award size={20} />, label: 'Mes Certificats', path: '/certificats' },
+        { icon: <BookOpen size={20} />, label: t.formations, path: '/formations' },
+        { icon: <GraduationCap size={20} />, label: t.myClasses, path: '/inscriptions' },
+        { icon: <FileText size={20} />, label: t.myExams, path: '/examens' },
+        { icon: <Award size={20} />, label: t.myCertificates, path: '/certificats' },
     ];
+
+    const getClasseImage = (nom) => {
+        if (!nom) return quranImg;
+        const lowNom = nom.toLowerCase();
+
+        // Catégorie Coran / Hifz
+        const hifzKeywords = ['hifz', 'coran', 'mémorisation', 'memorisation', 'tajwid', 'tajweed', 'fajr', 'فجر', 'نور', 'بشائر'];
+        if (hifzKeywords.some(keyword => lowNom.includes(keyword))) {
+            return quranImg;
+        }
+
+        // Catégorie Arabe / Langue / Etudes / Tests
+        const studyKeywords = ['arabe', 'langue', 'lettres', 'lm', 'étude', 'etude', 'matière', 'matiere', 'test', 'classe', 'براعم'];
+        if (studyKeywords.some(keyword => lowNom.includes(keyword))) {
+            return libraryImg;
+        }
+
+        // Par défaut
+        return libraryImg;
+    };
 
     return (
         <div className="dashboard-layout">
@@ -89,21 +170,12 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
             {/* Sidebar */}
             <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
-                    <img src={logo} alt="Logo" className="sidebar-logo" />
                     <button
                         className="close-sidebar-btn"
                         onClick={() => setIsSidebarOpen(false)}
                     >
                         ✕
                     </button>
-                    <span className="logo-text">الجمعية القرآنية</span>
-                </div>
-
-                {/* ── Bismillah ── */}
-                <div className="sidebar-bismillah">
-                    <span className="bismillah-stars">✦</span>
-                    <span className="bismillah-text">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</span>
-                    <span className="bismillah-stars">✦</span>
                 </div>
 
                 <div className="sidebar-profile">
@@ -167,8 +239,12 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                 </div>
 
                 <nav className="sidebar-nav">
+                    <Link to="/dashboard" className={`nav-item ${window.location.pathname === '/' || window.location.pathname === '/dashboard' ? 'active' : ''}`}>
+                        <span className="nav-icon"><User size={20} /></span>
+                        <span className="nav-label">Mon Tableau de Bord</span>
+                    </Link>
                     {navItems.map((item, index) => (
-                        <Link key={index} to={item.path} className="nav-item">
+                        <Link key={index} to={item.path} className={`nav-item ${window.location.pathname === item.path ? 'active' : ''}`}>
                             <span className="nav-icon">{item.icon}</span>
                             <span className="nav-label">{item.label}</span>
                         </Link>
@@ -187,14 +263,7 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                         <LogOut size={20} />
                         <span>Déconnexion</span>
                     </button>
-                </div>
-                {/* ── Islamic Footer ── */}
-                <div className="sidebar-islamic-footer">
-                    <div className="sidebar-ornament">❖ ✦ ❖</div>
-                    <p className="sidebar-arabic-name">نور طيبة</p>
-                    <div className="sidebar-footer-verse">﴾ خَيْرُكُم مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ ﴿</div>
-                </div>
-            </aside>
+                </div>            </aside>
 
             {/* Main Content */}
             <main className="main-content">
@@ -207,6 +276,26 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                     </button>
 
                     <div className="header-actions">
+                        <button
+                            className="icon-btn theme-toggle-btn"
+                            onClick={toggleTheme}
+                            title={isDarkMode ? 'Mode Clair' : 'Mode Sombre'}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                border: 'none',
+                                background: 'transparent',
+                                color: 'var(--text-color)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            {isDarkMode ? '☀️' : '🌙'}
+                        </button>
                         <button className="icon-btn"><Bell size={20} /></button>
                         <div className="user-badge" onClick={() => navigate('/profile')}>
                             <div className="badge-img-container">
@@ -248,34 +337,32 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                                         : "Bienvenue dans votre espace d'apprentissage du Saint Coran."}
                                 </p>
                                 {/* Tasbih ornament row */}
-                                <div className="tasbih-row" style={{ margin: '10px 0' }}>
-                                    {Array.from({ length: 11 }).map((_, i) => (
+                                <div className="tasbih-row" style={{ margin: '15px 0' }}>
+                                    {Array.from({ length: 15 }).map((_, i) => (
                                         <span key={i} className="tasbih-bead"></span>
                                     ))}
                                 </div>
                                 <div className="islamic-quote">
                                     ﴿&nbsp;خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ&nbsp;﴾
-                                    <small>«Le meilleur d&apos;entre vous est celui qui apprend le Coran et l&apos;enseigne» — Bukhari</small>
+                                    <small>«Le meilleur d'entre vous est celui qui apprend le Coran et l'enseigne» — Bukhari</small>
                                 </div>
-                            </div>
-                            <div className="banner-img">
-                                <img src="/quran-reading.svg" alt="Reading Quran" />
                             </div>
                         </div>
 
+                        {/* Stats Summary */}
                         <div className="stats-section">
-                            <div className="stat-card">
-                                <div className="stat-icon purple"><BookOpen /></div>
-                                <div className="stat-body">
-                                    <h3>Total Formations</h3>
-                                    <p>0</p>
-                                </div>
-                            </div>
                             <div className="stat-card">
                                 <div className="stat-icon green"><GraduationCap /></div>
                                 <div className="stat-body">
-                                    <h3>Mes Classes</h3>
-                                    <p>0</p>
+                                    <h3>Mes Sessions</h3>
+                                    <p>{myInscriptions.filter(i => i.statut === 'approuvee').length}</p>
+                                </div>
+                            </div>
+                            <div className="stat-card">
+                                <div className="stat-icon purple"><Clock /></div>
+                                <div className="stat-body">
+                                    <h3>En attente</h3>
+                                    <p>{myInscriptions.filter(i => i.statut === 'en_attente').length}</p>
                                 </div>
                             </div>
                             <div className="stat-card">
@@ -285,17 +372,135 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                                     <p>0</p>
                                 </div>
                             </div>
-                        </div>
-
-                        <section className="dashboard-sections">
-                            <div className="section-card">
-                                <h2>Formations Récents</h2>
-                                <div className="empty-state">
-                                    <p>Vous n&apos;êtes inscrit à aucune formation pour le moment.</p>
-                                    <button className="btn-primary-outline">Explorer les formations</button>
+                            <div className="stat-card">
+                                <div className="stat-icon blue"><Calendar /></div>
+                                <div className="stat-body">
+                                    <h3>Prochains Examens</h3>
+                                    <p>0</p>
                                 </div>
                             </div>
+                        </div>
 
+                        {/* ===== ENROLLED SESSIONS SECTION ===== */}
+                        <section className="sd-classes-section">
+                            <div className="sd-section-header">
+                                <h2 className="sd-section-title">
+                                    <GraduationCap size={22} style={{ color: 'var(--primary-color)' }} />
+                                    Mes Sessions Inscrites
+                                </h2>
+                                <Link to="/inscriptions" className="sd-see-all">
+                                    Voir tout <ChevronRight size={16} />
+                                </Link>
+                            </div>
+
+                            {inscriptionsLoading ? (
+                                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                                    <p>Chargement de vos sessions...</p>
+                                </div>
+                            ) : !myInscriptions || myInscriptions.length === 0 ? (
+                                <div className="sd-no-class">
+                                    <div className="sd-no-class__icon">🎓</div>
+                                    <h3>Aucune session inscrite</h3>
+                                    <p>Vous n'êtes encore inscrit à aucune session. Découvrez nos programmes disponibles !</p>
+                                    <Link to="/formations" className="sd-enroll-link">
+                                        <GraduationCap size={16} /> Voir les sessions disponibles
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="sd-classes-grid">
+                                    {myInscriptions.map(inscription => {
+                                        const session = inscription.session;
+                                        return (
+                                            <div 
+                                                key={inscription._id} 
+                                                className={`sd-class-card ${inscription.statut === 'en_attente' ? 'pending' : ''}`}
+                                            >
+                                                <div
+                                                    className="sd-class-card__header has-image"
+                                                    style={{
+                                                        background: `url("${quranImg}")`,
+                                                        backgroundSize: 'cover',
+                                                        backgroundPosition: 'center'
+                                                    }}
+                                                >
+                                                    <div className="sd-class-card__image-overlay"></div>
+                                                    
+                                                    {inscription.statut === 'en_attente' && (
+                                                        <div className="sd-pending-badge">En cours de validation</div>
+                                                    )}
+
+                                                    <div className="sd-class-card__title-row">
+                                                        <h3 className="sd-class-card__name">{session?.nomSession || 'Session'}</h3>
+                                                        <span className="sd-class-card__niveau">
+                                                            {session?.classe?.niveau || 'Tous'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="sd-class-card__meta">
+                                                        {session?.duree && <span><Clock size={13} /> {session.duree}</span>}
+                                                        <span style={{
+                                                            fontSize: '12px',
+                                                            color: inscription.statutPaiement === 'Payé' ? '#34d399' : '#fbbf24'
+                                                        }}>
+                                                            💳 {inscription.statutPaiement}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </section>
+
+                        {/* ===== CATALOGUE SECTION ===== */}
+                        <section className="sd-catalogue-section" style={{ marginTop: '32px' }}>
+                            <div className="sd-section-header">
+                                <h2 className="sd-section-title">
+                                    <Globe size={22} style={{ color: '#059669' }} />
+                                    Catalogue des Sessions
+                                </h2>
+                            </div>
+
+                            {sessionsLoading ? (
+                                <p style={{ color: 'var(--text-muted)' }}>Chargement du catalogue...</p>
+                            ) : publishedSessions.filter(s => !myInscriptions.some(i => i.session?._id === s._id)).length === 0 ? (
+                                <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Aucune nouvelle session disponible pour le moment.</p>
+                            ) : (
+                                <div className="sd-catalogue-grid">
+                                    {publishedSessions
+                                        .filter(s => !myInscriptions.some(i => i.session?._id === s._id))
+                                        .map(session => (
+                                            <div key={session._id} className="sd-catalogue-card">
+                                                <div 
+                                                    className="sd-catalogue-card__img"
+                                                    style={{
+                                                        height: '160px',
+                                                        width: '100%',
+                                                        background: `url("${session.imageCouverture || quranImg}") center/cover`
+                                                    }}
+                                                ></div>
+                                                <div className="sd-catalogue-card__body">
+                                                    <h4>{session.nomSession}</h4>
+                                                    <p>{session.classe?.nomClasse}</p>
+                                                    <div className="sd-catalogue-card__footer">
+                                                        <span><Clock size={14} /> {session.duree || 'Durée indéf.'}</span>
+                                                        <button 
+                                                            onClick={() => handleRequestEnroll(session._id)}
+                                                            className="sd-btn-request"
+                                                            disabled={isRequesting}
+                                                        >
+                                                            {isRequesting ? '...' : 'Demander l\'inscription'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                </div>
+                            )}
+                        </section>
+
+                        {/* Upcoming Exams Section */}
+                        <section className="dashboard-sections" style={{ marginTop: '24px' }}>
                             <div className="section-card">
                                 <h2>Prochains Examens</h2>
                                 <div className="empty-state">

@@ -43,4 +43,14 @@ const admin = (req, res, next) => {
     }
 };
 
-export { protect, admin };
+// Teacher middleware
+const teacher = (req, res, next) => {
+    if (req.user && req.user.role === 'teacher') {
+        next();
+    } else {
+        res.status(401);
+        throw new Error('Not authorized as an enseignant');
+    }
+};
+
+export { protect, admin, teacher };

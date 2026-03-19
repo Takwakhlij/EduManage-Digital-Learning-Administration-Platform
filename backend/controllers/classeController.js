@@ -5,45 +5,34 @@ import Classe from '../models/classeModel.js';
 // @route   POST /api/classes
 // @access  Private/Admin
 const createClasse = asyncHandler(async (req, res) => {
-    const { nomClasse, niveau, anneeScolaire } = req.body;
+    const { nomClasse, niveau, chapitresTemplate } = req.body;
 
     // Validation des champs
-    if (!nomClasse || !niveau || !anneeScolaire) {
+    if (!nomClasse || !niveau) {
         res.status(400);
         throw new Error('Veuillez remplir tous les champs requis');
     }
 
-    // Vérifier si la classe existe déjà pour cette année
-    const classeExists = await Classe.findOne({ nomClasse, anneeScolaire });
+    // Vérifier si la classe existe déjà
+    const classeExists = await Classe.findOne({ nomClasse, niveau });
 
     if (classeExists) {
         res.status(400);
-        throw new Error('Cette classe existe déjà pour cette année scolaire');
+        throw new Error('Cette classe existe déjà');
     }
 
     // Créer la classe
     const classe = await Classe.create({
         nomClasse,
         niveau,
-        anneeScolaire,
-        professeurs: req.body.professeurs,
-        matieres: req.body.matieres,
-        admin: req.user._id, // Admin qui crée la classe
+        chapitresTemplate: chapitresTemplate || []
     });
 
     if (classe) {
         res.status(201).json({
             success: true,
             message: 'Classe créée avec succès',
-            data: {
-                _id: classe._id,
-                nomClasse: classe.nomClasse,
-                niveau: classe.niveau,
-                anneeScolaire: classe.anneeScolaire,
-                admin: classe.admin,
-                createdAt: classe.createdAt,
-                updatedAt: classe.updatedAt,
-            },
+            data: classe
         });
     } else {
         res.status(400);
@@ -55,11 +44,8 @@ const createClasse = asyncHandler(async (req, res) => {
 // @route   GET /api/classes
 // @access  Private
 const getClasses = asyncHandler(async (req, res) => {
-    const classes = await Classe.find({})
-        .populate('admin', 'firstName lastName email')
-        .populate('professeurs', 'firstName lastName email specialization')
-        .populate('matieres', 'nomMatiere coefficient')
-        .sort({ createdAt: -1 });
+    // On récupère juste les classes, l'affectation se fait dans "Sessions"
+    const classes = await Classe.find({}).sort({ createdAt: -1 });
 
     res.json({
         success: true,
@@ -72,10 +58,7 @@ const getClasses = asyncHandler(async (req, res) => {
 // @route   GET /api/classes/:id
 // @access  Private
 const getClasseById = asyncHandler(async (req, res) => {
-    const classe = await Classe.findById(req.params.id)
-        .populate('admin', 'firstName lastName email')
-        .populate('professeurs', 'firstName lastName email specialization')
-        .populate('matieres', 'nomMatiere coefficient');
+    const classe = await Classe.findById(req.params.id);
 
     if (classe) {
         res.json({
@@ -97,9 +80,9 @@ const updateClasse = asyncHandler(async (req, res) => {
     if (classe) {
         classe.nomClasse = req.body.nomClasse || classe.nomClasse;
         classe.niveau = req.body.niveau || classe.niveau;
-        classe.anneeScolaire = req.body.anneeScolaire || classe.anneeScolaire;
-        classe.professeurs = req.body.professeurs || classe.professeurs;
-        classe.matieres = req.body.matieres || classe.matieres;
+        if (req.body.chapitresTemplate) {
+            classe.chapitresTemplate = req.body.chapitresTemplate;
+        }
 
         const updatedClasse = await classe.save();
 
@@ -132,67 +115,10 @@ const deleteClasse = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Ajouter un professeur à une classe
-// @route   PUT /api/classes/:id/professeurs
-// @access  Private/Admin
-const addProfesseurToClasse = asyncHandler(async (req, res) => {
-    const { professeurId } = req.body;
-    const classe = await Classe.findById(req.params.id);
-
-    if (!classe) {
-        res.status(404);
-        throw new Error('Classe non trouvée');
-    }
-
-    // Vérifier si le professeur est déjà dans la classe
-    if (classe.professeurs.includes(professeurId)) {
-        res.status(400);
-        throw new Error('Ce professeur est déjà assigné à cette classe');
-    }
-
-    classe.professeurs.push(professeurId);
-    await classe.save();
-
-    const updatedClasse = await Classe.findById(req.params.id)
-        .populate('professeurs', 'firstName lastName email specialization');
-
-    res.json({
-        success: true,
-        message: 'Professeur ajouté avec succès',
-        data: updatedClasse,
-    });
-});
-
-// @desc    Retirer un professeur d'une classe
-// @route   DELETE /api/classes/:id/professeurs/:profId
-// @access  Private/Admin
-const removeProfesseurFromClasse = asyncHandler(async (req, res) => {
-    const classe = await Classe.findById(req.params.id);
-
-    if (!classe) {
-        res.status(404);
-        throw new Error('Classe non trouvée');
-    }
-
-    classe.professeurs = classe.professeurs.filter(
-        (prof) => prof.toString() !== req.params.profId
-    );
-
-    await classe.save();
-
-    res.json({
-        success: true,
-        message: 'Professeur retiré avec succès',
-        data: classe,
-    });
-});
-
 export {
     createClasse,
     getClasses,
     getClasseById,
     updateClasse,
-    deleteClasse,
-    addProfesseurToClasse,
-    removeProfesseurFromClasse,
+    deleteClasse
 };

@@ -1,42 +1,23 @@
 import mongoose from 'mongoose';
 
-const classeSchema = mongoose.Schema(
-    {
-        nomClasse: {
-            type: String,
-            required: [true, 'Veuillez ajouter un nom de classe'],
-            trim: true,
-        },
-        niveau: {
-            type: String,
-            required: [true, 'Veuillez ajouter un niveau'],
-            enum: ['Débutant', 'Intermédiaire', 'Avancé'],
-        },
-        anneeScolaire: {
-            type: String,
-            required: [true, 'Veuillez ajouter une année scolaire'],
-            match: [/^\d{4}-\d{4}$/, 'Format invalide. Utilisez YYYY-YYYY (ex: 2025-2026)'],
-        },
-        admin: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true,
-        },
-        professeurs: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-        }],
-        matieres: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Matiere',
-        }],
+const classeSchema = new mongoose.Schema({
+    nomClasse: {
+        type: String,
+        required: [true, 'Veuillez ajouter un nom de classe'],
+        trim: true,
     },
-    {
-        timestamps: true,
-    }
-);
+    niveau: {
+        type: String,
+        required: [true, 'Veuillez ajouter un niveau (ex: < 6ans, Primaire...)'],
+    },
+    // HEDHA EL TEMPLATE: L'Admin y7ot just les titres mta3 les chapitres
+    chapitresTemplate: [{
+        titre: { type: String, required: true },
+        description: { type: String }
+    }]
+}, { timestamps: true });
 
-// Index pour éviter les doublons
-classeSchema.index({ nomClasse: 1, anneeScolaire: 1 }, { unique: true });
+// Bech net2akdou elli ma famech zouz classes 3andhom nafs l'esm w nafs e-niveau
+classeSchema.index({ nomClasse: 1, niveau: 1 }, { unique: true });
 
 export default mongoose.model('Classe', classeSchema);

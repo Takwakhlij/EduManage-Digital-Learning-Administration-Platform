@@ -19,25 +19,31 @@ function Dashboard() {
         navigate('/login');
     };
 
+    // Initial data fetch
+    useEffect(() => {
+        if (user && user.role !== 'admin') {
+            dispatch(getMe());
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Only on mount
+
+    // Redirect & Parent Logic
     useEffect(() => {
         if (!user) {
             navigate('/login');
             return;
         }
 
-        // Redirect Admin to their specific dashboard
+        // Redirect Admin
         if (user.role === 'admin') {
             navigate('/admin', { state: location.state });
-        } else {
-            // Refresh user data (check for status updates, new children linked, etc.)
-            dispatch(getMe());
         }
 
-        // Parent Logic: Select first child by default
-        if (user.role === 'parent' && user.children && user.children.length > 0) {
+        // Parent Logic: Select first child if none selected
+        if (user.role === 'parent' && !selectedChild && user.children && user.children.length > 0) {
             setSelectedChild(user.children[0]);
         }
-    }, [user, navigate]);
+    }, [user, navigate, location.state, selectedChild]);
 
     if (!user) return null;
 

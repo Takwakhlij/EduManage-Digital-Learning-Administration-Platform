@@ -50,8 +50,21 @@ const updateUser = async (userId, userData, token) => {
     return response.data;
 };
 
+// Create new user (Admin)
+const createUserAdmin = async (userData, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+
+    const response = await axios.post(API_URL, userData, config);
+    return response.data;
+};
+
 const adminService = {
     getUsers,
+    createUserAdmin,
     updateUserStatus,
     deleteUser,
     updateUser,

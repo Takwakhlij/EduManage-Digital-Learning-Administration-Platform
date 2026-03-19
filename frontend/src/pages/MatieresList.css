@@ -1,0 +1,153 @@
+/* ═══════════════════════════════════════════════════════════
+   MATIERES LIST — Unique Gold/Green Lighter Theme
+   ═══════════════════════════════════════════════════════════ */
+
+/* Override default classe-card-header for Matieres to be less "chargé" */
+.matiere-card-header {
+    background: linear-gradient(135deg, rgba(201, 169, 97, 0.1) 0%, rgba(13, 95, 71, 0.05) 100%) !important;
+    border-bottom: 1px solid rgba(201, 169, 97, 0.25) !important;
+    padding: 16px 20px !important;
+}
+
+.matiere-card-header::before {
+    display: none !important;
+    /* Remove the heavy geometric pattern */
+}
+
+.matiere-icon-wrapper {
+    background: white !important;
+    color: var(--gold-dark, #b8860b) !important;
+    border: 1px solid rgba(201, 169, 97, 0.4) !important;
+    box-shadow: 0 2px 8px rgba(201, 169, 97, 0.15) !important;
+}
+
+.matiere-title {
+    color: var(--green-deep, #064e3b) !important;
+    font-size: 1.15rem !important;
+}
+
+.matiere-coef-badge {
+    color: var(--green-deep, #064e3b) !important;
+    background: rgba(13, 95, 71, 0.1) !important;
+    border: 1px solid rgba(13, 95, 71, 0.2) !important;
+}
+
+.btn-icon.delete-matiere {
+    color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.btn-icon.delete-matiere:hover {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MATIERES DARK THEME OVERRIDES
+   ═══════════════════════════════════════════════════════════ */
+
+body.dark-theme .classe-card {
+    background: #1f1e1e !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-theme .matiere-card-header {
+    background: #1f1e1e !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-theme .matiere-icon-wrapper {
+    background: #2a2a2a !important;
+    color: #e8c97a !important;
+    /* Lighter gold for dark mode */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-theme .matiere-title {
+    color: #2dd4bf !important;
+    /* Lighter teal/green */
+}
+
+body.dark-theme .matiere-coef-badge {
+    color: #34d399 !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+}
+
+body.dark-theme .classe-stat {
+    color: #9ca3af !important;
+}
+
+body.dark-theme .matiere-details p {
+    color: #d1d5db !important;
+}
+
+body.dark-theme .btn-icon.delete-matiere {
+    color: #f87171 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+body.dark-theme .btn-icon.delete-matiere:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #fca5a5 !important;
+}
+
+/* Plus card override */
+body.dark-theme .create-card {
+    background: transparent !important;
+    border: 2px dashed rgba(255, 255, 255, 0.15) !important;
+}
+
+body.dark-theme .create-card:hover {
+    border-color: #2dd4bf !important;
+    background: rgba(45, 212, 191, 0.05) !important;
+}
+
+body.dark-theme .create-card h3 {
+    color: #2dd4bf !important;
+}
+
+body.dark-theme .create-card p {
+    color: #9ca3af !important;
+}
+
+body.dark-theme .create-icon-wrapper {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #9ca3af !important;
+}
+
+body.dark-theme .create-card:hover .create-icon-wrapper {
+    background: rgba(45, 212, 191, 0.1) !important;
+    color: #2dd4bf !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LTR THEME OVERRIDES (French / English)
+   ═══════════════════════════════════════════════════════════ */
+
+/* Apply proper text alignments when Left-to-Right is active */
+[dir="ltr"] .classes-container {
+    text-align: left;
+    direction: ltr;
+}
+
+[dir="ltr"] .matiere-title-wrapper {
+    margin-left: 10px;
+}
+
+[dir="rtl"] .matiere-title-wrapper {
+    margin-right: 10px;
+}
+
+[dir="ltr"] .matiere-details p {
+    text-align: left;
+}
+
+[dir="ltr"] .classes-header-card .header-content {
+    text-align: left;
+}
+
+[dir="ltr"] .classe-stat {
+    text-align: left;
+}

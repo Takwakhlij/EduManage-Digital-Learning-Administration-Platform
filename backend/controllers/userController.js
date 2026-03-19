@@ -6,7 +6,9 @@ import User from '../models/userModel.js';
 // @desc    Register new user
 // @route   POST /api/users/register
 // @access  Public
+// @action  Crée un nouvel utilisateur. Si "parent", crée/lie l'enfant. Hache le mot de passe.
 const registerUser = asyncHandler(async (req, res) => {
+    // 1. Extraire les données de la requête du Frontend
     const {
         firstName,
         lastName,
@@ -18,15 +20,15 @@ const registerUser = asyncHandler(async (req, res) => {
         specialization,
         experience,
         childName, // New field from frontend
-        childEmail, // New field from frontend
     } = req.body;
 
+    // 2. Vérification de base (Validation)
     if (!firstName || !lastName || !email || !password) {
         res.status(400);
         throw new Error('Please add all required fields');
     }
 
-    // Check if user exists
+    // 3. Vérifier si l'utilisateur existe déjà dans la base de données via son Email
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -34,7 +36,7 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error('User already exists');
     }
 
-    // Hash password
+    // 4. Sécurité: Hacher le mot de passe (Hashage unidirectionnel) pour ne pas stocker en clair text
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -43,18 +45,10 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Parent Logic: Create or Link Child
     if (role === 'parent') {
-        if (childEmail) {
-            // Case 1: Link existing child by email (e.g. Major child)
-            const existingChild = await User.findOne({ email: childEmail });
-            if (existingChild) {
-                childId = existingChild._id;
-                childrenIds.push(childId);
-                // Optional: Link parent to child as well
-            }
-        } else if (childName) {
-            // Case 2: Create new child account (e.g. Minor)
+        if (childName) {
+            // Create new child account (e.g. Minor)
             // Generate a placeholder email or username
-            const childEmailGenerated = `child.${Date.now()}@temp.com`;
+            const childEmailGenerated = `child.${Date.now()}@temp.com`; // Générer un email fictif
             const childPassword = await bcrypt.hash('123456', salt); // Default password
 
             // Allow childName to be "First Last" or just "First"
@@ -126,19 +120,15 @@ const registerUser = asyncHandler(async (req, res) => {
 // @desc    Authenticate a user
 // @route   POST /api/users/login
 // @access  Public
+// @action  Vérifie l'email/mot de passe et génère un jeton (Token JWT) de session.
 const loginUser = asyncHandler(async (req, res) => {
-    const { email, password, role } = req.body;
+    const { email, password } = req.body;
 
-    // Check for user email
+    // 1. Chercher l'utilisateur par e-mail
     const user = await User.findOne({ email });
 
+    // 2. Si l'utilisateur existe, comparer le mot de passe (clair) avec le mot de passe haché de la base de données
     if (user && (await bcrypt.compare(password, user.password))) {
-        // Check if role matches (optional - you can remove this if you want users to login regardless of role)
-        if (role && user.role !== role) {
-            res.status(401);
-            throw new Error('Invalid credentials for this role');
-        }
-
         if (user.status !== 'active' && user.role !== 'admin') {
             res.status(401);
             throw new Error('Votre compte est en attente de validation par un administrateur.');
@@ -149,6 +139,7 @@ const loginUser = asyncHandler(async (req, res) => {
             await user.populate('children', 'firstName lastName currentLevel status');
         }
 
+        // 4. Générer la réponse de succès avec les données et le fameux Jeton (Token)
         res.json({
             _id: user.id,
             firstName: user.firstName,
@@ -157,7 +148,7 @@ const loginUser = asyncHandler(async (req, res) => {
             role: user.role,
             profileImage: user.profileImage,
             children: user.children,
-            token: generateToken(user._id),
+            token: generateToken(user._id), // Appel de la fonction pour créer le Token
         });
     } else {
         res.status(401);
@@ -181,10 +172,12 @@ const getMe = asyncHandler(async (req, res) => {
     res.status(200).json(user);
 });
 
-// Generate JWT
+// Generate JWT (JSON Web Token)
+// Une fois l'utilisateur authentifié, on "signe" mathématiquement un jeton qui inclut son ID.
+// Le Frontend gardera ce jeton pour prouver son identité lors des requêtes ultérieures.
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d',
+        expiresIn: '30d', // Valide pour 30 jours
     });
 };
 
@@ -198,6 +191,59 @@ const getUsers = asyncHandler(async (req, res) => {
     const users = await User.find({}).sort({ createdAt: -1 }).select('-password');
     res.json(users);
 });
+
+// @desc    Create new user (Admin specific)
+// @route   POST /api/users
+// @access  Private/Admin
+const createUserAdmin = asyncHandler(async (req, res) => {
+    const { firstName, lastName, email, password, role, status, phoneNumber } = req.body;
+
+    if (!firstName || !lastName || !email || !password || !role) {
+        res.status(400);
+        throw new Error('Please add all required fields');
+    }
+
+    // Check if user exists
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+        res.status(400);
+        throw new Error('Un utilisateur avec cet email existe déjà');
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user (force status from request or default to active)
+    const user = await User.create({
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        role,
+        status: status || 'active', // Default to active since created by admin
+        phoneNumber,
+    });
+
+    if (user) {
+        res.status(201).json({
+            _id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role,
+            status: user.status,
+            phoneNumber: user.phoneNumber,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        });
+    } else {
+        res.status(400);
+        throw new Error('Données utilisateur invalides');
+    }
+});
+
 
 // @desc    Update user status (validate/reject)
 // @route   PUT /api/users/:id/status
@@ -231,7 +277,7 @@ const updateUserStatus = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Delete user
+// @desc    Delete user (Admin only)
 // @route   DELETE /api/users/:id
 // @access  Private/Admin
 const deleteUser = asyncHandler(async (req, res) => {
@@ -244,6 +290,23 @@ const deleteUser = asyncHandler(async (req, res) => {
         res.status(404);
         throw new Error('User not found');
     }
+});
+
+// @desc    Deactivate own account (Soft Delete)
+// @route   PUT /api/users/deactivate
+// @access  Private
+const deactivateSelfAccount = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+        res.status(404);
+        throw new Error('Utilisateur non trouvé');
+    }
+
+    user.status = 'inactive';
+    await user.save();
+
+    res.json({ message: 'Compte désactivé avec succès' });
 });
 
 // @desc    Update user details (Admin)
@@ -355,6 +418,8 @@ export {
     loginUser,
     getMe,
     getUsers,
+    createUserAdmin,
+    deactivateSelfAccount,
     updateUserStatus,
     deleteUser,
     updateUser,

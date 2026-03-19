@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { login, reset } from '../features/auth/authSlice';
+import logo from '../assets/logo.png';
 import './AdminLogin.css';
 
 function AdminLogin() {
@@ -62,6 +63,7 @@ function AdminLogin() {
 
     return (
         <>
+
             <div className="admin-login-wrapper">
                 {/* Background Pattern */}
                 <div className="admin-bg-pattern"></div>
@@ -69,7 +71,7 @@ function AdminLogin() {
                 <div className="admin-login-container">
                     {/* Logo & Title */}
                     <div className="admin-header">
-                        <img src="/src/assets/logo.png" alt="Logo Association" className="admin-logo" />
+                        <img src={logo} alt="Logo Association" className="admin-logo" />
                         <h1 className="admin-title">Espace Administrateur</h1>
                         <p className="admin-subtitle">Portail de gestion de l'Association Coranique</p>
                     </div>
@@ -84,7 +86,6 @@ function AdminLogin() {
                     <form onSubmit={onSubmit} className="admin-form">
                         <div className="admin-form-group">
                             <label htmlFor="email">
-                                <span className="label-icon">📧</span>
                                 Identifiant Administrateur
                             </label>
                             <div className="admin-input-wrapper">
@@ -103,7 +104,6 @@ function AdminLogin() {
 
                         <div className="admin-form-group">
                             <label htmlFor="password">
-                                <span className="label-icon">🔐</span>
                                 Mot de passe sécurisé
                             </label>
                             <div className="admin-input-wrapper">

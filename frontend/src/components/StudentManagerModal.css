@@ -1,0 +1,218 @@
+/* Modale principale : réutilise les bases de .planning-modal-content */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.student-modal {
+    background: white;
+    width: 600px;
+    max-width: 90vw;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.planning-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.planning-modal-header h2 {
+    font-size: 1.25rem;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.close-planning-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.close-planning-btn:hover {
+    background: #f1f5f9;
+    color: #ef4444;
+}
+
+.planning-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.planning-intro {
+    background: #f8fafc;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: #475569;
+    font-size: 0.9rem;
+    border-left: 4px solid #10b981;
+}
+
+.student-search input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.student-search input:focus {
+    border-color: #10b981;
+}
+
+.students-selection-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.student-checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.student-checkbox-item:hover {
+    background: #f8fafc;
+}
+
+.student-checkbox-item.selected {
+    border-color: #10b981;
+    background: #ecfdf5;
+}
+
+.student-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 16px;
+    accent-color: #10b981;
+    cursor: pointer;
+}
+
+.student-info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.student-avatar-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    overflow: hidden;
+}
+
+.student-avatar-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.student-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-name {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.student-email {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.planning-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafaf8;
+    border-radius: 0 0 12px 12px;
+}
+
+.selected-count {
+    color: #475569;
+    font-size: 0.95rem;
+}
+
+.selected-count strong {
+    color: #10b981;
+    font-size: 1.1rem;
+}
+
+.footer-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-cancel {
+    padding: 10px 16px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #f1f5f9;
+}
+
+.btn-save {
+    padding: 10px 20px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-save:hover {
+    background: #059669;
+}

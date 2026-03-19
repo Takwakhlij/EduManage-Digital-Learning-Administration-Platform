@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getMatieres, deleteMatiere, reset } from '../features/matieres/matiereSlice';
 import CreateMatiereModal from '../components/CreateMatiereModal';
 import './ClassesList.css'; // Reusing ClassesList CSS for consistency
+import './MatieresList.css'; // Lighter gold/green theme for matieres
 
 /* ── Inline SVG Icons ── */
 const FaPlus = () => (
@@ -122,21 +123,20 @@ function MatieresList() {
                 {matieres.length > 0 ? (
                     matieres.map((matiere) => (
                         <div key={matiere._id} className="classe-card">
-                            <div className="classe-card-header">
-                                <div className="create-icon-wrapper" style={{ background: 'rgba(255, 255, 255, 0.1)', width: '40px', height: '40px' }}>
+                            <div className="classe-card-header matiere-card-header">
+                                <div className="create-icon-wrapper matiere-icon-wrapper" style={{ width: '40px', height: '40px' }}>
                                     <IconBook />
                                 </div>
-                                <div style={{ flex: 1, marginLeft: '10px' }}>
-                                    <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'white' }}>{matiere.nomMatiere}</h3>
-                                    <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '12px' }}>
+                                <div className="matiere-title-wrapper" style={{ flex: 1 }}>
+                                    <h3 className="matiere-title" style={{ margin: 0, fontSize: '1.2rem' }}>{matiere.nomMatiere}</h3>
+                                    <span className="matiere-coef-badge" style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '12px' }}>
                                         Coef: {matiere.coefficient}
                                     </span>
                                 </div>
                                 <button
-                                    className="btn-icon delete"
+                                    className="btn-icon delete delete-matiere"
                                     onClick={(e) => { e.stopPropagation(); handleDelete(matiere); }}
                                     title="Supprimer"
-                                    style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
                                 >
                                     <FaTrash />
                                 </button>

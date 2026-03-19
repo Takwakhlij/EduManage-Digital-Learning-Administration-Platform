@@ -14,7 +14,6 @@ function Register() {
         phoneNumber: '',
         dateOfBirth: '',
         childName: '',
-        childEmail: '',
         specialization: '',
         experience: '',
     });
@@ -28,7 +27,6 @@ function Register() {
         phoneNumber,
         dateOfBirth,
         childName,
-        childEmail,
         specialization,
         experience,
     } = formData;
@@ -94,7 +92,6 @@ function Register() {
         // Add fields for parent
         if (role === 'parent') {
             userData.childName = childName;
-            userData.childEmail = childEmail;
         }
 
         dispatch(register(userData));
@@ -106,11 +103,10 @@ function Register() {
 
     return (
         <>
-            <div className="top-border"></div>
-            <div className="auth-wrapper">
-                <div className="auth-container register-container">
-                    {/* Logo */}
-                    {/* Logo & Identity */}
+            <div className="register-wrapper">
+                <div className="register-container">
+
+                    {/* Header: Logo + Identity */}
                     <div className="auth-logo">
                         <img src="/src/assets/logo.png" alt="Logo Association Coranique" />
                         <div className="association-identity">
@@ -120,14 +116,14 @@ function Register() {
                             <p className="association-slogan">Pour l'apprentissage et la mémorisation du Saint Coran</p>
                         </div>
                     </div>
-                    {/* Islamic Quote */}
-                    <div className="islamic-quote">
-                        خَیۡرُكُمۡ مَنۡ تَعَلَّمَ ٱلۡقُرۡءَانَ وَعَلَّمَهُ
-                        <small>«Le meilleur d&apos;entre vous est celui qui apprend le Coran et l&apos;enseigne» — Hadith du Prophète ﷺ</small>
-                    </div>
-                    {/* Title */}
-                    <h1 className="auth-title">انضم إلى مجتمعنا</h1>
-                    <p className="auth-subtitle">Rejoignez notre communauté d&apos;apprenants du Saint Coran</p>
+
+                    {/* Page title */}
+                    <h1 className="form-section-title" style={{ textAlign: 'center', marginBottom: '4px' }}>
+                        Créer un compte
+                    </h1>
+                    <p className="form-section-subtitle" style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        Rejoignez notre communauté d&apos;apprenants du Saint Coran
+                    </p>
 
                     <div className="divider"></div>
 
@@ -136,7 +132,7 @@ function Register() {
                         <label htmlFor="role-select" className="role-select-label">
                             Choisissez votre espace
                         </label>
-                        <div className="select-wrapper">
+                        <div className="role-select-wrapper">
                             <select
                                 id="role-select"
                                 className="role-select"
@@ -153,7 +149,7 @@ function Register() {
                     {/* Form */}
                     <div className="auth-form-section">
                         <h2 className="form-section-title">
-                            Inscription {role === 'student' ? 'Étudiant' : role === 'teacher' ? 'Enseignant' : 'Parent / Tuteur'}
+                            Inscription {role === 'student' ? 'Étudiant' : role === 'teacher' ? 'Enseignant' : 'Parent'}
                         </h2>
                         <p className="form-section-subtitle">
                             Remplissez vos informations pour débuter votre parcours d&apos;apprentissage
@@ -277,20 +273,6 @@ function Register() {
                                             name="childName"
                                             value={childName}
                                             placeholder="Ex: Amine Ben Ali"
-                                            onChange={onChange}
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="childEmail">
-                                            OU Email de l&apos;enfant (s&apos;il a déjà un compte)
-                                        </label>
-                                        <input
-                                            type="email"
-                                            className="form-control"
-                                            id="childEmail"
-                                            name="childEmail"
-                                            value={childEmail}
-                                            placeholder="enfant@exemple.com"
                                             onChange={onChange}
                                         />
                                     </div>
