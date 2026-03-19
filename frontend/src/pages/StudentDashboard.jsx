@@ -261,7 +261,9 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                 <div className="sidebar-footer">
                     <button onClick={onLogout} className="btn-logout">
                         <LogOut size={20} />
-                        <span>Déconnexion</span>
+                        <span>Déconnexion
+                            
+                        </span>
                     </button>
                 </div>            </aside>
 
