@@ -10,7 +10,7 @@ import { useLanguage } from '../context/LanguageContext';
 import {
     Bell, RefreshCw, AlertTriangle, FileEdit, TrendingDown,
     CheckCircle, Calendar, Users, BarChart, BookOpen, User, Settings,
-    LogOut, ChevronRight, CheckSquare, MapPin, Eye, Search
+    LogOut, ChevronRight, CheckSquare, MapPin, Eye, Search, ArrowLeft
 } from 'lucide-react';
 import './TeacherDashboard.css';
 import logo from '../assets/logo.png';

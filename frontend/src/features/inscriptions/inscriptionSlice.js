@@ -43,7 +43,7 @@ export const getAllInscriptions = createAsyncThunk(
     }
 );
 
-// Inscrire un étudiant
+// Inscrire un étudiant (enroll)
 export const inscrireEtudiant = createAsyncThunk(
     'inscriptions/enroll',
     async (inscriptionData, thunkAPI) => {
@@ -66,6 +66,23 @@ export const getInscriptionsParSession = createAsyncThunk(
             return await inscriptionService.getInscriptionsParSession(sessionId, token);
         } catch (error) {
             const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
+// Mettre à jour le statut d'une inscription (Admin)
+export const updateInscriptionStatut = createAsyncThunk(
+    'inscriptions/updateStatut',
+    async ({ id, statut }, thunkAPI) => {
+        try {
+            const token = thunkAPI.getState().auth.user.token;
+            return await inscriptionService.updateStatutInscription(id, statut, token);
+        } catch (error) {
+            const message =
+                (error.response && error.response.data && error.response.data.message) ||
+                error.message ||
+                error.toString();
             return thunkAPI.rejectWithValue(message);
         }
     }
@@ -131,6 +148,24 @@ export const inscriptionSlice = createSlice({
                 state.inscriptions = action.payload.inscriptions;
             })
             .addCase(getAllInscriptions.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            // Update Inscription Statut
+            .addCase(updateInscriptionStatut.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(updateInscriptionStatut.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                // Update the inscription in the list
+                const updated = action.payload.inscription;
+                state.inscriptions = state.inscriptions.map((ins) =>
+                    ins._id === updated._id ? updated : ins
+                );
+            })
+            .addCase(updateInscriptionStatut.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;

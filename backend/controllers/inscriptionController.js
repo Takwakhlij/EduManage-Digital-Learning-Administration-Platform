@@ -1,7 +1,45 @@
 import Inscription from '../models/inscriptionModel.js';
 import Session from '../models/sessionModel.js';
 import User from '../models/userModel.js';
-import asyncHandler from 'express-async-handler'; 
+import asyncHandler from 'express-async-handler';
+
+// @desc    Mettre à jour le statut d'une inscription (approuvée / refusée)
+// @route   PUT /api/inscriptions/:id/statut
+// @access  Private (Admin)
+export const updateStatutInscription = asyncHandler(async (req, res) => {
+    const { statut } = req.body;
+
+    if (!statut || !['approuvee', 'refusee', 'en_attente'].includes(statut)) {
+        res.status(400);
+        throw new Error("Statut invalide. Valeurs acceptées : 'approuvee', 'refusee', 'en_attente'.");
+    }
+
+    const inscription = await Inscription.findById(req.params.id);
+
+    if (!inscription) {
+        res.status(404);
+        throw new Error("Inscription non trouvée.");
+    }
+
+    inscription.statut = statut;
+    await inscription.save();
+
+    const updated = await Inscription.findById(inscription._id)
+        .populate('etudiant', 'firstName lastName email profileImage')
+        .populate({
+            path: 'session',
+            select: 'nomSession montant duree',
+            populate: { path: 'enseignants', select: 'firstName lastName' }
+        })
+        .populate('classe', 'nomClasse niveau');
+
+    res.status(200).json({
+        success: true,
+        message: `Inscription ${statut === 'approuvee' ? 'approuvée' : statut === 'refusee' ? 'refusée' : 'remise en attente'} avec succès.`,
+        inscription: updated
+    });
+});
+
 
 // @desc    Inscrire un étudiant à une session
 // @route   POST /api/inscriptions
@@ -73,8 +111,12 @@ export const getInscriptionsParSession = asyncHandler(async (req, res) => {
         throw new Error("Session non trouvée.");
     }
 
-    // Sécurité : Seul l'admin ou l'enseignant de la session peut voir les inscriptions
-    if (req.user.role !== 'admin' && session.enseignant.toString() !== req.user._id.toString()) {
+    // Sécurité : Seul l'admin ou l'un des enseignants de la session peut voir les inscriptions
+    const estEnseignantAssigne = session.enseignants.some(
+        (id) => id.toString() === req.user._id.toString()
+    );
+
+    if (req.user.role !== 'admin' && !estEnseignantAssigne) {
         res.status(401);
         throw new Error("Non autorisé à voir les inscriptions de cette session.");
     }
@@ -106,7 +148,7 @@ export const getAllInscriptions = asyncHandler(async (req, res) => {
             path: 'session',
             select: 'nomSession montant duree',
             populate: {
-                path: 'enseignant',
+                path: 'enseignants',
                 select: 'firstName lastName'
             }
         })
@@ -130,11 +172,11 @@ export const getMyInscriptions = asyncHandler(async (req, res) => {
             path: 'session',
             select: 'nomSession duree statut',
             populate: [
-                { path: 'enseignant', select: 'firstName lastName' },
-                { path: 'classe', select: 'nomClasse niveau' }
+                { path: 'enseignants', select: 'firstName lastName' },
+                { path: 'classe', select: 'nomClasse niveau chapitresTemplate' }
             ]
         })
-        .populate('classe', 'nomClasse niveau')
+        .populate('classe', 'nomClasse niveau chapitresTemplate')
         .sort({ createdAt: -1 });
 
     res.status(200).json({

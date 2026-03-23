@@ -7,18 +7,24 @@ import Inscription from '../models/inscriptionModel.js';
 // @route   POST /api/sessions
 // @access  Private (Admin)
 export const createSession = asyncHandler(async (req, res) => {
-    const { nomSession, classe, enseignant, montant, duree, description, imageCouverture } = req.body;
+    const { nomSession, classe, enseignants, montant, duree, description, imageCouverture } = req.body;
 
-    // Vérifier que tous les champs sont là
-    if (!nomSession || !classe || !enseignant || !montant || !duree) {
+    // Vérifier que tous les champs sont là (classe et enseignants sont obligatoires)
+    if (!nomSession || !classe || !enseignants || !montant || !duree) {
         res.status(400);
         throw new Error("Veuillez remplir tous les champs obligatoires.");
+    }
+
+    // Vérifier que enseignants est bien un tableau et n'est pas vide
+    if (!Array.isArray(enseignants) || enseignants.length === 0) {
+        res.status(400);
+        throw new Error("Veuillez affecter au moins un enseignant à cette session.");
     }
 
     const nouvelleSession = await Session.create({
         nomSession,
         classe,
-        enseignant,
+        enseignants,
         montant,
         duree,
         description,
@@ -46,7 +52,7 @@ export const getAllSessions = asyncHandler(async (req, res) => {
 
     const sessionsRaw = await Session.find(query)
         .populate('classe', 'nomClasse niveau')
-        .populate('enseignant', 'firstName lastName email');
+        .populate('enseignants', 'firstName lastName email');
 
     // Ajouter le compte des étudiants pour chaque session + migration "lazy" pour isPublished
     const sessions = await Promise.all(sessionsRaw.map(async (s) => {
@@ -80,7 +86,7 @@ export const getPublishedSessions = asyncHandler(async (req, res) => {
         isPublished: { $ne: false } 
     })
         .populate('classe', 'nomClasse niveau')
-        .populate('enseignant', 'firstName lastName');
+        .populate('enseignants', 'firstName lastName');
 
     res.status(200).json({
         success: true,
@@ -93,7 +99,7 @@ export const getPublishedSessions = asyncHandler(async (req, res) => {
 // @route   GET /api/sessions/teacher
 // @access  Private (Teacher)
 export const getTeacherSessions = asyncHandler(async (req, res) => {
-    const sessionsRaw = await Session.find({ enseignant: req.user._id })
+    const sessionsRaw = await Session.find({ enseignants: req.user._id })
         .populate('classe', 'nomClasse niveau chapitresTemplate');
 
     // Ajouter le compte des étudiants pour chaque session
@@ -118,7 +124,7 @@ export const getTeacherSessions = asyncHandler(async (req, res) => {
 export const getSessionById = asyncHandler(async (req, res) => {
     const session = await Session.findById(req.params.id)
         .populate('classe', 'nomClasse niveau chapitresTemplate')
-        .populate('enseignant', 'firstName lastName email');
+        .populate('enseignants', 'firstName lastName email');
 
     if (!session) {
         res.status(404);
@@ -148,10 +154,14 @@ export const ajouterCoursSession = asyncHandler(async (req, res) => {
         throw new Error("Session non trouvée");
     }
 
-    // Sécurité: Vérifier que c'est bien l'enseignant de cette session qui fait la modification
-    if (session.enseignant.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    // Sécurité: Vérifier que c'est bien l'un des enseignants de cette session qui fait la modification ou un admin
+    const estEnseignantAssigne = session.enseignants.some(
+        (id) => id.toString() === req.user._id.toString()
+    );
+
+    if (!estEnseignantAssigne && req.user.role !== 'admin') {
         res.status(401);
-        throw new Error("Non autorisé : Vous n'êtes pas l'enseignant assigné à cette session");
+        throw new Error("Non autorisé : Vous n'êtes pas l'un des enseignants assignés à cette session");
     }
 
     // On ajoute le nouveau fichier (PDF/Video) dans le tableau "coursPublies"
@@ -179,7 +189,7 @@ export const updateSession = asyncHandler(async (req, res) => {
     if (session) {
         session.nomSession = req.body.nomSession || session.nomSession;
         session.classe = req.body.classe || session.classe;
-        session.enseignant = req.body.enseignant || session.enseignant;
+        session.enseignants = req.body.enseignants || session.enseignants;
         session.montant = req.body.montant || session.montant;
         session.duree = req.body.duree || session.duree;
         session.description = req.body.description || session.description;
@@ -214,8 +224,12 @@ export const completeSession = asyncHandler(async (req, res) => {
         throw new Error("Session non trouvée");
     }
 
-    // Sécurité: Seul l'enseignant de la session ou un admin peut la clôturer
-    if (session.enseignant.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    // Sécurité: Seul l'un des enseignants de la session ou un admin peut la clôturer
+    const estEnseignantAssigne = session.enseignants.some(
+        (id) => id.toString() === req.user._id.toString()
+    );
+
+    if (!estEnseignantAssigne && req.user.role !== 'admin') {
         res.status(401);
         throw new Error("Non autorisé : Vous ne pouvez pas clôturer cette session");
     }
@@ -248,7 +262,7 @@ export const togglePublishSession = asyncHandler(async (req, res) => {
     // Re-fetch with population to satisfy frontend state
     const updatedSession = await Session.findById(req.params.id)
         .populate('classe', 'nomClasse niveau')
-        .populate('enseignant', 'firstName lastName email');
+        .populate('enseignants', 'firstName lastName email');
 
     // Count students to match the format expected by getAllSessions
     const etudiantsCount = await Inscription.countDocuments({ session: updatedSession._id });

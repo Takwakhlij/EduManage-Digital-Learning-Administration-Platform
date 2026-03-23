@@ -7,7 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import {
     User, BookOpen, Clock, CheckCircle,
     PlusCircle, ArrowRight, X, ArrowLeft, Moon, Sun,
-    Search, Filter, ChevronDown, FileText, Video, Archive,
+    Search, Filter, ChevronDown, ChevronUp, FileText, Video, Archive,
     Link as LinkIcon, Headphones, Download, ExternalLink, PlayCircle, Globe
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -49,6 +49,7 @@ function StudentInscriptions({ effectiveUser }) {
     const [coursSearchTerm, setCoursSearchTerm] = useState('');
     const [selectedCoursMatiere, setSelectedCoursMatiere] = useState('');
     const [selectedFileType, setSelectedFileType] = useState('ALL');
+    const [openChapterIndex, setOpenChapterIndex] = useState(null);
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -117,10 +118,17 @@ function StudentInscriptions({ effectiveUser }) {
 
     // ── Helper: Déterminer le type de fichier et ses couleurs ──
     const getFileTypeInfo = (filename) => {
-        if (!filename) return { type: 'LINK', color: '#10b981', bg: '#10b981', icon: LinkIcon, label: 'Link', actionIcon: ExternalLink, actionText: t.viewOnline || 'Go to Link', singleAction: true };
+        if (!filename) return { type: 'LINK', color: '#3b82f6', bg: '#3b82f6', icon: LinkIcon, label: 'Lien', actionIcon: ExternalLink, actionText: t.viewOnline || 'Ouvrir', singleAction: true };
 
+        const isExternalUrl = filename.startsWith('http://') || filename.startsWith('https://');
+        
         let cleaned = filename.split('?')[0].split('#')[0];
         const ext = cleaned.split('.').pop().toLowerCase();
+
+        if (isExternalUrl && !['pdf', 'mp4', 'mkv', 'avi', 'mp3', 'wav', 'ogg', 'zip', 'rar', '7z', 'doc', 'docx'].includes(ext)) {
+             return { type: 'LINK', color: '#3b82f6', bg: '#3b82f6', icon: LinkIcon, label: 'Lien', actionIcon: ExternalLink, actionText: t.viewOnline || 'Ouvrir', singleAction: true };
+        }
+
         switch (ext) {
             case 'pdf':
                 return { type: 'PDF', color: '#10b981', bg: '#10b981', icon: FileText, label: 'PDF', actionIcon: Globe, actionText: t.viewOnline || 'View Online', singleAction: false };
@@ -250,7 +258,11 @@ function StudentInscriptions({ effectiveUser }) {
     // Pool: all courses relative to MY inscriptions
     const allActiveCours = isGlobalView
         ? (cours || [])
-        : (cours?.filter(c => c.classe && (c.classe._id === selectedClass?._id || c.classe === selectedClass?._id)) || []);
+        : (cours?.filter(c => {
+            const courseSessionId = c.session?._id || c.session;
+            const targetSessionId = selectedInscription?.session?._id || selectedInscription?.session;
+            return courseSessionId && targetSessionId && String(courseSessionId) === String(targetSessionId);
+        }) || []);
 
     const localCoursSubjectOptions = Array.from(new Set(allActiveCours.map(c => c.matiere?.nomMatiere).filter(Boolean)));
 
@@ -314,7 +326,11 @@ function StudentInscriptions({ effectiveUser }) {
         return { label: created.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) };
     };
 
-    const getFileUrl = (fichier) => fichier ? `http://localhost:5000${fichier}` : null;
+    const getFileUrl = (fichier) => {
+        if (!fichier) return null;
+        if (fichier.startsWith('http://') || fichier.startsWith('https://')) return fichier;
+        return `http://localhost:5000${fichier}`;
+    };
 
     const renderEnrollModal = () => {
         if (!showEnrollModal) return null;
@@ -773,42 +789,97 @@ function StudentInscriptions({ effectiveUser }) {
                                             ) : displayedCours.length === 0 ? (
                                                 <p className="exa-empty-text">{t.noMaterialMatch || 'Aucun support ne correspond à votre recherche.'}</p>
                                             ) : (
-                                                <div className="exa-course-grid">
-                                                    {displayedCours.map(c => {
-                                                        const fileInfo = getFileTypeInfo(c.fichier);
-                                                        return (
-                                                            <div key={c._id} className="exa-course-grid-card">
-                                                                <div className="exa-cgc-main">
-                                                                    <div className="exa-cgc-icon-wrapper" style={{ backgroundColor: fileInfo.bg }}>
-                                                                        <fileInfo.icon size={26} color="#ffffff" strokeWidth={1.5} />
-                                                                        <span className="exa-cgc-icon-label" style={{ color: '#ffffff' }}>{fileInfo.label}</span>
-                                                                    </div>
-                                                                    <div className="exa-cgc-info">
-                                                                        <div className="exa-cgc-header">
-                                                                            <h4 className="exa-cgc-title" title={c.titre}>{c.titre}</h4>
-                                                                            {c.description && <h5 className="exa-cgc-desc">{c.description}</h5>}
+                                                <>
+                                                    {(() => {
+                                                        const renderCourseCard = (c) => {
+                                                            const fileInfo = getFileTypeInfo(c.fichier);
+                                                            return (
+                                                                <div key={c._id} className="exa-course-grid-card">
+                                                                    <div className="exa-cgc-main">
+                                                                        <div className="exa-cgc-icon-wrapper" style={{ backgroundColor: fileInfo.bg }}>
+                                                                            <fileInfo.icon size={26} color="#ffffff" strokeWidth={1.5} />
+                                                                            <span className="exa-cgc-icon-label" style={{ color: '#ffffff' }}>{fileInfo.label}</span>
                                                                         </div>
-                                                                        <div className="exa-cgc-meta">
-                                                                            <span className="exa-cgc-date">{new Date(c.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                                                        <div className="exa-cgc-info">
+                                                                            <div className="exa-cgc-header">
+                                                                                <h4 className="exa-cgc-title" title={c.titre}>{c.titre}</h4>
+                                                                                {c.description && <h5 className="exa-cgc-desc">{c.description}</h5>}
+                                                                            </div>
+                                                                            <div className="exa-cgc-meta">
+                                                                                <span className="exa-cgc-date">{new Date(c.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
+                                                                    {c.fichier && (
+                                                                        <div className="exa-cgc-actions">
+                                                                            {!fileInfo.singleAction && (
+                                                                                <button onClick={() => handleDownload(getFileUrl(c.fichier), c.fichier)} className="exa-cgc-action-btn dl-btn">
+                                                                                    <Download size={14} strokeWidth={2} /> {t.download || 'Download'}
+                                                                                </button>
+                                                                            )}
+                                                                            <a href={getFileUrl(c.fichier)} target="_blank" rel="noopener noreferrer" className={`exa-cgc-action-btn view-btn ${fileInfo.singleAction ? 'single-action' : ''}`}>
+                                                                                <fileInfo.actionIcon size={14} strokeWidth={2} /> {fileInfo.actionText}
+                                                                            </a>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
-                                                                {c.fichier && (
-                                                                    <div className="exa-cgc-actions">
-                                                                        {!fileInfo.singleAction && (
-                                                                            <button onClick={() => handleDownload(getFileUrl(c.fichier), c.fichier)} className="exa-cgc-action-btn dl-btn">
-                                                                                <Download size={14} strokeWidth={2} /> {t.download || 'Download'}
-                                                                            </button>
-                                                                        )}
-                                                                        <a href={getFileUrl(c.fichier)} target="_blank" rel="noopener noreferrer" className={`exa-cgc-action-btn view-btn ${fileInfo.singleAction ? 'single-action' : ''}`}>
-                                                                            <fileInfo.actionIcon size={14} strokeWidth={2} /> {fileInfo.actionText}
-                                                                        </a>
-                                                                    </div>
-                                                                )}
+                                                            );
+                                                        };
+
+                                                        if (selectedClass?.chapitresTemplate?.length > 0 && !isGlobalView) {
+                                                            const sansChapitre = displayedCours.filter(c => !c.chapitreRef);
+                                                            return (
+                                                                <div className="exa-chapters-container" style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%', padding: '0' }}>
+                                                                    {selectedClass.chapitresTemplate.map((chap, index) => {
+                                                                        const chapCourses = displayedCours.filter(c => c.chapitreRef === chap._id);
+                                                                        if (chapCourses.length === 0) return null;
+                                                                        
+                                                                        return (
+                                                                            <div key={chap._id} className="exa-chapter-section" style={{ display: 'block' }}>
+                                                                                <div style={{ marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
+                                                                                    <h4 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#ceaa5f', margin: '0 0 4px 0', fontFamily: 'Amiri, Cairo, sans-serif' }}>
+                                                                                        {index + 1}. {chap.titre}
+                                                                                    </h4>
+                                                                                    {chap.description && (
+                                                                                        <p style={{ fontSize: '0.85rem', color: '#9ca3af', margin: '4px 0 0 0', fontFamily: 'Inter, sans-serif' }}>
+                                                                                            {chap.description}
+                                                                                        </p>
+                                                                                    )}
+                                                                                </div>
+                                                                                <div className="exa-course-grid">
+                                                                                    {chapCourses.map(renderCourseCard)}
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                    
+                                                                    {sansChapitre.length > 0 && (
+                                                                        <div className="exa-chapter-section" style={{ display: 'block' }}>
+                                                                            <div style={{ marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
+                                                                                <h4 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#ceaa5f', margin: '0 0 4px 0', fontFamily: 'Amiri, Cairo, sans-serif' }}>
+                                                                                    Autres supports
+                                                                                </h4>
+                                                                                <p style={{ fontSize: '0.85rem', color: '#9ca3af', margin: '4px 0 0 0', fontFamily: 'Inter, sans-serif' }}>
+                                                                                    Supports non rattachés à un chapitre ({sansChapitre.length})
+                                                                                </p>
+                                                                            </div>
+                                                                            <div className="exa-course-grid">
+                                                                                {sansChapitre.map(renderCourseCard)}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }
+
+                                                        // Default flat view for global view or classes without chapters
+                                                        return (
+                                                            <div className="exa-course-grid">
+                                                                {displayedCours.map(renderCourseCard)}
                                                             </div>
                                                         );
-                                                    })}
-                                                </div>
+                                                    })()}
+                                                </>
                                             )}
                                         </section>
                                     </>

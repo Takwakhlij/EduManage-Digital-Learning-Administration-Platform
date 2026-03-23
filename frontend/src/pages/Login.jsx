@@ -34,9 +34,9 @@ function Login() {
             } else if (user?.role === 'teacher') {
                 navigate('/teacher');
             } else if (user?.role === 'student') {
-                navigate('/dashboard');
+                navigate('/');
             } else {
-                navigate('/dashboard'); // Default for parent as well for now
+                navigate('/'); // Default for parent
             }
         }
 
@@ -198,11 +198,8 @@ function Login() {
                         </p>
 
                         {/* Lien discret admin */}
-                        <p className="admin-access-link">
-                            <Link to="/admin/login" className="admin-link">
-                                🔒 Accès Administrateur
-                            </Link>
-                        </p>
+                        
+                      
                     </div>
 
                 </div>

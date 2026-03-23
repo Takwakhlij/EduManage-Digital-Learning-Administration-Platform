@@ -3,7 +3,8 @@ import {
     inscrireEtudiant,
     getInscriptionsParSession,
     getAllInscriptions,
-    getMyInscriptions
+    getMyInscriptions,
+    updateStatutInscription
 } from '../controllers/inscriptionController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -17,6 +18,10 @@ router.route('/')
 // 🔒 Route privée: l'étudiant connecté voit UNIQUEMENT ses propres inscriptions
 router.route('/my')
     .get(protect, getMyInscriptions);
+
+// 🔐 Route Admin: approuver ou refuser une inscription
+router.route('/:id/statut')
+    .put(protect, admin, updateStatutInscription);
 
 // Route pour voir les inscriptions d'une session (Admin ou Enseignant)
 router.route('/session/:sessionId')

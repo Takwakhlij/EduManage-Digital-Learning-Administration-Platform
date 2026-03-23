@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import Cours from '../models/coursModel.js';
 import Classe from '../models/classeModel.js';
+import Inscription from '../models/inscriptionModel.js';
 
 // @desc    Récupérer les cours (filtrés par professeur connecté ou par matière)
 // @route   GET /api/cours
@@ -16,10 +17,20 @@ const getCours = asyncHandler(async (req, res) => {
         // ou l'ID de l'utilisateur connecté lui-même (étudiant direct)
         const targetUserId = req.query.studentId || req.user._id;
 
-        const classes = await Classe.find({ etudiants: targetUserId }).select('_id');
-        const classeIds = classes.map(c => c._id);
+        // ✅ Chercher les sessions où l'étudiant a une inscription APPROUVÉE
+        const inscriptions = await Inscription.find({
+            etudiant: targetUserId,
+            statut: 'approuvee'
+        }).select('session');
 
-        query.classe = { $in: classeIds };
+        const sessionIds = inscriptions.map(i => i.session);
+
+        // Si aucune inscription approuvée, retourner tableau vide
+        if (sessionIds.length === 0) {
+            return res.status(200).json({ success: true, count: 0, data: [] });
+        }
+
+        query.session = { $in: sessionIds };
         query.statut = 'Publié';
     }
 
@@ -32,6 +43,7 @@ const getCours = asyncHandler(async (req, res) => {
     if (req.query.matiereId) {
         query.matiere = req.query.matiereId;
     }
+
 
     const cours = await Cours.find(query)
         .populate('matiere', 'nomMatiere coefficient')

@@ -13,44 +13,47 @@ import inscriptionRoutes from './routes/inscriptionRoutes.js'; // Routes liées 
 // Charger les variables d'environnement (ex: process.env.PORT, process.env.MONGO_URI)
 dotenv.config();
 
-// Connect to database (Connexion à MongoDB)
-connectDB();
-
 const app = express(); // Initialiser l'application Express
 
 // Initialisation des Middleware (Filtres globaux appliqués à chaque requête)
 app.use(cors()); // Autorise le Frontend React (qui tourne sur un autre port) à faire des requêtes vers cette API
 // Increase limit for base64 image uploads (50MB should be enough for most photos)
-// Permet au serveur de comprendre les requêtes JSON (ex: POST form data) avec une limite augmentée pour accepter le téléchargement d'images encodées en Base64
 app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: false, limit: '50mb' })); // Permet d'analyser les données de formulaires URL-encoded (extended: false utilise la bibliothèque querystring)
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
 console.log('✅ Body parser limits set to 50MB for image uploads');
 
 // Serve uploaded files statically
-// Rendre le dossier "uploads" public pour que le site puisse afficher les images directement (ex: localhost:5000/uploads/image.png)
 app.use('/uploads', express.static('uploads'));
 
-// Routes de l'API (Associer une URL de base à un fichier de définition de route complet)
-app.use('/api/users', userRoutes);       // Tout ce qui commence par /api/users ira dans userRoutes.js
-app.use('/api/classes', classeRoutes);   // Tout ce qui commence par /api/classes ira dans classeRoutes.js
-app.use('/api/matieres', matiereRoutes); // Tout ce qui commence par /api/matieres ira dans matiereRoutes.js
-app.use('/api/cours', coursRoutes);      // Tout ce qui commence par /api/cours ira dans coursRoutes.js
-app.use('/api/sessions', sessionRoutes);   // Tout ce qui commence par /api/sessions ira dans sessionRoutes.js
-app.use('/api/inscriptions', inscriptionRoutes); // Tout ce qui commence par /api/inscriptions ira dans inscriptionRoutes.js
+// Routes de l'API
+app.use('/api/users', userRoutes);
+app.use('/api/classes', classeRoutes);
+app.use('/api/matieres', matiereRoutes);
+app.use('/api/cours', coursRoutes);
+app.use('/api/sessions', sessionRoutes);
+app.use('/api/inscriptions', inscriptionRoutes);
 
 // Root route
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to Association Coranique API' });
 });
 
-// Error handler (Middleware appliqué à la toute fin pour intercepter et styliser toutes les erreurs générées dans l'application)
+// Error handler
 app.use(errorHandler);
 
-// Déterminer le port sur lequel le serveur va écouter (Port 5000 par défaut ou celui défini dans .env)
-const PORT = process.env.PORT || 5000;
+// Connect to database and Start Server
+const startServer = async () => {
+    try {
+        await connectDB();
+        const PORT = process.env.PORT || 5000;
+        app.listen(PORT, () => {
+            console.log(`Server started on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error(`Error starting server: ${error.message}`);
+        process.exit(1);
+    }
+};
 
-// Lancer le serveur et écouter les requêtes entrantes
-app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
-});
+startServer();

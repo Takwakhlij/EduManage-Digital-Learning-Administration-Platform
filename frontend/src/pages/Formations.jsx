@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from '../context/ThemeContext';
 import {
     GraduationCap, BookOpen, FileText, Award,
-    User, Settings, LogOut, Menu, Bell, Info
+    User, Settings, LogOut, Menu, Bell, Info, ArrowLeft
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { logout, reset as authReset } from '../features/auth/authSlice';
@@ -74,6 +74,13 @@ function Formations({ effectiveUser, parentUser, onSwitchChild }) {
                 </div>
 
                 <nav className="sidebar-nav">
+                    <Link to="/" className="nav-item back-home-nav">
+                        <span className="nav-icon"><ArrowLeft size={20} /></span>
+                        <span className="nav-label">Retour à l'accueil</span>
+                    </Link>
+
+                    <div className="nav-divider" style={{ margin: '10px 0', opacity: 0.3 }}></div>
+
                     <Link to="/dashboard" className="nav-item">
                         <span className="nav-icon"><User size={20} /></span>
                         <span className="nav-label">Mon Tableau de Bord</span>

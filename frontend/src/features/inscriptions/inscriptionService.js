@@ -38,10 +38,22 @@ const getAllInscriptions = async (token) => {
     return response.data;
 };
 
+// Mettre à jour le statut d'une inscription (Admin)
+const updateStatutInscription = async (id, statut, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.put(`${API_URL}${id}/statut`, { statut }, config);
+    return response.data;
+};
+
 const inscriptionService = {
     inscrireEtudiant,
     getInscriptionsParSession,
     getAllInscriptions,
+    updateStatutInscription,
 };
 
 export default inscriptionService;

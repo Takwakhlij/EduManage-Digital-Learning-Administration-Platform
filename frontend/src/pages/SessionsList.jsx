@@ -64,7 +64,10 @@ const SessionsList = () => {
     const filteredSessions = useMemo(() => {
         return localSessions.filter(session => {
             const matchesSearch = session.nomSession?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                 session.enseignant?.firstName?.toLowerCase().includes(searchTerm.toLowerCase());
+                                 session.enseignants?.some(t => 
+                                    t.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                    t.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
+                                 );
             
             const matchesTab = activeTab === 'toutes' || 
                               (activeTab === 'publiées' && session.isPublished) ||
@@ -221,25 +224,34 @@ const SessionsList = () => {
                                             </button>
                                         </td>
                                         <td style={{ padding: '28px 16px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                <div style={{ 
-                                                    width: '46px', height: '46px', borderRadius: '50%', 
-                                                    background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontWeight: '700', color: '#ffffff', fontSize: '18px',
-                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-                                                }}>
-                                                    {session.enseignant?.firstName?.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff', marginBottom: '4px' }}>
-                                                        {session.enseignant ? `${session.enseignant.firstName} ${session.enseignant.lastName}` : '---'}
-                                                    </span>
-                                                    <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.45)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                        <Mail size={12} /> {session.enseignant?.email || 'Pas d\'email'}
-                                                    </span>
-                                                </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                {session.enseignants && session.enseignants.length > 0 ? (
+                                                    session.enseignants.map((t, idx) => (
+                                                        <div key={t._id || idx} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                            <div style={{ 
+                                                                width: '36px', height: '36px', borderRadius: '50%', 
+                                                                background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+                                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                fontWeight: '700', color: '#ffffff', fontSize: '14px',
+                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                flexShrink: 0
+                                                            }}>
+                                                                {t.firstName?.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                                <span style={{ fontSize: '14px', fontWeight: '600', color: '#ffffff' }}>
+                                                                    {t.firstName} {t.lastName}
+                                                                </span>
+                                                                <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.45)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                    <Mail size={10} /> {t.email}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.45)' }}>Aucun enseignant</span>
+                                                )}
                                             </div>
                                         </td>
                                         <td style={{ padding: '28px 16px' }}>

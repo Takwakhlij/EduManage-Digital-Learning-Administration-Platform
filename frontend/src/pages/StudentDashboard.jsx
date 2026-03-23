@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { BookOpen, GraduationCap, FileText, Award, User, Settings, LogOut, Menu, X, Bell, Users, Clock, Calendar, ChevronRight, UserPlus, Globe } from 'lucide-react';
+import { BookOpen, GraduationCap, FileText, Award, User, Settings, LogOut, Menu, X, Bell, Users, Clock, Calendar, ChevronRight, UserPlus, ArrowLeft } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { logout, reset } from '../features/auth/authSlice';
@@ -21,10 +21,7 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
     const [notification, setNotification] = useState('');
     // 🔒 Inscriptions privées: ne contient QUE les inscriptions de cet étudiant
     const [myInscriptions, setMyInscriptions] = useState([]);
-    const [publishedSessions, setPublishedSessions] = useState([]);
     const [inscriptionsLoading, setInscriptionsLoading] = useState(true);
-    const [sessionsLoading, setSessionsLoading] = useState(true);
-    const [isRequesting, setIsRequesting] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { isDarkMode, toggleTheme } = useTheme();
@@ -63,43 +60,12 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                     setInscriptionsLoading(false);
                 }
 
-                try {
-                    setSessionsLoading(true);
-                    const sessionsRes = await axios.get('/api/sessions/published');
-                    if (sessionsRes.data.success) {
-                        setPublishedSessions(sessionsRes.data.sessions);
-                    }
-                } catch (error) {
-                    console.error('Erreur catalogue :', error);
-                } finally {
-                    setSessionsLoading(false);
-                }
             };
             fetchData();
         }
     }, [authUser?.token]);
 
-    const handleRequestEnroll = async (sessionId) => {
-        setIsRequesting(true);
-        try {
-            const config = { headers: { Authorization: `Bearer ${authUser.token}` } };
-            const response = await axios.post('/api/inscriptions', {
-                etudiant: user._id,
-                session: sessionId
-            }, config);
 
-            if (response.data.success) {
-                setNotification("Votre demande d'inscription a bien été envoyée.");
-                // Update local list
-                setMyInscriptions([...myInscriptions, response.data.inscription]);
-                setTimeout(() => setNotification(''), 4000);
-            }
-        } catch (error) {
-            alert(error.response?.data?.message || "Erreur lors de la demande");
-        } finally {
-            setIsRequesting(false);
-        }
-    };
 
     const onLogout = () => {
         dispatch(logout());
@@ -239,6 +205,13 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                 </div>
 
                 <nav className="sidebar-nav">
+                    <Link to="/" className="nav-item back-home-nav">
+                        <span className="nav-icon"><ArrowLeft size={20} /></span>
+                        <span className="nav-label">Retour à l'accueil</span>
+                    </Link>
+
+                    <div className="nav-divider" style={{ margin: '10px 0', opacity: 0.3 }}></div>
+
                     <Link to="/dashboard" className={`nav-item ${window.location.pathname === '/' || window.location.pathname === '/dashboard' ? 'active' : ''}`}>
                         <span className="nav-icon"><User size={20} /></span>
                         <span className="nav-label">Mon Tableau de Bord</span>
@@ -454,52 +427,7 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                             )}
                         </section>
 
-                        {/* ===== CATALOGUE SECTION ===== */}
-                        <section className="sd-catalogue-section" style={{ marginTop: '32px' }}>
-                            <div className="sd-section-header">
-                                <h2 className="sd-section-title">
-                                    <Globe size={22} style={{ color: '#059669' }} />
-                                    Catalogue des Sessions
-                                </h2>
-                            </div>
 
-                            {sessionsLoading ? (
-                                <p style={{ color: 'var(--text-muted)' }}>Chargement du catalogue...</p>
-                            ) : publishedSessions.filter(s => !myInscriptions.some(i => i.session?._id === s._id)).length === 0 ? (
-                                <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Aucune nouvelle session disponible pour le moment.</p>
-                            ) : (
-                                <div className="sd-catalogue-grid">
-                                    {publishedSessions
-                                        .filter(s => !myInscriptions.some(i => i.session?._id === s._id))
-                                        .map(session => (
-                                            <div key={session._id} className="sd-catalogue-card">
-                                                <div 
-                                                    className="sd-catalogue-card__img"
-                                                    style={{
-                                                        height: '160px',
-                                                        width: '100%',
-                                                        background: `url("${session.imageCouverture || quranImg}") center/cover`
-                                                    }}
-                                                ></div>
-                                                <div className="sd-catalogue-card__body">
-                                                    <h4>{session.nomSession}</h4>
-                                                    <p>{session.classe?.nomClasse}</p>
-                                                    <div className="sd-catalogue-card__footer">
-                                                        <span><Clock size={14} /> {session.duree || 'Durée indéf.'}</span>
-                                                        <button 
-                                                            onClick={() => handleRequestEnroll(session._id)}
-                                                            className="sd-btn-request"
-                                                            disabled={isRequesting}
-                                                        >
-                                                            {isRequesting ? '...' : 'Demander l\'inscription'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                </div>
-                            )}
-                        </section>
 
                         {/* Upcoming Exams Section */}
                         <section className="dashboard-sections" style={{ marginTop: '24px' }}>

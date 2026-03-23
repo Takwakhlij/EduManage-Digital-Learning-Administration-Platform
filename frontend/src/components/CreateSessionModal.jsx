@@ -21,11 +21,11 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
         duree: '',
         montant: '',
         classe: '', 
-        enseignant: '',
+        enseignants: [],
         description: ''
     });
 
-    const { nomSession, duree, montant, classe, enseignant, description } = formData;
+    const { nomSession, duree, montant, classe, enseignants, description } = formData;
 
     const { isError, isSuccess, message } = useSelector(
         (state) => state.sessions
@@ -51,7 +51,7 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
             dispatch(reset());
             setIsSubmitting(false);
             setFormData({
-                nomSession: '', duree: '', montant: '', classe: '', enseignant: '', description: ''
+                nomSession: '', duree: '', montant: '', classe: '', enseignants: [], description: ''
             });
         }
     }, [isSuccess, isSubmitting, onClose, dispatch]);
@@ -70,6 +70,13 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleTeacherToggle = (teacherId) => {
+        const updatedEnseignants = enseignants.includes(teacherId)
+            ? enseignants.filter(id => id !== teacherId)
+            : [...enseignants, teacherId];
+        setFormData({ ...formData, enseignants: updatedEnseignants });
     };
 
     const handleSubmit = (e) => {
@@ -121,15 +128,41 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
                         </div>
 
                         <div className="islamic-form-group">
-                            <label htmlFor="enseignant">ENSEIGNANT <span className="required">*</span></label>
-                            <div className="islamic-input-wrapper">
-                                <select id="enseignant" name="enseignant" required value={enseignant} onChange={handleChange} className="islamic-input">
-                                    <option value="">-- Sélectionnez un enseignant --</option>
-                                    {teachers && teachers.map(t => (
-                                        <option key={t._id} value={t._id}>{t.firstName} {t.lastName}</option>
-                                    ))}
-                                </select>
+                            <label>ENSEIGNANTS <span className="required">*</span></label>
+                            <div className="islamic-teachers-grid" style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: '1fr 1fr', 
+                                gap: '10px',
+                                background: 'rgba(255, 255, 255, 0.03)',
+                                padding: '15px',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                maxHheight: '200px',
+                                overflowY: 'auto'
+                            }}>
+                                {teachers && teachers.map(t => (
+                                    <label key={t._id} style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '10px', 
+                                        cursor: 'pointer',
+                                        padding: '8px',
+                                        borderRadius: '8px',
+                                        transition: 'all 0.2s',
+                                        background: enseignants.includes(t._id) ? 'rgba(5, 150, 105, 0.15)' : 'transparent',
+                                        border: `1px solid ${enseignants.includes(t._id) ? 'rgba(5, 150, 105, 0.3)' : 'rgba(255, 255, 255, 0.05)'}`
+                                    }}>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={enseignants.includes(t._id)}
+                                            onChange={() => handleTeacherToggle(t._id)}
+                                            style={{ cursor: 'pointer', accentColor: '#059669' }}
+                                        />
+                                        <span style={{ fontSize: '14px', color: '#fff' }}>{t.firstName} {t.lastName}</span>
+                                    </label>
+                                ))}
                             </div>
+                            {enseignants.length === 0 && <p className="required" style={{ fontSize: '12px', marginTop: '5px' }}>Veuillez sélectionner au moins un enseignant</p>}
                         </div>
 
                         <div className="islamic-form-group">

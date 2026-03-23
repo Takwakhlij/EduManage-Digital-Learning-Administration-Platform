@@ -11,11 +11,10 @@ const sessionSchema = new mongoose.Schema({
         ref: 'Classe',
         required: [true, 'La session doit être liée à une classe (le Template)']
     },
-    enseignant: {
+    enseignants: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: [true, 'Veuillez affecter un enseignant à cette session']
-    },
+    }],
     montant: {
         type: Number,
         required: [true, 'Le montant est obligatoire']
