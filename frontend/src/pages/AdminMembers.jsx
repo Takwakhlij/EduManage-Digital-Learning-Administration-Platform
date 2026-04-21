@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { getUsers, updateUserStatus, deleteUser, updateUser } from '../features/admin/adminSlice';
+import { getClasses } from '../features/classes/classeSlice';
+import { getAllSessions } from '../features/sessions/sessionSlice';
 import AddUserModal from '../components/AddUserModal';
 import './DashboardAdmin.css';
 import './EditUserModal.css';
@@ -11,13 +13,22 @@ function AdminMembers() {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
     const { users, isLoading } = useSelector((state) => state.admin);
+    const { classes } = useSelector((state) => state.classes);
+    const { sessions } = useSelector((state) => state.sessions);
+    
     const [activeTab, setActiveTab] = useState('tous');
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentTime, setCurrentTime] = useState(new Date());
     const [showEditModal, setShowEditModal] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [notification, setNotification] = useState('');
     const location = useLocation();
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         if (location.state?.successMessage) {
@@ -35,14 +46,11 @@ function AdminMembers() {
             navigate('/login');
             return;
         }
-        if (user.role !== 'admin') {
-            navigate('/');
-            return;
-        }
         dispatch(getUsers());
+        dispatch(getClasses());
+        dispatch(getAllSessions());
     }, [user, navigate, dispatch]);
 
-    // Generate avatar helper
     const getAvatar = (userData) => {
         if (!userData) return { initials: '?', color: '#6b7280', hasImage: false };
         const name = typeof userData === 'string' ? userData : userData.name;
@@ -120,12 +128,22 @@ function AdminMembers() {
 
         if (searchTerm) {
             const search = searchTerm.toLowerCase();
-            filtered = filtered.filter(u =>
-                u.name?.toLowerCase().includes(search) ||
-                (u.firstName + ' ' + u.lastName).toLowerCase().includes(search) ||
-                u.email?.toLowerCase().includes(search) ||
-                u.phone?.includes(search)
-            );
+            filtered = filtered.filter(u => {
+                const fullName = (u.name || `${u.firstName || ''} ${u.lastName || ''}`).toLowerCase();
+                const email = (u.email || '').toLowerCase();
+                const role = getRoleLabel(u.role).toLowerCase();
+                
+                const matchBasic = fullName.includes(search) || 
+                                 email.includes(search) || 
+                                 role.includes(search);
+                
+                const matchInscriptions = u.role === 'student' && (
+                    u.currentClasses?.some(c => c.nomClasse?.toLowerCase().includes(search)) ||
+                    u.currentSessions?.some(s => s.nomSession?.toLowerCase().includes(search))
+                );
+
+                return matchBasic || matchInscriptions;
+            });
         }
         return filtered;
     };
@@ -137,11 +155,11 @@ function AdminMembers() {
     };
 
     const filteredUsers = getFilteredUsers();
+
     if (!user) return null;
 
     return (
         <div className="admin-members-page">
-            {/* Notification Toast */}
             {notification && (
                 <div className="notification-toast" style={{
                     position: 'fixed',
@@ -165,15 +183,32 @@ function AdminMembers() {
                 </div>
             )}
 
-            {/* Hero Header Section */}
             <div className="members-hero">
                 <div className="members-hero-content">
-                    <h1 className="members-hero-title">Gestion des Membres</h1>
-                    <p className="members-hero-subtitle">Visualisez, filtrez et gérez les comptes de la plateforme</p>
+                    <div className="members-hero-main">
+                        <h1 className="members-hero-title">Gestion des Membres</h1>
+                        <p className="members-hero-subtitle">Visualisez, filtrez et gérez les comptes de la plateforme</p>
+                    </div>
+                    
+                    <div className="header-clock-badge">
+                        <div className="clock-icon-wrapper">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div className="clock-text">
+                            <span className="clock-date">
+                                {currentTime.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                            <span className="clock-time">
+                                {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Quick Stats Section */}
             <div className="members-quick-stats">
                 <div className="quick-stat-card">
                     <div className="quick-stat-icon total">
@@ -217,9 +252,7 @@ function AdminMembers() {
                 </div>
             </div>
 
-            {/* Users Table */}
             <div className="members-table-container">
-                {/* Header Actions (Tabs & Search & Add Button) */}
                 <div className="members-table-header" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div className="members-tabs">
                         <button
@@ -243,50 +276,34 @@ function AdminMembers() {
                         </button>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <div className="members-search-wrapper">
-                            <svg className="members-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="members-controls-row">
+                        <div className="members-search-wrapper global-search">
+                            <svg className="members-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                             <input
                                 type="text"
                                 className="members-search-input"
-                                placeholder="Rechercher par nom, email..."
+                                placeholder="Rechercher un membre, une classe ou une session..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
 
                         <button
-                            style={{
-                                background: 'linear-gradient(135deg, #10b981, #059669)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '10px',
-                                padding: '10px 16px',
-                                fontSize: '14px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
-                                transition: 'all 0.2s'
-                            }}
+                            className="add-member-btn"
                             onClick={() => setShowAddModal(true)}
-                            onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                            onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
                         >
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                            Ajouter un membre
+                            Ajouter
                         </button>
                     </div>
                 </div>
-                {/* Table */}
+
                 {isLoading ? (
                     <div className="loading-container">
                         <div className="loading-spinner"></div>
@@ -301,6 +318,8 @@ function AdminMembers() {
                             <tr>
                                 <th>Profil</th>
                                 <th>Contact</th>
+                                <th>Classe</th>
+                                <th>Session</th>
                                 <th>Rôle</th>
                                 <th>Statut</th>
                                 <th>Date d'inscription</th>
@@ -368,6 +387,46 @@ function AdminMembers() {
                                                 <div className="contact-email">{member.email}</div>
                                                 <div className="contact-phone">{member.phone || '-'}</div>
                                             </div>
+                                        </td>
+                                        <td>
+                                            {member.role === 'student' ? (
+                                                member.currentClasses?.length > 0 ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        {member.currentClasses.map((cl, i) => (
+                                                            <span key={i} className="table-data-text em-emphasized">
+                                                                {cl.nomClasse}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '13px' }}>Aucune classe</span>
+                                                )
+                                            ) : '-'}
+                                        </td>
+                                        <td>
+                                            {member.role === 'student' ? (
+                                                member.currentSessions?.length > 0 ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                        {member.currentSessions.map((s, i) => (
+                                                            <span key={i} style={{
+                                                                display: 'inline-block',
+                                                                padding: '2px 8px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '12px',
+                                                                fontWeight: '600',
+                                                                background: 'rgba(206, 170, 95, 0.12)',
+                                                                color: '#ceaa5f',
+                                                                border: '1px solid rgba(206, 170, 95, 0.25)',
+                                                                whiteSpace: 'nowrap'
+                                                            }}>
+                                                                {s.nomSession}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '13px' }}>Aucune session</span>
+                                                )
+                                            ) : '-'}
                                         </td>
                                         <td>
                                             <span className={`role-badge ${member.role}`}>
@@ -469,130 +528,126 @@ function AdminMembers() {
                 )}
             </div>
 
-            {/* Add User Modal */}
             {showAddModal && <AddUserModal onClose={() => setShowAddModal(false)} />}
 
-            {/* Edit User Modal */}
-            {
-                showEditModal && editingUser && (
-                    <div className="edit-modal-overlay" onClick={() => setShowEditModal(false)}>
-                        <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
-                            <div className="edit-modal-header">
-                                <h3 className="edit-modal-title">Modifier l'utilisateur</h3>
-                                <button className="modal-close-btn" onClick={() => setShowEditModal(false)}>
-                                    ×
-                                </button>
-                            </div>
-                            <div className="edit-modal-body">
-                                <form onSubmit={(e) => {
-                                    e.preventDefault();
-                                    const formData = new FormData(e.target);
-                                    const userData = {
-                                        firstName: formData.get('firstName'),
-                                        lastName: formData.get('lastName'),
-                                        email: formData.get('email'),
-                                        phoneNumber: formData.get('phoneNumber'),
-                                        role: formData.get('role'),
-                                        status: formData.get('status'),
-                                    };
-                                    dispatch(updateUser({ id: editingUser._id, userData }));
-                                    setShowEditModal(false);
-                                }}>
-                                    <div className="modal-form-row">
-                                        <div className="modal-form-group">
-                                            <label className="modal-form-label">Prénom</label>
-                                            <input
-                                                type="text"
-                                                name="firstName"
-                                                className="modal-form-input"
-                                                defaultValue={editingUser.firstName}
-                                                required
-                                            />
-                                        </div>
-                                        <div className="modal-form-group">
-                                            <label className="modal-form-label">Nom</label>
-                                            <input
-                                                type="text"
-                                                name="lastName"
-                                                className="modal-form-input"
-                                                defaultValue={editingUser.lastName}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
+            {showEditModal && editingUser && (
+                <div className="edit-modal-overlay" onClick={() => setShowEditModal(false)}>
+                    <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="edit-modal-header">
+                            <h3 className="edit-modal-title">Modifier l'utilisateur</h3>
+                            <button className="modal-close-btn" onClick={() => setShowEditModal(false)}>
+                                ×
+                            </button>
+                        </div>
+                        <div className="edit-modal-body">
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                const formData = new FormData(e.target);
+                                const userData = {
+                                    firstName: formData.get('firstName'),
+                                    lastName: formData.get('lastName'),
+                                    email: formData.get('email'),
+                                    phoneNumber: formData.get('phoneNumber'),
+                                    role: formData.get('role'),
+                                    status: formData.get('status'),
+                                };
+                                dispatch(updateUser({ id: editingUser._id, userData }));
+                                setShowEditModal(false);
+                            }}>
+                                <div className="modal-form-row">
                                     <div className="modal-form-group">
-                                        <label className="modal-form-label">Email</label>
+                                        <label className="modal-form-label">Prénom</label>
                                         <input
-                                            type="email"
-                                            name="email"
+                                            type="text"
+                                            name="firstName"
                                             className="modal-form-input"
-                                            defaultValue={editingUser.email}
+                                            defaultValue={editingUser.firstName}
                                             required
                                         />
                                     </div>
-
                                     <div className="modal-form-group">
-                                        <label className="modal-form-label">Téléphone</label>
+                                        <label className="modal-form-label">Nom</label>
                                         <input
-                                            type="tel"
-                                            name="phoneNumber"
+                                            type="text"
+                                            name="lastName"
                                             className="modal-form-input"
-                                            defaultValue={editingUser.phoneNumber}
+                                            defaultValue={editingUser.lastName}
+                                            required
                                         />
                                     </div>
+                                </div>
 
-                                    <div className="modal-form-row">
-                                        <div className="modal-form-group">
-                                            <label className="modal-form-label">Rôle</label>
-                                            <select
-                                                className="modal-form-select"
-                                                name="role"
-                                                defaultValue={editingUser.role}
-                                                required
-                                            >
-                                                <option value="student">Étudiant</option>
-                                                <option value="teacher">Enseignant</option>
-                                                <option value="parent">Parent</option>
-                                                <option value="admin">Admin</option>
-                                            </select>
-                                        </div>
-                                        <div className="modal-form-group">
-                                            <label className="modal-form-label">Statut</label>
-                                            <select
-                                                className="modal-form-select"
-                                                name="status"
-                                                defaultValue={editingUser.status}
-                                                required
-                                            >
-                                                <option value="active">Actif</option>
-                                                <option value="pending">En attente</option>
-                                                <option value="rejected">Rejeté</option>
-                                            </select>
-                                        </div>
-                                    </div>
+                                <div className="modal-form-group">
+                                    <label className="modal-form-label">Email</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        className="modal-form-input"
+                                        defaultValue={editingUser.email}
+                                        required
+                                    />
+                                </div>
 
-                                    <div className="edit-modal-footer">
-                                        <button
-                                            type="button"
-                                            className="modal-btn modal-btn-cancel"
-                                            onClick={() => setShowEditModal(false)}
+                                <div className="modal-form-group">
+                                    <label className="modal-form-label">Téléphone</label>
+                                    <input
+                                        type="tel"
+                                        name="phoneNumber"
+                                        className="modal-form-input"
+                                        defaultValue={editingUser.phoneNumber}
+                                    />
+                                </div>
+
+                                <div className="modal-form-row">
+                                    <div className="modal-form-group">
+                                        <label className="modal-form-label">Rôle</label>
+                                        <select
+                                            className="modal-form-select"
+                                            name="role"
+                                            defaultValue={editingUser.role}
+                                            required
                                         >
-                                            Annuler
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="modal-btn modal-btn-save"
-                                        >
-                                            Enregistrer
-                                        </button>
+                                            <option value="student">Étudiant</option>
+                                            <option value="teacher">Enseignant</option>
+                                            <option value="parent">Parent</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
                                     </div>
-                                </form>
-                            </div>
+                                    <div className="modal-form-group">
+                                        <label className="modal-form-label">Statut</label>
+                                        <select
+                                            className="modal-form-select"
+                                            name="status"
+                                            defaultValue={editingUser.status}
+                                            required
+                                        >
+                                            <option value="active">Actif</option>
+                                            <option value="pending">En attente</option>
+                                            <option value="rejected">Rejeté</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="edit-modal-footer">
+                                    <button
+                                        type="button"
+                                        className="modal-btn modal-btn-cancel"
+                                        onClick={() => setShowEditModal(false)}
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="modal-btn modal-btn-save"
+                                    >
+                                        Enregistrer
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
         </div>
     );
 }

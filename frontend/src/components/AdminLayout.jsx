@@ -158,6 +158,18 @@ const AdminLayout = () => {
                     </button>
 
                     <button
+                        className={`nav-item ${isActive('/admin/planning') ? 'active' : ''}`}
+                        onClick={() => {
+                            navigate('/admin/planning');
+                            setIsSidebarOpen(false);
+                        }}
+                    >
+                        <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                        <span>Planning</span>
+                    </button>
+                    <button
                         className={`nav-item ${isActive('/admin/inscriptions') ? 'active' : ''}`}
                         onClick={() => {
                             navigate('/admin/inscriptions');
@@ -172,6 +184,36 @@ const AdminLayout = () => {
                             <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
                         <span>Inscriptions</span>
+                    </button>
+
+                    <button
+                        className={`nav-item ${isActive('/admin/presences-enseignants') ? 'active' : ''}`}
+                        onClick={() => {
+                            navigate('/admin/presences-enseignants');
+                            setIsSidebarOpen(false);
+                        }}
+                    >
+                        <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg>
+                        <span>Présences Enseignants</span>
+                    </button>
+
+                    <button
+                        className={`nav-item ${isActive('/admin/presences-etudiants') ? 'active' : ''}`}
+                        onClick={() => {
+                            navigate('/admin/presences-etudiants');
+                            setIsSidebarOpen(false);
+                        }}
+                    >
+                        <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>Présences Étudiants</span>
                     </button>
 
                     <button

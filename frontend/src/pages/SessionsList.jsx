@@ -1,21 +1,40 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllSessions, reset, togglePublishSession } from '../features/sessions/sessionSlice';
+import { getAllSessions, reset, togglePublishSession, deleteSession } from '../features/sessions/sessionSlice';
 import CreateSessionModal from '../components/CreateSessionModal';
+import EditSessionModal from '../components/EditSessionModal';
+import PlanningManagerModal from '../components/PlanningManagerModal';
 import { 
     Eye, EyeOff, CheckCircle, Clock, Users, BookOpen, 
-    Trash2, Edit, Plus, Search, Filter, Mail, Folder, FileText
+    Trash2, Edit, Plus, Search, Filter, Mail, Folder, FileText, Calendar
 } from 'lucide-react';
 import './DashboardAdmin.css';
 
 const SessionsList = () => {
     const dispatch = useDispatch();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isPlanningModalOpen, setIsPlanningModalOpen] = useState(false);
+    const [selectedSession, setSelectedSession] = useState(null);
+    const [sessionToEdit, setSessionToEdit] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('toutes');
+    const [filterClasse, setFilterClasse] = useState('toutes');
     
     const { sessions, isLoading } = useSelector((state) => state.sessions);
     const [localSessions, setLocalSessions] = useState([]);
+
+    // Extraire dynamiquement les classes existantes pour le filtre
+    const availableClasses = useMemo(() => {
+        const classesMap = {};
+        localSessions.forEach(s => {
+            const cls = Array.isArray(s.classe) ? s.classe[0] : s.classe;
+            if (cls && cls._id) {
+                classesMap[cls._id] = cls.nomClasse;
+            }
+        });
+        return Object.entries(classesMap).map(([id, name]) => ({ id, name }));
+    }, [localSessions]);
 
     useEffect(() => {
         dispatch(getAllSessions());
@@ -27,6 +46,15 @@ const SessionsList = () => {
     }, [sessions]);
 
     const handleToggleVisibility = async (sessionId, currentStatus) => {
+        if (!currentStatus) {
+            const session = localSessions.find(s => s._id === sessionId);
+            // Vérification si le corps enseignant est affecté (s'il y a un décalage entre le prg et les assignations)
+            if (session && (!session.enseignants || session.enseignants.length === 0)) {
+                const confirmed = window.confirm("Avertissement : Le corps enseignant n'est pas totalement affecté à cette session. Voulez-vous vraiment la publier ?");
+                if (!confirmed) return;
+            }
+        }
+
         // Optimistic update: mise à jour immédiate de l'UI
         setLocalSessions(prev => prev.map(s => 
             s._id === sessionId ? { ...s, isPublished: !currentStatus } : s
@@ -60,22 +88,37 @@ const SessionsList = () => {
         }
     };
 
+    const handleDeleteSession = (id, name) => {
+        if (window.confirm(`Êtes-vous sûr de vouloir supprimer la session "${name}" ? Cette action est irréversible.`)) {
+            dispatch(deleteSession(id));
+        }
+    };
+
+    const handleEditSession = (session) => {
+        setSessionToEdit(session);
+        setIsEditModalOpen(true);
+    };
+
     // Filtrage dynamique (Recherche + Onglets)
     const filteredSessions = useMemo(() => {
         return localSessions.filter(session => {
+            const cls = Array.isArray(session.classe) ? session.classe[0] : session.classe;
             const matchesSearch = session.nomSession?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                  session.enseignants?.some(t => 
                                     t.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                                     t.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
-                                 );
+                                 ) ||
+                                 cls?.nomClasse?.toLowerCase().includes(searchTerm.toLowerCase());
             
             const matchesTab = activeTab === 'toutes' || 
                               (activeTab === 'publiées' && session.isPublished) ||
                               (activeTab === 'masquées' && !session.isPublished);
+                              
+            const matchesClasse = filterClasse === 'toutes' || cls?._id === filterClasse;
             
-            return matchesSearch && matchesTab;
+            return matchesSearch && matchesTab && matchesClasse;
         });
-    }, [localSessions, searchTerm, activeTab]);
+    }, [localSessions, searchTerm, activeTab, filterClasse]);
 
     return (
         <div className="admin-sessions-unified" style={{ padding: '32px', fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -83,6 +126,25 @@ const SessionsList = () => {
                 isOpen={isCreateModalOpen} 
                 onClose={() => setIsCreateModalOpen(false)} 
             />
+
+            <EditSessionModal 
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSessionToEdit(null);
+                }}
+                session={sessionToEdit}
+            />
+
+            {isPlanningModalOpen && selectedSession && (
+                <PlanningManagerModal 
+                    session={selectedSession} 
+                    onClose={() => {
+                        setIsPlanningModalOpen(false);
+                        setSelectedSession(null);
+                    }} 
+                />
+            )}
 
             {/* Header Unified */}
             <div style={{ marginBottom: '32px' }}>
@@ -133,22 +195,47 @@ const SessionsList = () => {
                     </div>
                 </div>
 
-                <div style={{ 
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    background: 'rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '24px', padding: '10px 18px', width: '300px'
-                }}>
-                    <Search size={16} color="rgba(255, 255, 255, 0.4)" />
-                    <input 
-                        type="text" 
-                        placeholder="Recherche..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{
-                            background: 'none', border: 'none', color: '#fff',
-                            outline: 'none', width: '100%', fontSize: '13px'
-                        }}
-                    />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: '8px', 
+                        background: 'rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px', padding: '8px 12px'
+                    }}>
+                        <BookOpen size={16} color="rgba(255, 255, 255, 0.4)" />
+                        <select
+                            value={filterClasse}
+                            onChange={(e) => setFilterClasse(e.target.value)}
+                            style={{
+                                background: 'transparent', border: 'none', color: '#fff',
+                                fontSize: '13px', outline: 'none', cursor: 'pointer'
+                            }}
+                        >
+                            <option value="toutes" style={{ color: '#000' }}>Toutes les classes</option>
+                            {availableClasses.map(cls => (
+                                <option key={cls.id} value={cls.id} style={{ color: '#000' }}>
+                                    {cls.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div style={{ 
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        background: 'rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '24px', padding: '10px 18px', width: '300px'
+                    }}>
+                        <Search size={16} color="rgba(255, 255, 255, 0.4)" />
+                        <input 
+                            type="text" 
+                            placeholder="Recherche (session, prof, classe)..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{
+                                background: 'none', border: 'none', color: '#fff',
+                                outline: 'none', width: '100%', fontSize: '13px'
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -166,7 +253,7 @@ const SessionsList = () => {
                     <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 6px' }}>
                         <thead>
                             <tr>
-                                <th style={{ textAlign: 'left', padding: '0 16px 20px 16px', color: 'rgba(255, 255, 255, 0.8)', fontSize: '15px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid rgba(255, 255, 255, 0.08)' }}>Session</th>
+                                <th style={{ textAlign: 'left', padding: '0 16px 20px 16px', color: 'rgba(255, 255, 255, 0.8)', fontSize: '15px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid rgba(255, 255, 255, 0.08)' }}>Session / Année</th>
                                 <th style={{ textAlign: 'left', padding: '0 16px 20px 16px', color: 'rgba(255, 255, 255, 0.8)', fontSize: '15px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid rgba(255, 255, 255, 0.08)' }}>Statut</th>
                                 <th style={{ textAlign: 'left', padding: '0 16px 20px 16px', color: 'rgba(255, 255, 255, 0.8)', fontSize: '15px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid rgba(255, 255, 255, 0.08)' }}>Visibilité</th>
                                 <th style={{ textAlign: 'left', padding: '0 16px 20px 16px', color: 'rgba(255, 255, 255, 0.8)', fontSize: '15px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid rgba(255, 255, 255, 0.08)' }}>Enseignant</th>
@@ -176,18 +263,28 @@ const SessionsList = () => {
                         </thead>
                         <tbody>
                             {filteredSessions.length > 0 ? (
-                                filteredSessions.map((session) => (
+                                filteredSessions.map((session) => {
+                                    const cls = Array.isArray(session.classe) ? session.classe[0] : session.classe;
+                                    return (
                                     <tr key={session._id} style={{ background: 'rgba(255, 255, 255, 0.02)', transition: 'all 0.3s ease' }} onMouseOver={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseOut={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
                                         <td style={{ padding: '28px 20px', borderRadius: '8px 0 0 8px' }}>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                <span style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                    <Folder size={16} color="#34d399" />
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                <span style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <Folder size={18} color="#34d399" />
                                                     {session.nomSession}
                                                 </span>
-                                                <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.45)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    <BookOpen size={14} style={{ opacity: 0.7 }} />
-                                                    {session.classe?.nomClasse}
-                                                </span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
+                                                    <span style={{ color: 'rgba(255, 255, 255, 0.5)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <BookOpen size={13} /> {cls?.nomClasse || 'Classe Non Assignée'}
+                                                    </span>
+                                                    <span style={{ color: 'var(--gold-dark)', fontWeight: '600' }}>
+                                                        {cls?.anneeScolaire || '2025/2026'}
+                                                    </span>
+                                                    <span style={{ color: 'rgba(255, 255, 255, 0.1)' }}>|</span>
+                                                    <span style={{ color: 'rgba(255, 255, 255, 0.5)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <Calendar size={13} /> {session.dateDebut && session.dateFin ? `${new Date(session.dateDebut).toLocaleDateString('fr-FR')} - ${new Date(session.dateFin).toLocaleDateString('fr-FR')}` : session.duree || 'Durée non spécifiée'}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </td>
                                         <td style={{ padding: '28px 16px' }}>
@@ -225,8 +322,8 @@ const SessionsList = () => {
                                         </td>
                                         <td style={{ padding: '28px 16px' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                {session.enseignants && session.enseignants.length > 0 ? (
-                                                    session.enseignants.map((t, idx) => (
+                                                {session.enseignants && session.enseignants.filter(t => t && t.firstName).length > 0 ? (
+                                                    session.enseignants.filter(t => t && t.firstName).map((t, idx) => (
                                                         <div key={t._id || idx} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                             <div style={{ 
                                                                 width: '36px', height: '36px', borderRadius: '50%', 
@@ -262,22 +359,49 @@ const SessionsList = () => {
                                         </td>
                                         <td style={{ padding: '28px 20px', textAlign: 'right', borderRadius: '0 8px 8px 0' }}>
                                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                                                <button style={{ 
-                                                    background: 'none', border: 'none', padding: '8px', borderRadius: '4px', 
-                                                    color: 'rgba(255, 255, 255, 0.4)', cursor: 'pointer', transition: 'all 0.2s' 
-                                                }} onMouseOver={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; }} onMouseOut={e => { e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)'; e.currentTarget.style.background = 'none'; }}>
+                                                <button 
+                                                    onClick={() => {
+                                                        setSelectedSession(session);
+                                                        setIsPlanningModalOpen(true);
+                                                    }}
+                                                    style={{ 
+                                                        background: 'none', border: 'none', padding: '8px', borderRadius: '4px', 
+                                                        color: 'rgba(255, 255, 255, 0.4)', cursor: 'pointer', transition: 'all 0.2s' 
+                                                    }} 
+                                                    title="Gérer le planning"
+                                                    onMouseOver={e => { e.currentTarget.style.color = '#3b82f6'; e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'; }} 
+                                                    onMouseOut={e => { e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)'; e.currentTarget.style.background = 'none'; }}
+                                                >
+                                                    <Calendar size={18} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleEditSession(session)}
+                                                    style={{ 
+                                                        background: 'none', border: 'none', padding: '8px', borderRadius: '4px', 
+                                                        color: 'rgba(255, 255, 255, 0.4)', cursor: 'pointer', transition: 'all 0.2s' 
+                                                    }} 
+                                                    title="Modifier la session"
+                                                    onMouseOver={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; }} 
+                                                    onMouseOut={e => { e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)'; e.currentTarget.style.background = 'none'; }}
+                                                >
                                                     <Edit size={18} />
                                                 </button>
-                                                <button style={{ 
-                                                    background: 'none', border: 'none', padding: '8px', borderRadius: '4px', 
-                                                    color: 'rgba(255, 255, 255, 0.4)', cursor: 'pointer', transition: 'all 0.2s' 
-                                                }} onMouseOver={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; }} onMouseOut={e => { e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)'; e.currentTarget.style.background = 'none'; }}>
+                                                <button 
+                                                    onClick={() => handleDeleteSession(session._id, session.nomSession)}
+                                                    style={{ 
+                                                        background: 'none', border: 'none', padding: '8px', borderRadius: '4px', 
+                                                        color: 'rgba(255, 255, 255, 0.4)', cursor: 'pointer', transition: 'all 0.2s' 
+                                                    }} 
+                                                    title="Supprimer la session"
+                                                    onMouseOver={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; }} 
+                                                    onMouseOut={e => { e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)'; e.currentTarget.style.background = 'none'; }}
+                                                >
                                                     <Trash2 size={18} />
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
-                                ))
+                                )})
                             ) : (
                                 <tr>
                                     <td colSpan="6" style={{ padding: '60px', textAlign: 'center', color: 'rgba(255, 255, 255, 0.4)' }}>

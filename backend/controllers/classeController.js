@@ -5,7 +5,7 @@ import Classe from '../models/classeModel.js';
 // @route   POST /api/classes
 // @access  Private/Admin
 const createClasse = asyncHandler(async (req, res) => {
-    const { nomClasse, niveau, chapitresTemplate } = req.body;
+    const { nomClasse, niveau, matieres } = req.body;
 
     // Validation des champs
     if (!nomClasse || !niveau) {
@@ -25,7 +25,7 @@ const createClasse = asyncHandler(async (req, res) => {
     const classe = await Classe.create({
         nomClasse,
         niveau,
-        chapitresTemplate: chapitresTemplate || []
+        matieres: matieres || []
     });
 
     if (classe) {
@@ -45,7 +45,9 @@ const createClasse = asyncHandler(async (req, res) => {
 // @access  Private
 const getClasses = asyncHandler(async (req, res) => {
     // On récupère juste les classes, l'affectation se fait dans "Sessions"
-    const classes = await Classe.find({}).sort({ createdAt: -1 });
+    const classes = await Classe.find({})
+        .populate('matieres', 'nomMatiere programme')
+        .sort({ createdAt: -1 });
 
     res.json({
         success: true,
@@ -58,7 +60,8 @@ const getClasses = asyncHandler(async (req, res) => {
 // @route   GET /api/classes/:id
 // @access  Private
 const getClasseById = asyncHandler(async (req, res) => {
-    const classe = await Classe.findById(req.params.id);
+    const classe = await Classe.findById(req.params.id)
+        .populate('matieres', 'nomMatiere');
 
     if (classe) {
         res.json({
@@ -80,11 +83,12 @@ const updateClasse = asyncHandler(async (req, res) => {
     if (classe) {
         classe.nomClasse = req.body.nomClasse || classe.nomClasse;
         classe.niveau = req.body.niveau || classe.niveau;
-        if (req.body.chapitresTemplate) {
-            classe.chapitresTemplate = req.body.chapitresTemplate;
+        if (req.body.matieres) {
+            classe.matieres = req.body.matieres;
         }
 
         const updatedClasse = await classe.save();
+        await updatedClasse.populate('matieres', 'nomMatiere');
 
         res.json({
             success: true,
@@ -115,10 +119,27 @@ const deleteClasse = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc    Récupérer les classes disponibles (pour auto-inscription)
+// @route   GET /api/classes/available
+// @access  Private
+const getAvailableClasses = asyncHandler(async (req, res) => {
+    // On pourrait filtrer les classes déjà pleines ou expirées ici
+    const classes = await Classe.find({})
+        .populate('matieres', 'nomMatiere programme')
+        .sort({ createdAt: -1 });
+
+    res.json({
+        success: true,
+        count: classes.length,
+        data: classes,
+    });
+});
+
 export {
     createClasse,
     getClasses,
     getClasseById,
     updateClasse,
-    deleteClasse
+    deleteClasse,
+    getAvailableClasses
 };

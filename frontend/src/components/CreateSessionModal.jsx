@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createSession, getAllSessions, reset } from '../features/sessions/sessionSlice';
 import { getClasses } from '../features/classes/classeSlice';
 import { getUsers } from '../features/admin/adminSlice';
+import { getMatieres } from '../features/matieres/matiereSlice';
 import './CreateClasseModal.css'; 
 
 const LoaderIcon = () => (
@@ -19,13 +20,15 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
     const [formData, setFormData] = useState({
         nomSession: '',
         duree: '',
+        dateDebut: '',
+        dateFin: '',
         montant: '',
         classe: '', 
-        enseignants: [],
         description: ''
     });
 
-    const { nomSession, duree, montant, classe, enseignants, description } = formData;
+    const { nomSession, duree, dateDebut, dateFin, montant, classe, description } = formData;
+    const [programmeSession, setProgrammeSession] = useState([]);
 
     const { isError, isSuccess, message } = useSelector(
         (state) => state.sessions
@@ -33,6 +36,7 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
 
     const { classes } = useSelector((state) => state.classes);
     const { users } = useSelector((state) => state.admin);
+    const { matieres } = useSelector((state) => state.matieres);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,6 +44,7 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
         if (isOpen) {
             dispatch(getClasses());
             dispatch(getUsers());
+            dispatch(getMatieres());
         }
     }, [dispatch, isOpen]);
 
@@ -51,8 +56,9 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
             dispatch(reset());
             setIsSubmitting(false);
             setFormData({
-                nomSession: '', duree: '', montant: '', classe: '', enseignants: [], description: ''
+                nomSession: '', duree: '', dateDebut: '', dateFin: '', montant: '', classe: '', description: ''
             });
+            setProgrammeSession([]);
         }
     }, [isSuccess, isSubmitting, onClose, dispatch]);
 
@@ -63,6 +69,38 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
         }
     }, [isError, isSubmitting]);
 
+    useEffect(() => {
+        if (classe && classes) {
+            const selectedClasseObj = classes.find((c) => c._id === classe);
+            if (selectedClasseObj) {
+                // Combine both legacy and new subject formats
+                const legacySubjects = (selectedClasseObj.programme || []).map((p) => ({
+                    nomMatiere: p.matiere ? p.matiere.nomMatiere : 'Matière Inconnue',
+                    matiere: p.matiere ? p.matiere._id : null,
+                    enseignant: ''
+                }));
+
+                const newSubjects = (selectedClasseObj.matieres || []).map((m) => ({
+                    nomMatiere: m.nomMatiere || 'Matière Inconnue',
+                    matiere: m._id,
+                    enseignant: ''
+                }));
+
+                // Deduplicate by name if needed, but usually we just want to show all associated subjects
+                const combined = [...legacySubjects, ...newSubjects];
+                
+                // Final deduplication for safety (if the same subject is in both)
+                const uniqueSubjects = combined.filter((v, i, a) => a.findIndex(t => t.nomMatiere === v.nomMatiere) === i);
+
+                setProgrammeSession(uniqueSubjects);
+            } else {
+                setProgrammeSession([]);
+            }
+        } else {
+            setProgrammeSession([]);
+        }
+    }, [classe, classes]);
+
     if (!isOpen) return null;
 
     // Salla7na l'Role (enseignant f'3oudh teacher)
@@ -72,17 +110,50 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleTeacherToggle = (teacherId) => {
-        const updatedEnseignants = enseignants.includes(teacherId)
-            ? enseignants.filter(id => id !== teacherId)
-            : [...enseignants, teacherId];
-        setFormData({ ...formData, enseignants: updatedEnseignants });
+    const handleTeacherAssigned = (index, teacherId) => {
+        const updatedProgramme = [...programmeSession];
+        updatedProgramme[index].enseignant = teacherId;
+        setProgrammeSession(updatedProgramme);
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        if (dateDebut && dateFin) {
+            const start = new Date(dateDebut);
+            const end = new Date(dateFin);
+            if (end < start) {
+                alert("Erreur de configuration : La date de fin doit être ultérieure à la date de début.");
+                return;
+            }
+        }
+        
+        // Ensure the class has subjects
+        if (programmeSession.length === 0) {
+            alert("Impossible de créer la session : la classe sélectionnée n'a aucune matière. Veuillez d'abord ajouter des matières.");
+            return;
+        }
+
+        // Warning if some subjects don't have an assigned teacher
+        const isComplete = programmeSession.every(p => p.enseignant && p.enseignant !== '');
+        if (!isComplete) {
+            const confirmed = window.confirm("Certaines matières n'ont pas de professeur assigné.\nVoulez-vous tout de même confirmer la création de cette session sans tous les professeurs ?");
+            if (!confirmed) {
+                return;
+            }
+        }
+
+        // Clean up empty teacher strings to prevent Mongoose CastError (ObjectId)
+        const cleanedProgramme = programmeSession.map(p => {
+            if (!p.enseignant || p.enseignant === '') {
+                const { enseignant, ...rest } = p;
+                return rest;
+            }
+            return p;
+        });
+
         setIsSubmitting(true);
-        dispatch(createSession(formData));
+        dispatch(createSession({ ...formData, programme: cleanedProgramme }));
     };
 
     return (
@@ -128,47 +199,59 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
                         </div>
 
                         <div className="islamic-form-group">
-                            <label>ENSEIGNANTS <span className="required">*</span></label>
-                            <div className="islamic-teachers-grid" style={{ 
-                                display: 'grid', 
-                                gridTemplateColumns: '1fr 1fr', 
-                                gap: '10px',
-                                background: 'rgba(255, 255, 255, 0.03)',
-                                padding: '15px',
-                                borderRadius: '12px',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                maxHheight: '200px',
-                                overflowY: 'auto'
-                            }}>
-                                {teachers && teachers.map(t => (
-                                    <label key={t._id} style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '10px', 
-                                        cursor: 'pointer',
-                                        padding: '8px',
-                                        borderRadius: '8px',
-                                        transition: 'all 0.2s',
-                                        background: enseignants.includes(t._id) ? 'rgba(5, 150, 105, 0.15)' : 'transparent',
-                                        border: `1px solid ${enseignants.includes(t._id) ? 'rgba(5, 150, 105, 0.3)' : 'rgba(255, 255, 255, 0.05)'}`
-                                    }}>
-                                        <input 
-                                            type="checkbox" 
-                                            checked={enseignants.includes(t._id)}
-                                            onChange={() => handleTeacherToggle(t._id)}
-                                            style={{ cursor: 'pointer', accentColor: '#059669' }}
-                                        />
-                                        <span style={{ fontSize: '14px', color: '#fff' }}>{t.firstName} {t.lastName}</span>
-                                    </label>
-                                ))}
+                            <label>TEACHER ASSIGNMENT <span className="required">*</span></label>
+                            <div className="assignment-container">
+                                {!classe ? (
+                                    <p className="assignment-placeholder">
+                                        Veuillez sélectionner une classe pour assigner des enseignants aux matières.
+                                    </p>
+                                ) : programmeSession.length === 0 ? (
+                                    <p className="assignment-placeholder">
+                                        Aucune matière n'est associée à cette classe.
+                                    </p>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        {programmeSession.map((prog, index) => (
+                                            <div key={index} className="assignment-item">
+                                                <span className="assignment-subject">
+                                                    {prog.nomMatiere}
+                                                </span>
+                                                <select 
+                                                    className="islamic-input assignment-select"
+                                                    value={prog.enseignant}
+                                                    onChange={(e) => handleTeacherAssigned(index, e.target.value)}
+                                                >
+                                                    <option value="" disabled>-- Select a teacher --</option>
+                                                    {teachers.map(t => (
+                                                        <option key={t._id} value={t._id}>{t.firstName} {t.lastName}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                            {enseignants.length === 0 && <p className="required" style={{ fontSize: '12px', marginTop: '5px' }}>Veuillez sélectionner au moins un enseignant</p>}
                         </div>
 
                         <div className="islamic-form-group">
                             <label htmlFor="duree">DURÉE <span className="required">*</span></label>
                             <div className="islamic-input-wrapper">
                                 <input type="text" id="duree" name="duree" required value={duree} onChange={handleChange} placeholder="Ex: 3 mois" className="islamic-input" />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+                            <div className="islamic-form-group" style={{ marginBottom: 0 }}>
+                                <label htmlFor="dateDebut">DATE DE DÉBUT</label>
+                                <div className="islamic-input-wrapper">
+                                    <input type="date" id="dateDebut" name="dateDebut" value={dateDebut} onChange={handleChange} className="islamic-input" />
+                                </div>
+                            </div>
+                            <div className="islamic-form-group" style={{ marginBottom: 0 }}>
+                                <label htmlFor="dateFin">DATE DE FIN</label>
+                                <div className="islamic-input-wrapper">
+                                    <input type="date" id="dateFin" name="dateFin" value={dateFin} onChange={handleChange} className="islamic-input" />
+                                </div>
                             </div>
                         </div>
 

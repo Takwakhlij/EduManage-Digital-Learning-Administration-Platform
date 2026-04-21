@@ -49,11 +49,23 @@ const updateStatutInscription = async (id, statut, token) => {
     return response.data;
 };
 
+// Supprimer une inscription totalement (Admin)
+const deleteInscription = async (id, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+    const response = await axios.delete(`${API_URL}${id}`, config);
+    return response.data;
+};
+
 const inscriptionService = {
     inscrireEtudiant,
     getInscriptionsParSession,
     getAllInscriptions,
     updateStatutInscription,
+    deleteInscription,
 };
 
 export default inscriptionService;

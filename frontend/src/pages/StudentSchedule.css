@@ -1,0 +1,237 @@
+/* ════════════════════════════════════════════════════
+   LUMINAL CALENDAR STYLES (Overrides BigCalendar)
+   ════════════════════════════════════════════════════ */
+
+.lum-calendar-wrapper {
+    min-height: 75vh;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+/* Day labels & Header */
+.rbc-calendar {
+    font-family: inherit;
+    color: #f1f5f3;
+}
+
+.rbc-header {
+    padding: 12px 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+    color: #8ab6a1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: transparent;
+}
+
+.rbc-header + .rbc-header {
+    border-left: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Time Gutter */
+.rbc-time-gutter .rbc-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 0 10px;
+}
+
+.rbc-timeslot-group {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    min-height: 75px !important; /* Taller slots for 3 lines of text */
+}
+
+.rbc-day-slot .rbc-time-slot {
+    border-top: 1px solid rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Grid Borders */
+.rbc-time-view {
+    border: none !important;
+}
+
+.rbc-time-content {
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.rbc-time-content > * + * > * {
+    border-left: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Today highlight */
+.rbc-today {
+    background: rgba(217, 174, 90, 0.05) !important;
+}
+
+.rbc-current-time-indicator {
+    background: #d9ae5a !important;
+}
+
+/* Event Styling */
+.rbc-event {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 0 !important;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rbc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.lum-event-content {
+    padding: 4px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.event-matiere {
+    font-weight: 700;
+    font-size:  14px;
+    color: #f1f5f3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+}
+
+.event-teacher-name {
+    font-size: 11px;
+    color: #cbd5e1; /* Unified light gray */
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    margin: 1px 0;
+}
+
+.event-info {
+    font-size: 11px;
+    color: #cbd5e1; /* Unified light gray */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    background: transparent !important; /* No badge background */
+    padding: 0 !important;
+}
+
+.event-session-info {
+    font-size: 10px;
+    font-weight: 700;
+    color: #d9ae5a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    letter-spacing: 0.3px;
+}
+
+/* Scrollbar */
+.rbc-time-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rbc-time-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+/* ════════════════════════════════════════════════════
+   SESSION TABS / FILTERS
+   ════════════════════════════════════════════════════ */
+.session-tabs {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.session-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.session-tab {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.session-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f1f5f3;
+}
+
+.session-tab.active {
+    background: #d9ae5a;
+    color: #121614;
+    border-color: #d9ae5a;
+    box-shadow: 0 4px 12px rgba(217, 174, 90, 0.3);
+}
+
+/* Hide all-day row as it's not used */
+.rbc-allday-cell {
+    display: none;
+}
+
+.rbc-time-view .rbc-header {
+    border-bottom: none !important;
+}
+
+/* ════════════════════════════════════════════════════
+   GENERAL LAYOUT FIXES (Widening)
+   ════════════════════════════════════════════════════ */
+
+.content-inner {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 20px 30px !important; /* Reduced side padding */
+    margin: 0 !important;
+}
+
+.calendar-grid-container {
+    width: 100%;
+    margin-top: 24px;
+    animation: fadeIn 0.5s ease;
+}
+
+.lum-calendar-wrapper {
+    width: 100%;
+    min-height: 75vh;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.empty-schedule {
+    text-align: center;
+    padding: 80px 40px;
+}

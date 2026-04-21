@@ -10,10 +10,13 @@ const classeSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Veuillez ajouter un niveau (ex: < 6ans, Primaire...)'],
     },
-    // HEDHA EL TEMPLATE: L'Admin y7ot just les titres mta3 les chapitres
-    chapitresTemplate: [{
-        titre: { type: String, required: true },
-        description: { type: String }
+    anneeScolaire: {
+        type: String,
+        default: '2025/2026' // Valeur par défaut si non spécifié
+    },
+    matieres: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Matiere'
     }]
 }, { timestamps: true });
 

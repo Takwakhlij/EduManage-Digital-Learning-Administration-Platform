@@ -1,0 +1,213 @@
+/* PaymentMethodModal.css */
+.payment-method-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(4, 4, 4, 0.76);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: pm-fadeIn 0.3s ease;
+}
+
+.payment-method-content {
+    background: linear-gradient(145deg, #0d0d0d 0%, rgba(26, 26, 25, 0.934) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    width: 90%;
+    max-width: 520px;
+    padding: 40px;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Accent glow effect */
+.payment-method-content::after {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.payment-method-title {
+    font-size: 1.75rem;
+    color: #fff;
+    margin-bottom: 12px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+.payment-method-subtitle {
+    font-size: 1rem;
+    color: #888;
+    margin-bottom: 32px;
+    font-weight: 400;
+}
+
+.session-summary-box {
+    background: rgba(16, 185, 129, 0.03);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+    position: relative;
+}
+
+.session-summary-box .session-name {
+    display: block;
+    font-size: 1.25rem;
+    color: #10b981;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.session-summary-box .session-price {
+    font-size: 0.95rem;
+    color: #aaa;
+}
+
+.session-summary-box .session-price strong {
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.payment-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.pm-option-btn {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 24px;
+    border-radius: 18px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+    gap: 20px;
+    width: 100%;
+}
+
+.pm-option-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(16, 185, 129, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.pm-option-icon {
+    width: 56px; height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.pm-option-btn--stripe .pm-option-icon {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.pm-option-btn--cash .pm-option-icon {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.pm-option-btn:hover .pm-option-icon {
+    background: #10b981;
+    color: #000;
+    transform: rotate(-5deg) scale(1.1);
+}
+
+.pm-option-text h4 {
+    color: #fff;
+    margin: 0 0 6px 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.pm-option-text p {
+    color: #777;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.pm-cancel-btn {
+    background: transparent;
+    color: #555;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 12px 24px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.pm-cancel-btn:hover {
+    color: #ef4444;
+    text-decoration: none;
+}
+
+.pm-loading-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 24px;
+    color: #fff;
+    z-index: 20;
+}
+
+.pm-spinner {
+    width: 48px; height: 48px;
+    border: 3px solid rgba(16, 185, 129, 0.1);
+    border-top-color: #10b981;
+    border-radius: 50%;
+    animation: pm-spin 0.8s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes pm-spin {
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pm-fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .payment-method-content {
+        padding: 24px;
+    }
+    .pm-option-btn {
+        padding: 16px;
+    }
+    .pm-option-icon {
+        width: 44px; height: 44px;
+    }
+}
+

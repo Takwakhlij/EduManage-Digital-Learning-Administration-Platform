@@ -26,10 +26,23 @@ const inscriptionSchema = new mongoose.Schema({
         enum: ['Payé', 'Non Payé', 'Avance'],
         default: 'Non Payé'
     },
+    montantVerseTotal: {
+        type: Number,
+        default: 0
+    },
+    resteAPayer: {
+        type: Number,
+        default: null // null = pas encore calculé (session.montant non connu au moment de l'inscription)
+    },
     dateInscription: {
         type: Date,
         default: Date.now
-    }
+    },
+    coursTermines: [{
+        type: mongoose.Schema.Types.ObjectId,
+        // Referencing the ID from the session's coursPublies sub-documents
+        // No explicit ref here as they are sub-documents of Session
+    }]
 }, { timestamps: true });
 
 // Bloquer les doublons: E-taleb maynajamch y9ayed fi nafs el session marrtin

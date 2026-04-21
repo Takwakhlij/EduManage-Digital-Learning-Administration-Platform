@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createMatiere, reset } from '../features/matieres/matiereSlice';
 import { getClasses } from '../features/classes/classeSlice';
-import { getUsers } from '../features/admin/adminSlice';
-import './CreateClasseModal.css'; // Reusing the same CSS
+import './CreateClasseModal.css';
 
 const LoaderIcon = () => (
     <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -16,31 +14,19 @@ const LoaderIcon = () => (
 const CreateMatiereModal = ({ onClose }) => {
     const dispatch = useDispatch();
 
-    const [formData, setFormData] = useState({
-        nomMatiere: '',
-        coefficient: 1,
-        description: '',
-    });
-
-    const { nomMatiere, coefficient, description } = formData;
+    const [nomMatiere, setNomMatiere] = useState('');
+    const [selectedClasses, setSelectedClasses] = useState([]);
+    const [chapitres, setChapitres] = useState([{ titre: '', description: '' }]);
 
     const { isLoading, isError, isSuccess, message } = useSelector(
         (state) => state.matieres
     );
     const { classes } = useSelector((state) => state.classes);
-    const { users } = useSelector((state) => state.admin);
-
-    const [selectedClasse, setSelectedClasse] = useState('');
-    const [selectedProfessors, setSelectedProfessors] = useState([]);
-
-    const teachers = users ? users.filter(user => user.role === 'teacher') : [];
 
     useEffect(() => {
         dispatch(getClasses());
-        dispatch(getUsers());
     }, [dispatch]);
 
-    // Track if this specific instance submitted
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
@@ -50,11 +36,26 @@ const CreateMatiereModal = ({ onClose }) => {
         }
     }, [isSuccess, isSubmitting, onClose, dispatch]);
 
-    const onChange = (e) => {
-        setFormData((prev) => ({
-            ...prev,
-            [e.target.name]: e.target.value,
-        }));
+    const handleClassToggle = (classId) => {
+        setSelectedClasses((prev) =>
+            prev.includes(classId)
+                ? prev.filter((id) => id !== classId)
+                : [...prev, classId]
+        );
+    };
+
+    const handleAddChapitre = () => {
+        setChapitres([...chapitres, { titre: '', description: '' }]);
+    };
+
+    const handleRemoveChapitre = (index) => {
+        setChapitres(chapitres.filter((_, i) => i !== index));
+    };
+
+    const handleChapitreChange = (index, field, value) => {
+        const updated = [...chapitres];
+        updated[index][field] = value;
+        setChapitres(updated);
     };
 
     const onSubmit = (e) => {
@@ -63,42 +64,28 @@ const CreateMatiereModal = ({ onClose }) => {
             alert('Veuillez ajouter un nom de matière');
             return;
         }
-
-        if (!selectedClasse) {
-            alert('Veuillez sélectionner une classe');
+        if (selectedClasses.length === 0) {
+            alert('Veuillez sélectionner au moins une classe');
             return;
         }
 
         const matiereData = {
             nomMatiere,
-            coefficient: Number(coefficient),
-            description,
-            classe: selectedClasse,
-            professeurs: selectedProfessors,
+            classes: selectedClasses,
+            programme: chapitres.filter((chap) => chap.titre.trim() !== ''),
         };
 
         setIsSubmitting(true);
         dispatch(createMatiere(matiereData));
     };
 
-    const toggleSelection = (id, list, setList) => {
-        if (list.includes(id)) {
-            setList(list.filter((item) => item !== id));
-        } else {
-            setList([...list, id]);
-        }
-    };
-
     return (
         <div className="create-modal-overlay" onClick={onClose}>
-            <div className="create-modal-content" onClick={(e) => e.stopPropagation()}>
-                {/* Close Button */}
+            <div className="create-modal-content create-modal-content--large" onClick={(e) => e.stopPropagation()}>
                 <button className="modal-close-btn" onClick={onClose}>&times;</button>
 
-                {/* Header */}
                 <div className="create-modal-header">
                     <div className="modal-icon-wrapper">
-                        {/* Book Icon for Subject */}
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
@@ -106,102 +93,83 @@ const CreateMatiereModal = ({ onClose }) => {
                     </div>
                     <div className="modal-title-wrapper">
                         <h2>Ajouter une matière</h2>
-                        <p className="modal-subtitle">Créez une nouvelle matière d'enseignement</p>
+                        <p className="modal-subtitle">Configurez le nom, les classes et le programme</p>
                     </div>
                 </div>
 
-                {/* Body */}
                 <div className="create-modal-body">
                     <form onSubmit={onSubmit}>
+                        {/* ── Section 1: Basic Info ── */}
                         <div className="islamic-form-group">
                             <label htmlFor="nomMatiere">NOM DE LA MATIÈRE <span className="required">*</span></label>
-                            <div className="islamic-input-wrapper">
-                                <input
-                                    type="text"
-                                    id="nomMatiere"
-                                    name="nomMatiere"
-                                    value={nomMatiere}
-                                    onChange={onChange}
-                                    placeholder="Ex: Tajweed, Fiqh..."
-                                    className="islamic-input"
-                                    required
-                                />
+                            <input
+                                type="text"
+                                id="nomMatiere"
+                                value={nomMatiere}
+                                onChange={(e) => setNomMatiere(e.target.value)}
+                                placeholder="Ex: Tajweed, Fiqh..."
+                                className="islamic-input"
+                                required
+                            />
+                        </div>
+
+                        {/* ── Section 2: Multi-select Classes ── */}
+                        <div className="islamic-form-group">
+                            <label>CLASSES ASSOCIÉES <span className="required">*</span></label>
+                            <div className="classes-checkbox-grid">
+                                {classes && classes.map((classe) => (
+                                    <label key={classe._id} className={`class-checkbox-item ${selectedClasses.includes(classe._id) ? 'active' : ''}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedClasses.includes(classe._id)}
+                                            onChange={() => handleClassToggle(classe._id)}
+                                        />
+                                        <span>{classe.nomClasse}</span>
+                                    </label>
+                                ))}
                             </div>
                         </div>
 
+                        {/* ── Section 3: Programme (Chapitres) ── */}
                         <div className="islamic-form-group">
-                            <label htmlFor="classe">CLASSE <span className="required">*</span></label>
-                            <div className="islamic-input-wrapper">
-                                <select
-                                    id="classe"
-                                    name="classe"
-                                    value={selectedClasse}
-                                    onChange={(e) => setSelectedClasse(e.target.value)}
-                                    className="islamic-input"
-                                    required
-                                >
-                                    <option value="">Sélectionner une classe</option>
-                                    {classes && classes.map((classe) => (
-                                        <option key={classe._id} value={classe._id}>
-                                            {classe.nomClasse}
-                                        </option>
-                                    ))}
-                                </select>
+                            <div className="flex-header">
+                                <label>PROGRAMME (CHAPITRES)</label>
+                                <button type="button" className="btn-add-mini" onClick={handleAddChapitre}>
+                                    + Ajouter
+                                </button>
                             </div>
-                        </div>
-
-                        {/* Multi-select for Teachers */}
-                        <div className="islamic-form-group">
-                            <label>ENSEIGNANTS</label>
-                            <div className="islamic-multiselect">
-                                {teachers.length > 0 ? (
-                                    teachers.map((teacher) => (
-                                        <div
-                                            key={teacher._id}
-                                            className={`multiselect-item ${selectedProfessors.includes(teacher._id) ? 'selected' : ''}`}
-                                            onClick={() => toggleSelection(teacher._id, selectedProfessors, setSelectedProfessors)}
-                                        >
-                                            {teacher.firstName} {teacher.lastName}
+                            <div className="chapitres-list">
+                                {chapitres.map((chap, index) => (
+                                    <div key={index} className="chapitre-entry">
+                                        <div className="chapitre-header">
+                                            <span># {index + 1}</span>
+                                            {chapitres.length > 1 && (
+                                                <button type="button" className="btn-remove-mini" onClick={() => handleRemoveChapitre(index)}>
+                                                    &times;
+                                                </button>
+                                            )}
                                         </div>
-                                    ))
-                                ) : (
-                                    <p className="no-data">Aucun enseignant disponible</p>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="islamic-form-group">
-                            <label htmlFor="coefficient">COEFFICIENT</label>
-                            <div className="islamic-input-wrapper">
-                                <input
-                                    type="number"
-                                    id="coefficient"
-                                    name="coefficient"
-                                    value={coefficient}
-                                    onChange={onChange}
-                                    min="1"
-                                    className="islamic-input"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="islamic-form-group">
-                            <label htmlFor="description">DESCRIPTION</label>
-                            <div className="islamic-input-wrapper">
-                                <textarea
-                                    id="description"
-                                    name="description"
-                                    value={description}
-                                    onChange={onChange}
-                                    placeholder="Description optionnelle..."
-                                    className="islamic-input"
-                                    rows="3"
-                                />
+                                        <input
+                                            type="text"
+                                            placeholder="Titre du chapitre"
+                                            value={chap.titre}
+                                            onChange={(e) => handleChapitreChange(index, 'titre', e.target.value)}
+                                            className="islamic-input chapitre-title"
+                                        />
+                                        <textarea
+                                            placeholder="Description courte (optionnel)"
+                                            value={chap.description}
+                                            onChange={(e) => handleChapitreChange(index, 'description', e.target.value)}
+                                            className="islamic-input chapitre-desc"
+                                            rows="2"
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
                         {isError && (
-                            <div style={{ color: '#ef4444', marginBottom: '15px', fontSize: '14px', background: '#fef2f2', padding: '10px', borderRadius: '8px' }}>
+                            <div className="error-alert">
                                 {message}
                             </div>
                         )}
@@ -213,20 +181,14 @@ const CreateMatiereModal = ({ onClose }) => {
                                 onClick={onClose}
                                 disabled={isLoading}
                             >
-                                &times; Annuler
+                                Annuler
                             </button>
                             <button
                                 type="submit"
                                 className="btn-islamic btn-submit"
                                 disabled={isLoading}
                             >
-                                {isLoading ? <LoaderIcon /> : (
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                                    </svg>
-                                )}
-                                {isLoading ? ' Ajout...' : ' Ajouter la matière'}
+                                {isLoading ? <LoaderIcon /> : 'Ajouter la matière'}
                             </button>
                         </div>
                     </form>

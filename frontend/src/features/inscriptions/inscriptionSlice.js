@@ -88,6 +88,23 @@ export const updateInscriptionStatut = createAsyncThunk(
     }
 );
 
+// Supprimer totalement une inscription (Admin)
+export const deleteInscription = createAsyncThunk(
+    'inscriptions/delete',
+    async (id, thunkAPI) => {
+        try {
+            const token = thunkAPI.getState().auth.user.token;
+            return await inscriptionService.deleteInscription(id, token);
+        } catch (error) {
+            const message =
+                (error.response && error.response.data && error.response.data.message) ||
+                error.message ||
+                error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 export const inscriptionSlice = createSlice({
     name: 'inscriptions',
     initialState,
@@ -166,6 +183,22 @@ export const inscriptionSlice = createSlice({
                 );
             })
             .addCase(updateInscriptionStatut.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            // Delete Inscription
+            .addCase(deleteInscription.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(deleteInscription.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.inscriptions = state.inscriptions.filter(
+                    (ins) => ins._id !== action.payload.id
+                );
+            })
+            .addCase(deleteInscription.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;

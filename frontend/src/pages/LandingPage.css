@@ -219,36 +219,42 @@
 .lp-nav__links {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
     list-style: none;
     margin: 0;
     padding: 0;
     flex: 1;
 }
 
-.lp-nav__links li button {
+.lp-nav__links li button,
+.lp-nav__links li a {
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgb(255, 255, 255);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     padding: 8px 14px;
     border-radius: 8px;
     transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
 }
 
-.lp-nav__links li button:hover {
+.lp-nav__links li button:hover,
+.lp-nav__links li a:hover {
     background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    color: #ece4e4;
 }
 
-.lp-nav--scrolled .lp-nav__links li button {
+.lp-nav--scrolled .lp-nav__links li button,
+.lp-nav--scrolled .lp-nav__links li a {
     color: #374151;
 }
 
-.lp-nav--scrolled .lp-nav__links li button:hover {
-    background: rgba(13, 95, 71, 0.08);
+.lp-nav--scrolled .lp-nav__links li button:hover,
+.lp-nav--scrolled .lp-nav__links li a:hover {
+    background: rgba(223, 232, 229, 0.559);
     color: #0d5f47;
 }
 
@@ -1534,6 +1540,38 @@ body.dark-theme .lp-form-group textarea:focus {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(14, 16, 15, 0.2);
 }
 
+.lp-session-card-emerald.enrolled {
+    opacity: 0.25; /* Très sombre pour bien distinguer */
+    filter: saturate(0) contrast(0.8); /* Noir et blanc */
+    border-color: rgba(5, 150, 105, 0.05);
+    pointer-events: none;
+    transform: scale(0.98); /* Légèrement plus petit */
+}
+
+.lp-enrolled-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    animation: lp-fadeIn 0.3s ease;
+}
+
+.lp-enrolled-overlay span {
+    background: #10b981;
+    color: #000;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 8px 16px;
+    border-radius: 30px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
 .lp-session-card-emerald__top {
     height: 200px;
     background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
@@ -1625,23 +1663,28 @@ body.dark-theme .lp-form-group textarea:focus {
 }
 
 .lp-session-card-emerald__btn {
-    margin-top: auto;
-    background: #064631 !important;
-    color: #ffffff !important;
+    background: #10b981;
+    color: #000;
     border: none;
-    border-radius: 16px;
-    padding: 16px;
-    font-size: 1rem;
+    padding: 12px 24px;
+    border-radius: 14px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    width: 100%;
+    margin-top: auto;
 }
 
-.lp-session-card-emerald__btn:hover {
-    background: #063d2b !important;
-    transform: scale(1.02);
-    box-shadow: 0 10px 20px rgba(5, 150, 105, 0.3);
+.lp-session-card-emerald__btn:hover:not(.disabled) {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
+}
+
+.lp-session-card-emerald__btn.disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: #555;
+    cursor: not-allowed;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .lp-session-card-emerald__btn:disabled {

@@ -6,11 +6,16 @@ const sessionSchema = new mongoose.Schema({
         required: [true, 'Veuillez ajouter un nom pour la session (ex: Session Hiver)'],
         trim: true
     },
-    classe: {
+    classe: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Classe',
         required: [true, 'La session doit être liée à une classe (le Template)']
-    },
+    }],
+    programme: [{
+        nomMatiere: { type: String, required: true },
+        matiere: { type: mongoose.Schema.Types.ObjectId, ref: 'Matiere' },
+        enseignant: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    }],
     enseignants: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -22,6 +27,14 @@ const sessionSchema = new mongoose.Schema({
     duree: {
         type: String,
         required: [true, 'La durée est obligatoire (ex: 3 mois)']
+    },
+    dateDebut: {
+        type: Date,
+        required: [false, 'La date de début est optionnelle pour garder la rétrocompatibilité']
+    },
+    dateFin: {
+        type: Date,
+        required: [false, 'La date de fin est optionnelle pour garder la rétrocompatibilité']
     },
     description: {
         type: String,

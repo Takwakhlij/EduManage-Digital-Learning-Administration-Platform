@@ -665,6 +665,54 @@
     padding: 4px 0;
 }
 
+/* Programme group details */
+.dt-matiere-group {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.dt-matiere-header {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--gold, #d97706);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dt-chapitres-container {
+    padding-left: 16px;
+    border-left: 2px solid rgba(5, 150, 105, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dt-chapitre-card {
+    background: rgba(0, 0, 0, 0.15);
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dt-chapitre-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-dark, #f8fafc);
+    margin-bottom: 4px;
+}
+
+.dt-chapitre-desc {
+    font-size: 13px;
+    color: var(--text-gray, #94a3b8);
+    line-height: 1.4;
+}
+
 /* Stat Row */
 .details-stat-row {
     display: flex;

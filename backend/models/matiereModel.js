@@ -7,23 +7,16 @@ const matiereSchema = mongoose.Schema(
             type: String,
             required: [true, 'Veuillez ajouter un nom de matière'],
             trim: true,
-            unique: true,
+            unique: false, // Changed from true to allow same subject name across different contexts if needed
         },
-        coefficient: {
-            type: Number,
-            default: 1,
-        },
-        description: {
-            type: String,
-        },
-        classe: {
+        classes: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Classe',
-            required: [true, 'Une matière doit être associée à une classe'],
-        },
-        professeurs: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
+            required: [true, 'Une matière doit être associée à au moins une classe'],
+        }],
+        programme: [{
+            titre: { type: String, required: true },
+            description: { type: String }
         }],
     },
     {

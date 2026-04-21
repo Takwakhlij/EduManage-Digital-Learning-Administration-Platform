@@ -140,19 +140,7 @@ function ClasseDetailsModal({ classe, onClose, onEdit }) {
                                 <span className="details-info-label">Année scolaire</span>
                                 <span className="details-info-value">{classe.anneeScolaire}</span>
                             </div>
-                            {classe.chapitresTemplate && classe.chapitresTemplate.length > 0 && (
-                                <div className="details-info-item" style={{ gridColumn: '1 / -1' }}>
-                                    <span className="details-info-label">Programme ({classe.chapitresTemplate.length} chapitres)</span>
-                                    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                        {classe.chapitresTemplate.map((chap, idx) => (
-                                            <div key={idx} style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '6px', borderLeft: '3px solid var(--gold)' }}>
-                                                <div style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--text-dark)' }}>{idx + 1}. {chap.titre}</div>
-                                                {chap.description && <div style={{ fontSize: '12px', color: 'var(--text-gray)', marginTop: '2px' }}>{chap.description}</div>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+
                             <div className="details-info-item">
                                 <span className="details-info-label">Créée le</span>
                                 <span className="details-info-value">
@@ -164,23 +152,37 @@ function ClasseDetailsModal({ classe, onClose, onEdit }) {
                         </div>
                     </div>
 
-                    {/* Section: Matières */}
+                    {/* Section: Programme Détaillé */}
                     <div className="details-section">
                         <div className="details-section-title">
-                            <IconBook /> Matières
+                            <IconBook /> Programme Détaillé
                         </div>
                         {classe.matieres && classe.matieres.length > 0 ? (
-                            <div className="details-matieres-list">
-                                {classe.matieres.map((mat, i) => (
-                                    <span key={i} className="details-matiere-tag">
-                                        {typeof mat === 'object' ? mat.nomMatiere || mat.nom || `Matière ${i + 1}` : `Matière ${i + 1}`}
-                                    </span>
+                            <div className="details-programme-list" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                {classe.matieres.map((matiere, i) => (
+                                    <div key={i} className="dt-matiere-group">
+                                        <div className="dt-matiere-header">
+                                            📚 {matiere.nomMatiere || 'Matière Inconnue'}
+                                        </div>
+                                        <div className="dt-chapitres-container">
+                                            {matiere.programme && matiere.programme.length > 0 ? (
+                                                matiere.programme.map((chap, idx) => (
+                                                <div key={idx} className="dt-chapitre-card">
+                                                    <div className="dt-chapitre-title">{idx + 1}. {chap.titre}</div>
+                                                    {chap.description && <div className="dt-chapitre-desc">{chap.description}</div>}
+                                                </div>
+                                                ))
+                                            ) : (
+                                                <div style={{ fontSize: '13px', color: '#64748b', fontStyle: 'italic' }}>Aucun chapitre pour cette matière.</div>
+                                            )}
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="details-empty-slot">
+                            <div className="details-empty-slot" style={{ color: '#6b7280', fontStyle: 'italic' }}>
                                 <IconBook />
-                                <span>Aucune matière assignée pour le moment</span>
+                                <span>Aucun programme assigné pour le moment.</span>
                             </div>
                         )}
                     </div>
@@ -262,8 +264,6 @@ function ClassesList() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [classeToDelete, setClasseToDelete] = useState(null);
     const [selectedClasse, setSelectedClasse] = useState(null); 
-    const [planningClasse, setPlanningClasse] = useState(null); 
-
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
@@ -346,21 +346,19 @@ function ClassesList() {
                                     {new Date(classe.createdAt).toLocaleDateString('fr-FR')}
                                 </span>
                             </div>
-                            {/* Affichage des matières (Ken mawjoudin) */}
-                            {classe.matieres && classe.matieres.length > 0 && (
-                                <div className="classe-info">
-                                    <span className="info-label">Matières :</span>
-                                    <span className="info-value">{classe.matieres.length}</span>
-                                </div>
-                            )}
+                            {/* Affichage des matières */}
+                            <div className="classe-info">
+                                <span className="info-label">Matières :</span>
+                                <span className="info-value">{classe.matieres ? classe.matieres.length : 0}</span>
+                            </div>
 
                             {/* Affichage des chapitres */}
-                            {classe.chapitresTemplate && classe.chapitresTemplate.length > 0 && (
-                                <div className="classe-info">
-                                    <span className="info-label">Chapitres :</span>
-                                    <span className="info-value" style={{ color: 'var(--gold-dark)', fontWeight: 'bold' }}>{classe.chapitresTemplate.length}</span>
-                                </div>
-                            )}
+                            <div className="classe-info">
+                                <span className="info-label">Chapitres (total) :</span>
+                                <span className="info-value" style={{ color: 'var(--gold-dark)', fontWeight: 'bold' }}>
+                                    {classe.matieres ? classe.matieres.reduce((total, m) => total + (m.programme?.length || 0), 0) : 0}
+                                </span>
+                            </div>
                         </div>
 
                         {/* ── Actions ── */}
@@ -376,17 +374,7 @@ function ClassesList() {
 
                             {user && user.role === 'admin' && (
                                 <>
-                                    <button
-                                        type="button"
-                                        className="btn-icon btn-planning"
-                                        title="Gérer le Planning"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setPlanningClasse(classe);
-                                        }}
-                                    >
-                                        <IconCalendar />
-                                    </button>
+                                    {/* Planning is now managed at the Session level */}
                                     
                                     {/* Na7ina l'bouton mta3 les étudiants men houni */}
                                     
@@ -458,12 +446,7 @@ function ClassesList() {
                 />
             )}
 
-            {planningClasse && (
-                <PlanningManagerModal
-                    classe={planningClasse}
-                    onClose={() => setPlanningClasse(null)}
-                />
-            )}
+            {/* Planning is now managed via SessionsList.jsx */}
             
             {/* Na7ina l'StudentManagerModal jemla men page l'Classe */}
         </div>

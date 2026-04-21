@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateClassePlanning } from '../features/classes/classeSlice';
-import './PlanningManagerModal.css'; // We will create this next
+import { getSeancesBySession, createSeance, deleteSeance, reset } from '../features/seances/seanceSlice';
+import './PlanningManagerModal.css';
 
 const FaClose = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -19,100 +19,67 @@ const FaTrash = () => (
 
 const joursSemaine = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-function PlanningManagerModal({ classe, onClose }) {
+function PlanningManagerModal({ session, onClose }) {
     const dispatch = useDispatch();
-    const [planning, setPlanning] = useState([]);
+    const { seances, isLoading, isError, message } = useSelector((state) => state.seances);
 
     // Form state for a new slot
     const [jour, setJour] = useState('Lundi');
     const [heureDebut, setHeureDebut] = useState('');
     const [heureFin, setHeureFin] = useState('');
     const [matiereId, setMatiereId] = useState('');
-    const [professeurId, setProfesseurId] = useState('');
+    const [enseignantId, setEnseignantId] = useState('');
 
     useEffect(() => {
-        if (classe && classe.planning) {
-            // Keep local state of the planning to modify it before saving
-            // Use spread operator to avoid mutating the original Redux state object directly
-            setPlanning([...classe.planning]);
+        if (session?._id) {
+            dispatch(getSeancesBySession(session._id));
         }
-    }, [classe]);
+        return () => {
+            dispatch(reset());
+        };
+    }, [dispatch, session]);
 
     const handleAddSlot = (e) => {
         e.preventDefault();
-        if (!heureDebut || !heureFin || !matiereId || !professeurId) return;
+        if (!heureDebut || !heureFin || !matiereId || !enseignantId) {
+            alert("Veuillez remplir tous les champs du créneau.");
+            return;
+        }
 
-        const newSlot = {
+        const seanceData = {
+            session: session._id,
+            matiere: matiereId,
+            enseignant: enseignantId,
             jour,
             heureDebut,
             heureFin,
-            matiere: matiereId, // Store just the ObjectId to send to backend
-            professeur: professeurId
+            type: 'Présentiel' // Par défaut
         };
 
-        setPlanning([...planning, newSlot]);
+        dispatch(createSeance(seanceData));
 
         // Reset form
         setHeureDebut('');
         setHeureFin('');
         setMatiereId('');
-        setProfesseurId('');
+        setEnseignantId('');
     };
 
-    const handleRemoveSlot = (indexToRemove) => {
-        setPlanning(planning.filter((_, index) => index !== indexToRemove));
-    };
-
-    const handleSave = () => {
-        let finalPlanning = [...planning];
-
-        // Check if the user filled the form but forgot to click "Ajouter le créneau"
-        const isFormPartiallyFilled = heureDebut || heureFin || matiereId || professeurId;
-        const isFormFullyFilled = heureDebut && heureFin && matiereId && professeurId;
-
-        if (isFormFullyFilled) {
-            // Auto-add the valid slot
-            finalPlanning.push({
-                jour,
-                heureDebut,
-                heureFin,
-                matiere: matiereId,
-                professeur: professeurId
-            });
-        } else if (isFormPartiallyFilled) {
-            // Warn the user that the current slot is incomplete
-            if (!window.confirm("Vous avez commencé à saisir un créneau mais il manque des informations. Ce créneau incomplet sera ignoré. Voulez-vous quand même enregistrer le reste du planning ?")) {
-                return; // Cancel save
-            }
-        } else if (finalPlanning.length === 0) {
-            // Planning is completely empty
-            if (!window.confirm("Le planning est vide. Voulez-vous vraiment enregistrer un planning vide ?")) {
-                return; // Cancel save
-            }
+    const handleDeleteSeance = (id) => {
+        if (window.confirm("Voulez-vous vraiment supprimer cette séance ?")) {
+            dispatch(deleteSeance(id));
         }
-
-        dispatch(updateClassePlanning({ id: classe._id, planningData: finalPlanning }));
-        onClose();
     };
 
-    // Helper functions to get names for display in the local list
-    const getMatiereName = (mId) => {
-        const mat = classe.matieres?.find(m => m._id === mId || m === mId);
-        if (!mat) return 'Inconnue';
-        return typeof mat === 'object' ? mat.nomMatiere : mId; // It might be populated or just ID
-    };
-
-    const getProfName = (pId) => {
-        const prof = classe.professeurs?.find(p => p._id === pId || p === pId);
-        if (!prof) return 'Inconnu';
-        return typeof prof === 'object' ? `${prof.firstName} ${prof.lastName}` : pId;
-    };
+    // Extract matieres from the session's class programme
+    const matieres = session?.classe?.programme?.map(p => p.matiere) || [];
+    const enseignants = session?.enseignants || [];
 
     return (
         <div className="planning-modal-overlay" onClick={onClose}>
             <div className="planning-modal" onClick={e => e.stopPropagation()}>
                 <div className="planning-modal-header">
-                    <h2>Gérer le Planning - {classe.nomClasse}</h2>
+                    <h2>Gérer le Planning - {session.nomSession}</h2>
                     <button className="details-close-btn" onClick={onClose}><FaClose /></button>
                 </div>
 
@@ -145,20 +112,20 @@ function PlanningManagerModal({ classe, onClose }) {
                                     <label>Matière</label>
                                     <select value={matiereId} onChange={(e) => setMatiereId(e.target.value)} required>
                                         <option value="">Sélectionnez une matière</option>
-                                        {classe.matieres?.map(m => (
+                                        {matieres.map(m => (
                                             <option key={m._id || m} value={m._id || m}>
-                                                {m.nomMatiere || m}
+                                                {m.nomMatiere || (typeof m === 'string' ? m : 'Matière')}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                                 <div className="form-group">
                                     <label>Enseignant</label>
-                                    <select value={professeurId} onChange={(e) => setProfesseurId(e.target.value)} required>
+                                    <select value={enseignantId} onChange={(e) => setEnseignantId(e.target.value)} required>
                                         <option value="">Sélectionnez un enseignant</option>
-                                        {classe.professeurs?.map(p => (
+                                        {enseignants.map(p => (
                                             <option key={p._id || p} value={p._id || p}>
-                                                {p.firstName ? `${p.firstName} ${p.lastName}` : p}
+                                                {p.firstName ? `${p.firstName} ${p.lastName}` : (typeof p === 'string' ? p : 'Enseignant')}
                                             </option>
                                         ))}
                                     </select>
@@ -171,43 +138,40 @@ function PlanningManagerModal({ classe, onClose }) {
                     {/* Current Schedule List */}
                     <div className="current-schedule-section">
                         <h3>Créneaux prévus</h3>
-                        {planning.length === 0 ? (
+                        {isLoading ? (
+                            <p style={{ textAlign: 'center', padding: '10px' }}>Chargement...</p>
+                        ) : seances.length === 0 ? (
                             <p className="empty-schedule-msg">Aucun créneau programmé pour le moment.</p>
                         ) : (
                             <div className="schedule-list">
-                                {planning.map((slot, idx) => {
-                                    // Handle populated subdocuments or just IDs
-                                    const mName = typeof slot.matiere === 'object' ? slot.matiere?.nomMatiere : getMatiereName(slot.matiere);
-                                    const pName = typeof slot.professeur === 'object' ? `${slot.professeur?.firstName} ${slot.professeur?.lastName}` : getProfName(slot.professeur);
-
-                                    return (
-                                        <div key={idx} className="schedule-list-item">
-                                            <div className="schedule-slot-info">
-                                                <span className="slot-day">{slot.jour}</span>
-                                                <span className="slot-time">{slot.heureDebut} - {slot.heureFin}</span>
-                                            </div>
-                                            <div className="schedule-details">
-                                                <span className="slot-matiere">{mName}</span>
-                                                <span className="slot-professeur">{pName}</span>
-                                            </div>
-                                            <button
-                                                className="btn-icon btn-delete"
-                                                onClick={() => handleRemoveSlot(idx)}
-                                                title="Supprimer ce créneau"
-                                            >
-                                                <FaTrash />
-                                            </button>
+                                {seances.map((seance) => (
+                                    <div key={seance._id} className="schedule-list-item">
+                                        <div className="schedule-slot-info">
+                                            <span className="slot-day">{seance.jour}</span>
+                                            <span className="slot-time">{seance.heureDebut} - {seance.heureFin}</span>
                                         </div>
-                                    );
-                                })}
+                                        <div className="schedule-details">
+                                            <span className="slot-matiere">{seance.matiere?.nomMatiere || 'Matière'}</span>
+                                            <span className="slot-professeur">
+                                                {seance.enseignant ? `${seance.enseignant.nom || seance.enseignant.firstName} ${seance.enseignant.prenom || seance.enseignant.lastName}` : 'Enseignant non assigné'}
+                                            </span>
+                                        </div>
+                                        <button
+                                            className="btn-icon btn-delete"
+                                            onClick={() => handleDeleteSeance(seance._id)}
+                                            title="Supprimer ce créneau"
+                                        >
+                                            <FaTrash />
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
                 </div>
 
                 <div className="planning-modal-footer">
-                    <button className="btn btn-secondary" onClick={onClose}>Annuler</button>
-                    <button className="btn btn-primary" onClick={handleSave}>Enregistrer le planning</button>
+                    <button className="btn btn-secondary" style={{ width: '100%' }} onClick={onClose}>Fermer</button>
                 </div>
             </div>
         </div>

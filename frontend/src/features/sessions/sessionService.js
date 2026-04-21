@@ -90,6 +90,30 @@ const togglePublishSession = async (id, token) => {
     return response.data;
 };
 
+// Mettre à jour une session (Admin)
+const updateSession = async (id, sessionData, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+
+    const response = await axios.put(`${API_URL}${id}`, sessionData, config);
+    return response.data;
+};
+
+// Supprimer une session (Admin)
+const deleteSession = async (id, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+
+    const response = await axios.delete(`${API_URL}${id}`, config);
+    return response.data;
+};
+
 const sessionService = {
     createSession,
     getAllSessions,
@@ -98,7 +122,9 @@ const sessionService = {
     getTeacherSessions,
     completeSession,
     togglePublishSession,
-    getPublishedSessions
+    getPublishedSessions,
+    updateSession,
+    deleteSession
 };
 
 export default sessionService;

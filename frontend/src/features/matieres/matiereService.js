@@ -29,6 +29,19 @@ const getMatieres = async (token) => {
     return response.data;
 };
 
+// Mettre à jour une matiere
+const updateMatiere = async (matiereId, matiereData, token) => {
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    };
+
+    const response = await axios.put(API_URL + matiereId, matiereData, config);
+
+    return response.data;
+};
+
 // Supprimer une matiere
 const deleteMatiere = async (id, token) => {
     const config = {
@@ -46,6 +59,7 @@ const matiereService = {
     createMatiere,
     getMatieres,
     deleteMatiere,
+    updateMatiere,
 };
 
 export default matiereService;

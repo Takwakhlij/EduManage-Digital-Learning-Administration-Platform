@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from '../context/ThemeContext';
 import {
     GraduationCap, BookOpen, FileText, Award,
-    User, Settings, LogOut, Menu, Bell, Info, ArrowLeft
+    User, Settings, LogOut, Menu, Bell, Info, ArrowLeft, CreditCard, TrendingUp, Calendar
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { logout, reset as authReset } from '../features/auth/authSlice';
@@ -27,7 +27,10 @@ function Formations({ effectiveUser, parentUser, onSwitchChild }) {
 
     const navItems = [
         { icon: <BookOpen size={20} />, label: 'Formations', path: '/formations' },
-        { icon: <GraduationCap size={20} />, label: 'Mes Classes', path: '/classes' },
+        { icon: <GraduationCap size={20} />, label: 'Mes Classes', path: '/inscriptions' },
+        { icon: <Calendar size={20} />, label: 'Emploi du Temps', path: '/planning' },
+        { icon: <TrendingUp size={20} />, label: 'Mes Absences', path: '/presence' },
+        { icon: <CreditCard size={20} />, label: 'Mes Paiements', path: '/paiements' },
         { icon: <FileText size={20} />, label: 'Mes Examens', path: '/examens' },
         { icon: <Award size={20} />, label: 'Mes Certificats', path: '/certificats' },
     ];

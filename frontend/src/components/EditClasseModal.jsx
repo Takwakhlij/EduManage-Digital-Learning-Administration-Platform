@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateClasse, reset } from '../features/classes/classeSlice';
 import { getUsers } from '../features/admin/adminSlice';
+import { getMatieres } from '../features/matieres/matiereSlice';
 import './CreateClasseModal.css'; // Reusing the same CSS
 
 const LoaderIcon = () => (
@@ -18,23 +19,25 @@ const EditClasseModal = ({ classe, onClose }) => {
     const [formData, setFormData] = useState({
         nomClasse: '',
         niveau: '',
+        anneeScolaire: ''
     });
 
-    const { nomClasse, niveau } = formData;
+    const { nomClasse, niveau, anneeScolaire } = formData;
     
-    // NOUVEAU: Gérer les chapitres dynamiquement
-    const [chapitres, setChapitres] = useState([{ titre: '', description: '' }]);
+    const [selectedMatieres, setSelectedMatieres] = useState([]);
 
     const { isLoading, isError, isSuccess, message } = useSelector(
         (state) => state.classes
     );
 
     const { users } = useSelector((state) => state.admin);
+    const { matieres } = useSelector((state) => state.matieres);
 
     const [selectedProfessors, setSelectedProfessors] = useState([]);
 
     useEffect(() => {
         dispatch(getUsers());
+        dispatch(getMatieres());
     }, [dispatch]);
 
     const teachers = users ? users.filter(user => user.role === 'teacher') : [];
@@ -48,13 +51,14 @@ const EditClasseModal = ({ classe, onClose }) => {
             setFormData({
                 nomClasse: classe.nomClasse || '',
                 niveau: classe.niveau || '',
+                anneeScolaire: classe.anneeScolaire || '2025/2026'
             });
             
-            // Initialiser les chapitres avec ceux existants s'ils existent, sinon un champ vide
-            if (classe.chapitresTemplate && classe.chapitresTemplate.length > 0) {
-                setChapitres(classe.chapitresTemplate);
-            } else {
-                setChapitres([{ titre: '', description: '' }]);
+            // Initialiser les matières
+            if (classe.matieres) {
+                setSelectedMatieres(classe.matieres.map(m =>
+                    (m && typeof m === 'object' && m._id) ? m._id : m
+                ));
             }
             
             // Pre-fill selections
@@ -94,7 +98,8 @@ const EditClasseModal = ({ classe, onClose }) => {
         const classeData = {
             nomClasse,
             niveau,
-            chapitresTemplate: chapitres.filter(ch => ch.titre.trim() !== '')
+            anneeScolaire,
+            matieres: selectedMatieres
         };
 
         setIsSubmitting(true);
@@ -109,21 +114,13 @@ const EditClasseModal = ({ classe, onClose }) => {
         }
     };
 
-    // Fonctions pour gérer les chapitres
-    const handleAddChapitre = () => {
-        setChapitres([...chapitres, { titre: '', description: '' }]);
-    };
-
-    const handleRemoveChapitre = (index) => {
-        const newChapitres = [...chapitres];
-        newChapitres.splice(index, 1);
-        setChapitres(newChapitres);
-    };
-
-    const handleChapitreChange = (index, field, value) => {
-        const newChapitres = [...chapitres];
-        newChapitres[index][field] = value;
-        setChapitres(newChapitres);
+    // Fonctions pour gérer les groupes de Matière
+    const toggleMatiere = (id) => {
+        if (selectedMatieres.includes(id)) {
+            setSelectedMatieres(selectedMatieres.filter(m => m !== id));
+        } else {
+            setSelectedMatieres([...selectedMatieres, id]);
+        }
     };
 
     if (!classe) return null;
@@ -187,52 +184,34 @@ const EditClasseModal = ({ classe, onClose }) => {
                             </div>
                         </div>
 
-
+                        <div className="islamic-form-group">
+                            <label htmlFor="anneeScolaire">ANNÉE SCOLAIRE <span className="required">*</span></label>
+                            <div className="islamic-input-wrapper">
+                                <input
+                                    type="text"
+                                    id="anneeScolaire"
+                                    name="anneeScolaire"
+                                    value={anneeScolaire}
+                                    onChange={onChange}
+                                    placeholder="Ex: 2025/2026"
+                                    className="islamic-input"
+                                    required
+                                />
+                            </div>
+                        </div>
 
                         <div className="islamic-form-group">
-                            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                PROGRAMME (CHAPITRES)
-                                <button 
-                                    type="button" 
-                                    onClick={handleAddChapitre}
-                                    style={{ background: 'var(--green-mist)', color: 'var(--green-deep)', border: 'none', borderRadius: '4px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
-                                >
-                                    + Ajouter
-                                </button>
-                            </label>
-                            
-                            <div style={{ maxHeight: '200px', overflowY: 'auto', paddingRight: '5px', marginTop: '10px' }}>
-                                {chapitres.map((chapitre, index) => (
-                                    <div key={index} style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '10px', marginBottom: '10px', position: 'relative' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#6b7280' }}>Chapitre {index + 1}</span>
-                                            {chapitres.length > 1 && (
-                                                <button 
-                                                    type="button" 
-                                                    onClick={() => handleRemoveChapitre(index)}
-                                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '14px' }}
-                                                >
-                                                    &times;
-                                                </button>
-                                            )}
-                                        </div>
+                            <label>MATIÈRES ENSEIGNÉES <span className="required">*</span></label>
+                            <div className="classes-checkbox-grid">
+                                {matieres && matieres.map((mat) => (
+                                    <label key={mat._id} className={`class-checkbox-item ${selectedMatieres.includes(mat._id) ? 'active' : ''}`}>
                                         <input
-                                            type="text"
-                                            placeholder="Titre du chapitre *"
-                                            value={chapitre.titre}
-                                            onChange={(e) => handleChapitreChange(index, 'titre', e.target.value)}
-                                            className="islamic-input"
-                                            style={{ marginBottom: '8px', padding: '8px', fontSize: '14px' }}
-                                            required
+                                            type="checkbox"
+                                            checked={selectedMatieres.includes(mat._id)}
+                                            onChange={() => toggleMatiere(mat._id)}
                                         />
-                                        <textarea
-                                            placeholder="Description (Optionnel)"
-                                            value={chapitre.description}
-                                            onChange={(e) => handleChapitreChange(index, 'description', e.target.value)}
-                                            className="islamic-input"
-                                            style={{ padding: '8px', fontSize: '13px', resize: 'vertical', minHeight: '50px' }}
-                                        />
-                                    </div>
+                                        <span>{mat.nomMatiere}</span>
+                                    </label>
                                 ))}
                             </div>
                         </div>

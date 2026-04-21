@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
+import Inscription from '../models/inscriptionModel.js';
 
 // @desc    Register new user
 // @route   POST /api/users/register
@@ -189,7 +190,46 @@ const generateToken = (id) => {
 const getUsers = asyncHandler(async (req, res) => {
     // Get all users sorted by creation date (newest first)
     const users = await User.find({}).sort({ createdAt: -1 }).select('-password');
-    res.json(users);
+
+    // For student users, enrich with their latest approved inscription (classe + session)
+    const studentIds = users
+        .filter(u => u.role === 'student')
+        .map(u => u._id);
+
+    let inscriptionMap = {};
+    if (studentIds.length > 0) {
+        const inscriptions = await Inscription.find({
+            etudiant: { $in: studentIds },
+            statut: { $in: ['approuvee', 'en_attente'] }  // Include pending inscriptions too
+        })
+        .sort({ createdAt: -1 })
+        .populate('classe', 'nomClasse niveau')
+        .populate('session', 'nomSession anneeAcademique');
+
+        // Collect ALL inscriptions per student (not just the most recent)
+        for (const insc of inscriptions) {
+            const key = insc.etudiant.toString();
+            if (!inscriptionMap[key]) {
+                inscriptionMap[key] = [];
+            }
+            inscriptionMap[key].push(insc);
+        }
+    }
+
+    const enrichedUsers = users.map(u => {
+        const plain = u.toObject();
+        if (u.role === 'student' && inscriptionMap[u._id.toString()]) {
+            const inscs = inscriptionMap[u._id.toString()];
+            plain.currentClasses = inscs.map(i => i.classe).filter(Boolean);
+            plain.currentSessions = inscs.map(i => i.session).filter(Boolean);
+            // Keep single fields for backward compat (most recent)
+            plain.currentClasse = plain.currentClasses[0] || null;
+            plain.currentSession = plain.currentSessions[0] || null;
+        }
+        return plain;
+    });
+
+    res.json(enrichedUsers);
 });
 
 // @desc    Create new user (Admin specific)

@@ -4,7 +4,9 @@ import {
     getInscriptionsParSession,
     getAllInscriptions,
     getMyInscriptions,
-    updateStatutInscription
+    updateStatutInscription,
+    deleteInscription,
+    toggleCoursTermine
 } from '../controllers/inscriptionController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -22,6 +24,14 @@ router.route('/my')
 // 🔐 Route Admin: approuver ou refuser une inscription
 router.route('/:id/statut')
     .put(protect, admin, updateStatutInscription);
+
+// 📖 Route Étudiant: marquer un cours comme terminé
+router.route('/:id/toggle-cours')
+    .put(protect, toggleCoursTermine);
+
+// 🔐 Route Admin: supprimer totalement une inscription
+router.route('/:id')
+    .delete(protect, admin, deleteInscription);
 
 // Route pour voir les inscriptions d'une session (Admin ou Enseignant)
 router.route('/session/:sessionId')

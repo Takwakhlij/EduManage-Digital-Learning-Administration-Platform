@@ -1,38 +1,69 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllInscriptions, updateInscriptionStatut } from '../features/inscriptions/inscriptionSlice';
+import { getAllInscriptions, updateInscriptionStatut, deleteInscription } from '../features/inscriptions/inscriptionSlice';
 import CreateInscriptionModal from '../components/CreateInscriptionModal';
-import { Plus, CreditCard, BarChart2, Search, MoreHorizontal, Edit2, CheckCircle2, XCircle, History, Mail, Folder, BookOpen, FileText, CheckCircle, Clock, X } from 'lucide-react';
+import PaiementModal from '../components/PaiementModal';
+import {
+    Plus, CreditCard, BarChart2, Search, Edit2, CheckCircle2,
+    XCircle, History, Mail, Folder, BookOpen, CheckCircle,
+    Clock, X, Trash2, AlertTriangle, DollarSign, Users, TrendingUp, Filter
+} from 'lucide-react';
 import './InscriptionsList.css';
 
 const InscriptionsList = () => {
     const dispatch = useDispatch();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isPaiementModalOpen, setIsPaiementModalOpen] = useState(false);
+    const [selectedInscription, setSelectedInscription] = useState(null);
     const [notification, setNotification] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatut, setFilterStatut] = useState('tous');
+    const [filterPaiement, setFilterPaiement] = useState('tous');
+    const [filterSession, setFilterSession] = useState('toutes');
+    const [filterClasse, setFilterClasse] = useState('toutes');
+    const [showDebiteurs, setShowDebiteurs] = useState(false);
 
-    const { inscriptions, isLoading } = useSelector(
-        (state) => state.inscriptions
-    );
+    const { inscriptions, isLoading } = useSelector((state) => state.inscriptions);
 
     useEffect(() => {
         dispatch(getAllInscriptions());
     }, [dispatch]);
 
+    const showNotif = (type, text) => {
+        setNotification({ type, text });
+        setTimeout(() => setNotification(null), 4000);
+    };
+
     const handleUpdateStatut = async (id, statut, studentName) => {
         const label = statut === 'approuvee' ? 'approuver' : 'refuser';
         if (!window.confirm(`Êtes-vous sûr de vouloir ${label} l'inscription de ${studentName} ?`)) return;
-
         const result = await dispatch(updateInscriptionStatut({ id, statut }));
         if (updateInscriptionStatut.fulfilled.match(result)) {
             const msg = statut === 'approuvee'
-                ? `✅ Inscription de ${studentName} approuvée. L'étudiant a maintenant accès aux cours.`
+                ? `✅ Inscription de ${studentName} approuvée.`
                 : `❌ Inscription de ${studentName} refusée.`;
-            setNotification({ type: statut === 'approuvee' ? 'success' : 'error', text: msg });
-            setTimeout(() => setNotification(null), 4000);
+            showNotif(statut === 'approuvee' ? 'success' : 'error', msg);
         }
     };
+
+    const handleDelete = async (id, studentName) => {
+        if (!window.confirm(`⚠️ Supprimer DÉFINITIVEMENT l'inscription de ${studentName} ?`)) return;
+        const result = await dispatch(deleteInscription(id));
+        if (deleteInscription.fulfilled.match(result)) {
+            showNotif('success', `Inscription de ${studentName} supprimée.`);
+        } else {
+            showNotif('error', result.payload || "Erreur lors de la suppression.");
+        }
+    };
+
+    const handleOpenPaiement = (inscription) => {
+        setSelectedInscription(inscription);
+        setIsPaiementModalOpen(true);
+    };
+
+    const handlePaiementSuccess = useCallback(() => {
+        dispatch(getAllInscriptions());
+    }, [dispatch]);
 
     const getStatutBadgeClass = (statut) => {
         switch (statut) {
@@ -61,17 +92,43 @@ const InscriptionsList = () => {
         }
     };
 
-    // Filtering
+    const getProgressColor = (statut) => {
+        if (statut === 'Payé') return 'linear-gradient(90deg, #10b981, #059669)';
+        if (statut === 'Avance') return 'linear-gradient(90deg, #f59e0b, #d97706)';
+        return 'linear-gradient(90deg, #ef4444, #dc2626)';
+    };
+
+    const uniqueSessions = [...new Set((inscriptions || []).map(ins => ins.session?.nomSession).filter(Boolean))];
+    const uniqueClasses = [...new Set((inscriptions || []).map(ins => ins.classe?.nomClasse).filter(Boolean))];
+
+    // ── KPIs ──
+    const totalInscriptions = inscriptions?.length || 0;
+    const totalDebiteurs = (inscriptions || []).filter(i => i.statutPaiement !== 'Payé' && i.statut === 'approuvee').length;
+    const totalEncaisse = (inscriptions || []).reduce((sum, i) => sum + (i.montantVerseTotal || 0), 0);
+    const totalReliquat = (inscriptions || []).reduce((sum, i) => sum + (i.resteAPayer || 0), 0);
+    const payeCount = (inscriptions || []).filter(i => i.statutPaiement === 'Payé').length;
+    const tauxPaiement = totalInscriptions > 0 ? Math.round((payeCount / totalInscriptions) * 100) : 0;
+
+    // ── Filtrage ──
     const filteredInscriptions = (inscriptions || []).filter(ins => {
         const studentName = ins.etudiant
             ? `${ins.etudiant.firstName} ${ins.etudiant.lastName} ${ins.etudiant.email}`.toLowerCase()
             : '';
         const sessionName = ins.session?.nomSession?.toLowerCase() || '';
+        const className = ins.classe?.nomClasse?.toLowerCase() || '';
+
         const matchesSearch = !searchTerm ||
             studentName.includes(searchTerm.toLowerCase()) ||
-            sessionName.includes(searchTerm.toLowerCase());
+            sessionName.includes(searchTerm.toLowerCase()) ||
+            className.includes(searchTerm.toLowerCase());
+
         const matchesFilter = filterStatut === 'tous' || ins.statut === filterStatut;
-        return matchesSearch && matchesFilter;
+        const matchesSession = filterSession === 'toutes' || ins.session?.nomSession === filterSession;
+        const matchesClasse = filterClasse === 'toutes' || ins.classe?.nomClasse === filterClasse;
+        const matchesPaiement = filterPaiement === 'tous' || ins.statutPaiement === filterPaiement;
+        const matchesDebiteurs = !showDebiteurs || (ins.statutPaiement !== 'Payé' && ins.statut === 'approuvee');
+
+        return matchesSearch && matchesFilter && matchesSession && matchesClasse && matchesPaiement && matchesDebiteurs;
     });
 
     const counts = {
@@ -88,66 +145,110 @@ const InscriptionsList = () => {
                 onClose={() => setIsCreateModalOpen(false)}
             />
 
+            <PaiementModal
+                isOpen={isPaiementModalOpen}
+                onClose={() => { setIsPaiementModalOpen(false); setSelectedInscription(null); }}
+                inscription={selectedInscription}
+                onPaiementSuccess={handlePaiementSuccess}
+            />
+
             {/* Notification Toast */}
             {notification && (
                 <div style={{
-                    position: 'fixed',
-                    top: '20px',
-                    right: '20px',
+                    position: 'fixed', top: '20px', right: '20px',
                     backgroundColor: notification.type === 'success' ? '#10b981' : '#ef4444',
-                    color: 'white',
-                    padding: '16px 24px',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-                    zIndex: 10000,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    maxWidth: '420px',
-                    animation: 'slideIn 0.3s ease-out'
+                    color: 'white', padding: '16px 24px', borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.2)', zIndex: 10000,
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    maxWidth: '420px', animation: 'slideIn 0.3s ease-out'
                 }}>
                     {notification.type === 'success' ? <CheckCircle size={20} /> : <X size={20} />}
                     <span style={{ fontWeight: '500', fontSize: '14px' }}>{notification.text}</span>
                 </div>
             )}
 
+            {/* Header */}
             <div className="inscriptions-header">
-                <h1>Inscriptions Dashboard</h1>
-                <p>Gérez et approuvez les inscriptions des étudiants</p>
+                <h1>Inscriptions & Paiements</h1>
+                <p>Gérez les inscriptions et encaissez les paiements en temps réel</p>
             </div>
 
+            {/* ── KPI Cards ── */}
+            <div className="ins-kpi-grid">
+                <div className="ins-kpi-card">
+                    <div className="ins-kpi-icon" style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
+                        <Users size={20} />
+                    </div>
+                    <div>
+                        <div className="ins-kpi-value">{totalInscriptions}</div>
+                        <div className="ins-kpi-label">Total Inscriptions</div>
+                    </div>
+                </div>
+                <div className="ins-kpi-card">
+                    <div className="ins-kpi-icon" style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
+                        <DollarSign size={20} />
+                    </div>
+                    <div>
+                        <div className="ins-kpi-value">{totalEncaisse.toFixed(0)} <span style={{ fontSize: '13px', fontWeight: 500 }}>TND</span></div>
+                        <div className="ins-kpi-label">Total Encaissé</div>
+                    </div>
+                </div>
+                <div className="ins-kpi-card">
+                    <div className="ins-kpi-icon" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>
+                        <AlertTriangle size={20} />
+                    </div>
+                    <div>
+                        <div className="ins-kpi-value" style={{ color: '#f59e0b' }}>{totalDebiteurs}</div>
+                        <div className="ins-kpi-label">Débiteurs</div>
+                    </div>
+                </div>
+                <div className="ins-kpi-card">
+                    <div className="ins-kpi-icon" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa' }}>
+                        <TrendingUp size={20} />
+                    </div>
+                    <div>
+                        <div className="ins-kpi-value" style={{ color: '#a78bfa' }}>{tauxPaiement}%</div>
+                        <div className="ins-kpi-label">Taux de Paiement</div>
+                        <div className="ins-kpi-bar-bg">
+                            <div className="ins-kpi-bar-fill" style={{ width: `${tauxPaiement}%` }} />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Quick Actions ── */}
             <div className="inscriptions-quick-actions">
                 <div className="action-card" onClick={() => setIsCreateModalOpen(true)}>
-                    <div className="action-icon">
-                        <Edit2 size={18} />
-                    </div>
+                    <div className="action-icon"><Edit2 size={18} /></div>
                     <div className="action-info">
                         <h3>Nouvelle Inscription</h3>
-                        <p>Créer une inscription</p>
+                        <p>Inscrire un étudiant</p>
+                    </div>
+                </div>
+
+                <div className={`action-card ${showDebiteurs ? 'active-filter' : ''}`}
+                    onClick={() => setShowDebiteurs(!showDebiteurs)}>
+                    <div className="action-icon" style={showDebiteurs ? { background: 'rgba(245,158,11,0.2)', color: '#f59e0b' } : {}}>
+                        <AlertTriangle size={18} />
+                    </div>
+                    <div className="action-info">
+                        <h3>Débiteurs {totalDebiteurs > 0 && <span className="debiteur-count">{totalDebiteurs}</span>}</h3>
+                        <p>{showDebiteurs ? 'Filtre actif — Cliquer pour désactiver' : 'Afficher les impayés'}</p>
                     </div>
                 </div>
 
                 <div className="action-card">
-                    <div className="action-icon">
-                        <CreditCard size={18} />
-                    </div>
+                    <div className="action-icon"><BarChart2 size={18} /></div>
                     <div className="action-info">
-                        <h3>Paiements</h3>
-                        <p>Sommaire de paiements</p>
-                    </div>
-                </div>
-
-                <div className="action-card">
-                    <div className="action-icon">
-                        <BarChart2 size={18} />
-                    </div>
-                    <div className="action-info">
-                        <h3>Rapports</h3>
-                        <p>Sommaire des rapports</p>
+                        <h3>Reliquat Total</h3>
+                        <p style={{ color: totalReliquat > 0 ? '#f59e0b' : '#10b981', fontWeight: 700 }}>
+                            {totalReliquat.toFixed(2)} TND
+                        </p>
                     </div>
                 </div>
             </div>
 
+            {/* ── Table ── */}
             <div className="inscriptions-table-card">
                 <div className="table-toolbar" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
                     {/* Search */}
@@ -155,13 +256,35 @@ const InscriptionsList = () => {
                         <Search size={16} />
                         <input
                             type="text"
-                            placeholder="Rechercher par étudiant ou session..."
+                            placeholder="Rechercher par étudiant, session, classe..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
 
-                    {/* Filter tabs */}
+                    {/* Filter Session */}
+                    <div className="modern-search-input" style={{ flex: '0 1 auto', padding: '0 12px', minWidth: '160px' }}>
+                        <Folder size={16} />
+                        <select value={filterSession} onChange={e => setFilterSession(e.target.value)}
+                            style={{ background: 'transparent', color: '#fff', border: 'none', outline: 'none', width: '100%', cursor: 'pointer', fontSize: '13px' }}>
+                            <option value="toutes" style={{ color: 'black' }}>Toutes sessions</option>
+                            {uniqueSessions.map(s => <option key={s} value={s} style={{ color: 'black' }}>{s}</option>)}
+                        </select>
+                    </div>
+
+                    {/* Filter Paiement */}
+                    <div className="modern-search-input" style={{ flex: '0 1 auto', padding: '0 12px', minWidth: '160px' }}>
+                        <CreditCard size={16} />
+                        <select value={filterPaiement} onChange={e => setFilterPaiement(e.target.value)}
+                            style={{ background: 'transparent', color: '#fff', border: 'none', outline: 'none', width: '100%', cursor: 'pointer', fontSize: '13px' }}>
+                            <option value="tous" style={{ color: 'black' }}>Tous paiements</option>
+                            <option value="Payé" style={{ color: 'black' }}>✅ Payé</option>
+                            <option value="Avance" style={{ color: 'black' }}>🟡 Avance</option>
+                            <option value="Non Payé" style={{ color: 'black' }}>🔴 Non Payé</option>
+                        </select>
+                    </div>
+
+                    {/* Status Tabs */}
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         {[
                             { key: 'tous', label: 'Tous', count: counts.tous },
@@ -169,43 +292,36 @@ const InscriptionsList = () => {
                             { key: 'approuvee', label: 'Approuvées', count: counts.approuvee },
                             { key: 'refusee', label: 'Refusées', count: counts.refusee },
                         ].map(tab => (
-                            <button
-                                key={tab.key}
-                                onClick={() => setFilterStatut(tab.key)}
+                            <button key={tab.key} onClick={() => setFilterStatut(tab.key)}
                                 style={{
-                                    padding: '7px 14px',
-                                    borderRadius: '8px',
-                                    border: filterStatut === tab.key
-                                        ? '1.5px solid #10b981'
-                                        : '1.5px solid rgba(255,255,255,0.1)',
-                                    background: filterStatut === tab.key
-                                        ? 'rgba(16,185,129,0.15)'
-                                        : 'transparent',
+                                    padding: '7px 14px', borderRadius: '8px',
+                                    border: filterStatut === tab.key ? '1.5px solid #10b981' : '1.5px solid rgba(255,255,255,0.1)',
+                                    background: filterStatut === tab.key ? 'rgba(16,185,129,0.15)' : 'transparent',
                                     color: filterStatut === tab.key ? '#10b981' : 'rgba(255,255,255,0.6)',
-                                    fontSize: '13px',
-                                    fontWeight: '600',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    transition: 'all 0.2s'
-                                }}
-                            >
+                                    fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s'
+                                }}>
                                 {tab.label}
                                 {tab.count > 0 && (
                                     <span style={{
                                         background: filterStatut === tab.key ? '#10b981' : 'rgba(255,255,255,0.15)',
                                         color: filterStatut === tab.key ? '#fff' : 'rgba(255,255,255,0.7)',
-                                        borderRadius: '999px',
-                                        padding: '1px 7px',
-                                        fontSize: '11px',
-                                        fontWeight: '700'
+                                        borderRadius: '999px', padding: '1px 7px', fontSize: '11px', fontWeight: '700'
                                     }}>{tab.count}</span>
                                 )}
                             </button>
                         ))}
                     </div>
                 </div>
+
+                {/* Filtre débiteurs actif */}
+                {showDebiteurs && (
+                    <div className="debiteurs-banner">
+                        <AlertTriangle size={15} />
+                        <span>Filtre Débiteurs actif — {filteredInscriptions.length} étudiant(s) avec un solde impayé</span>
+                        <button onClick={() => setShowDebiteurs(false)}>✕ Effacer</button>
+                    </div>
+                )}
 
                 {isLoading ? (
                     <div className="loading-container" style={{ padding: '40px 0', textAlign: 'center' }}>
@@ -230,8 +346,17 @@ const InscriptionsList = () => {
                                     const studentName = inscription.etudiant
                                         ? `${inscription.etudiant.firstName} ${inscription.etudiant.lastName}`
                                         : 'Utilisateur Supprimé';
+
+                                    const prixSession = inscription.session?.montant || 0;
+                                    const montantVerse = inscription.montantVerseTotal || 0;
+                                    const resteAPayer = inscription.resteAPayer ?? (prixSession - montantVerse);
+                                    const pourcentage = prixSession > 0
+                                        ? Math.min(100, Math.round((montantVerse / prixSession) * 100))
+                                        : 0;
+
                                     return (
                                         <tr key={inscription._id}>
+                                            {/* Étudiant */}
                                             <td>
                                                 <div className="student-cell">
                                                     <div className="student-avatar">
@@ -245,14 +370,23 @@ const InscriptionsList = () => {
                                                     </div>
                                                 </div>
                                             </td>
+
+                                            {/* Session */}
                                             <td>
                                                 <div className="session-info">
                                                     <span className="session-name">
                                                         <Folder size={16} className="text-emerald-400" />
                                                         {inscription.session ? inscription.session.nomSession : 'Session Supprimée'}
                                                     </span>
+                                                    {prixSession > 0 && (
+                                                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                                                            {prixSession} TND
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </td>
+
+                                            {/* Classe */}
                                             <td>
                                                 <div className="session-info">
                                                     <span className="session-name">
@@ -266,117 +400,121 @@ const InscriptionsList = () => {
                                                     )}
                                                 </div>
                                             </td>
+
+                                            {/* Date */}
                                             <td style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }}>
                                                 {new Date(inscription.dateInscription).toLocaleDateString('fr-FR')}
                                             </td>
+
+                                            {/* Statut Inscription */}
                                             <td>
                                                 <span className={getStatutBadgeClass(inscription.statut)}>
                                                     {getStatutLabel(inscription.statut)}
                                                 </span>
                                             </td>
+
+                                            {/* Paiement enrichi */}
                                             <td>
-                                                <span className={getPaymentBadgeClass(inscription.statutPaiement)}>
-                                                    {inscription.statutPaiement === 'Payé' ? (
-                                                        <><CheckCircle2 size={12} /> Payé</>
-                                                    ) : inscription.statutPaiement === 'Non Payé' ? (
-                                                        <><XCircle size={12} /> Non Payé</>
-                                                    ) : (
-                                                        <><History size={12} /> Avance</>
+                                                <div className="payment-cell">
+                                                    <span className={getPaymentBadgeClass(inscription.statutPaiement)}>
+                                                        {inscription.statutPaiement === 'Payé' ? (
+                                                            <><CheckCircle2 size={12} /> Payé</>
+                                                        ) : inscription.statutPaiement === 'Non Payé' ? (
+                                                            <><XCircle size={12} /> Non Payé</>
+                                                        ) : (
+                                                            <><History size={12} /> Avance</>
+                                                        )}
+                                                    </span>
+
+                                                    {/* Barre de progression */}
+                                                    {prixSession > 0 && (
+                                                        <div className="pay-progress-wrap">
+                                                            <div className="pay-progress-bg">
+                                                                <div className="pay-progress-fill"
+                                                                    style={{ width: `${pourcentage}%`, background: getProgressColor(inscription.statutPaiement) }}
+                                                                />
+                                                            </div>
+                                                            <div className="pay-progress-labels">
+                                                                <span>{montantVerse.toFixed(0)} / {prixSession} TND</span>
+                                                                {resteAPayer > 0 && (
+                                                                    <span className="reliquat-badge">
+                                                                        -{resteAPayer.toFixed(0)} TND
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     )}
-                                                </span>
+                                                </div>
                                             </td>
+
+                                            {/* Actions */}
                                             <td className="actions-cell">
-                                                {inscription.statut === 'en_attente' && (
-                                                    <>
+                                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                                    {/* Bouton Encaisser */}
+                                                    {inscription.statut === 'approuvee' && inscription.statutPaiement !== 'Payé' && (
                                                         <button
-                                                            className="action-btn approve"
-                                                            title="Approuver l'inscription — donne accès aux cours"
-                                                            onClick={() => handleUpdateStatut(inscription._id, 'approuvee', studentName)}
+                                                            title="Enregistrer un paiement"
+                                                            onClick={() => handleOpenPaiement(inscription)}
                                                             style={{
-                                                                background: 'rgba(16,185,129,0.15)',
-                                                                color: '#10b981',
-                                                                border: '1px solid rgba(16,185,129,0.3)',
-                                                                borderRadius: '7px',
-                                                                padding: '5px 10px',
-                                                                cursor: 'pointer',
-                                                                fontSize: '13px',
-                                                                fontWeight: '600',
-                                                                marginRight: '6px',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '4px',
-                                                                transition: 'all 0.2s'
-                                                            }}
-                                                        >
-                                                            <CheckCircle size={14} /> Approuver
+                                                                background: 'rgba(245,158,11,0.15)', color: '#f59e0b',
+                                                                border: '1px solid rgba(245,158,11,0.3)', borderRadius: '8px',
+                                                                width: '32px', height: '32px', display: 'flex',
+                                                                alignItems: 'center', justifyContent: 'center',
+                                                                cursor: 'pointer', transition: 'all 0.2s'
+                                                            }}>
+                                                            <CreditCard size={15} />
                                                         </button>
+                                                    )}
+                                                    {/* Voir historique si déjà payé */}
+                                                    {inscription.statutPaiement === 'Payé' && (
                                                         <button
-                                                            className="action-btn reject"
-                                                            title="Refuser l'inscription"
+                                                            title="Voir l'historique des versements"
+                                                            onClick={() => handleOpenPaiement(inscription)}
+                                                            style={{
+                                                                background: 'rgba(16,185,129,0.12)', color: '#10b981',
+                                                                border: '1px solid rgba(16,185,129,0.25)', borderRadius: '8px',
+                                                                width: '32px', height: '32px', display: 'flex',
+                                                                alignItems: 'center', justifyContent: 'center',
+                                                                cursor: 'pointer', transition: 'all 0.2s'
+                                                            }}>
+                                                            <History size={15} />
+                                                        </button>
+                                                    )}
+
+                                                    {inscription.statut === 'en_attente' && (
+                                                        <>
+                                                            <button className="action-icon-btn approve" title="Approuver"
+                                                                onClick={() => handleUpdateStatut(inscription._id, 'approuvee', studentName)}
+                                                                style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                                                <CheckCircle size={16} />
+                                                            </button>
+                                                            <button className="action-icon-btn reject" title="Refuser"
+                                                                onClick={() => handleUpdateStatut(inscription._id, 'refusee', studentName)}
+                                                                style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                                                <X size={16} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    {inscription.statut === 'approuvee' && (
+                                                        <button title="Révoquer l'accès"
                                                             onClick={() => handleUpdateStatut(inscription._id, 'refusee', studentName)}
-                                                            style={{
-                                                                background: 'rgba(239,68,68,0.12)',
-                                                                color: '#ef4444',
-                                                                border: '1px solid rgba(239,68,68,0.25)',
-                                                                borderRadius: '7px',
-                                                                padding: '5px 10px',
-                                                                cursor: 'pointer',
-                                                                fontSize: '13px',
-                                                                fontWeight: '600',
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '4px',
-                                                                transition: 'all 0.2s'
-                                                            }}
-                                                        >
-                                                            <X size={14} /> Refuser
+                                                            style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                                            <X size={16} />
                                                         </button>
-                                                    </>
-                                                )}
-                                                {inscription.statut === 'approuvee' && (
-                                                    <button
-                                                        className="action-btn reject"
-                                                        title="Révoquer l'accès"
-                                                        onClick={() => handleUpdateStatut(inscription._id, 'refusee', studentName)}
-                                                        style={{
-                                                            background: 'rgba(239,68,68,0.12)',
-                                                            color: '#ef4444',
-                                                            border: '1px solid rgba(239,68,68,0.25)',
-                                                            borderRadius: '7px',
-                                                            padding: '5px 10px',
-                                                            cursor: 'pointer',
-                                                            fontSize: '13px',
-                                                            fontWeight: '600',
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            gap: '4px',
-                                                        }}
-                                                    >
-                                                        <X size={14} /> Révoquer
+                                                    )}
+                                                    {inscription.statut === 'refusee' && (
+                                                        <button title="Réapprouver"
+                                                            onClick={() => handleUpdateStatut(inscription._id, 'approuvee', studentName)}
+                                                            style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                                            <CheckCircle size={16} />
+                                                        </button>
+                                                    )}
+                                                    <button title="Supprimer définitivement"
+                                                        onClick={() => handleDelete(inscription._id, studentName)}
+                                                        style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px dashed rgba(239,68,68,0.3)', borderRadius: '8px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                                        <Trash2 size={16} />
                                                     </button>
-                                                )}
-                                                {inscription.statut === 'refusee' && (
-                                                    <button
-                                                        className="action-btn approve"
-                                                        title="Réapprouver"
-                                                        onClick={() => handleUpdateStatut(inscription._id, 'approuvee', studentName)}
-                                                        style={{
-                                                            background: 'rgba(16,185,129,0.15)',
-                                                            color: '#10b981',
-                                                            border: '1px solid rgba(16,185,129,0.3)',
-                                                            borderRadius: '7px',
-                                                            padding: '5px 10px',
-                                                            cursor: 'pointer',
-                                                            fontSize: '13px',
-                                                            fontWeight: '600',
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            gap: '4px',
-                                                        }}
-                                                    >
-                                                        <CheckCircle size={14} /> Approuver
-                                                    </button>
-                                                )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -387,10 +525,8 @@ const InscriptionsList = () => {
                                         <svg style={{ margin: '0 auto 12px', display: 'block', opacity: 0.5 }} width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                             <polyline points="14 2 14 8 20 8"></polyline>
-                                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                                            <line x1="16" y1="17" x2="8" y2="17"></line>
                                         </svg>
-                                        {searchTerm || filterStatut !== 'tous'
+                                        {searchTerm || filterStatut !== 'tous' || showDebiteurs
                                             ? 'Aucune inscription ne correspond à vos critères.'
                                             : 'Aucune inscription trouvée.'}
                                     </td>

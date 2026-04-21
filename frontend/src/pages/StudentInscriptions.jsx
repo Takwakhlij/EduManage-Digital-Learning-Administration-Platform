@@ -6,16 +6,17 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import {
     User, BookOpen, Clock, CheckCircle,
-    PlusCircle, ArrowRight, X, ArrowLeft, Moon, Sun,
+    PlusCircle, ArrowRight, X, XCircle, ArrowLeft, Moon, Sun,
     Search, Filter, ChevronDown, ChevronUp, FileText, Video, Archive,
     Link as LinkIcon, Headphones, Download, ExternalLink, PlayCircle, Globe
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './StudentInscriptions.css';
 import quranImg from '../assets/quran-hifz.png';
 import libraryImg from '../assets/library-study.png';
 import patternImg from '../assets/islamic-pattern.jpg';
 import axios from 'axios';
+import PaymentModal from '../components/PaymentModal';
 
 function StudentInscriptions({ effectiveUser }) {
     const { user: authUser } = useSelector((state) => state.auth);
@@ -51,7 +52,12 @@ function StudentInscriptions({ effectiveUser }) {
     const [selectedFileType, setSelectedFileType] = useState('ALL');
     const [openChapterIndex, setOpenChapterIndex] = useState(null);
 
+    // ── Payment Modal State ──
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [paymentInscription, setPaymentInscription] = useState(null);
+
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
 
     // Close dropdown when clicking outside
@@ -170,6 +176,21 @@ function StudentInscriptions({ effectiveUser }) {
         }
     };
 
+    const handleToggleCours = async (inscriptionId, coursId) => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${authUser.token}` } };
+            const res = await axios.put(`/api/inscriptions/${inscriptionId}/toggle-cours`, { coursId }, config);
+            if (res.data.success) {
+                // Update local state for immediate feedback
+                setMyInscriptions(prev => prev.map(ins => 
+                    ins._id === inscriptionId ? { ...ins, coursTermines: res.data.coursTermines } : ins
+                ));
+            }
+        } catch (err) {
+            console.error('Erreur toggle cours :', err);
+        }
+    };
+
     const handleEnrollSubmit = (e) => {
         e.preventDefault();
         if (selectedClasseId) dispatch(enrollInClasse(selectedClasseId));
@@ -231,8 +252,8 @@ function StudentInscriptions({ effectiveUser }) {
         const cl = ins.classe || ins.session?.classe;
         if (!cl) return false;
         
-        const matchesSearch = cl.nomClasse.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                             ins.session?.nomSession?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (cl?.nomClasse?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                             ins.session?.nomSession?.toLowerCase().includes(searchTerm.toLowerCase())) || false;
                              
         const clSubjects = cl.matieres?.length > 0
             ? cl.matieres.map(m => m.nomMatiere)
@@ -244,11 +265,20 @@ function StudentInscriptions({ effectiveUser }) {
 
     // Prioritize approved inscriptions for default selection
     useEffect(() => {
+        // 1. Prioritize ID from navigation state (Rejoindre button)
+        if (location.state?.selectedId) {
+            setSelectedId(location.state.selectedId);
+            // Clear state after reading to avoid re-selection on refresh
+            window.history.replaceState({}, document.title);
+            return;
+        }
+
+        // 2. Default fallback
         if (filteredInscriptions?.length > 0 && !selectedId) {
             const firstApproved = filteredInscriptions.find(i => i.statut === 'approuvee');
             setSelectedId(firstApproved ? firstApproved._id : filteredInscriptions[0]._id);
         }
-    }, [filteredInscriptions, selectedId]);
+    }, [filteredInscriptions, selectedId, location.state]);
 
     // ── AGGREGATED COURSES ──
     const isGlobalView = selectedCoursTitles.length > 0;
@@ -425,10 +455,36 @@ function StudentInscriptions({ effectiveUser }) {
         );
     };
 
+    const handlePaymentSuccess = (data) => {
+        setEnrollFeedback({ type: 'success', text: data.message });
+        setPaymentModalOpen(false);
+        setPaymentInscription(null);
+        // Mettre à jour l'état local pour refléter le nouveau paiement
+        setMyInscriptions(prev => prev.map(ins => {
+            if (ins._id === paymentInscription._id) {
+                return { 
+                    ...ins, 
+                    montantVerseTotal: data.montantVerseTotal, 
+                    statutPaiement: data.statutPaiement,
+                    resteAPayer: data.resteAPayer
+                };
+            }
+            return ins;
+        }));
+    };
+
     // ── RENDER ──
     return (
         <div className="exa-layout" dir={t.dir}>
             {renderEnrollModal()}
+            
+            {paymentModalOpen && paymentInscription && (
+                <PaymentModal 
+                    inscription={paymentInscription}
+                    onClose={() => setPaymentModalOpen(false)}
+                    onSuccess={handlePaymentSuccess}
+                />
+            )}
 
             {/* TOP BAR */}
             <header className="exa-topbar">
@@ -674,6 +730,9 @@ function StudentInscriptions({ effectiveUser }) {
                                                                     {c.description && <h5 className="exa-cgc-desc">{c.description}</h5>}
                                                                 </div>
                                                                 <div className="exa-cgc-meta">
+                                                                    {c.matiere?.nomMatiere && (
+                                                                        <span className="exa-cgc-matiere-badge">{c.matiere.nomMatiere}</span>
+                                                                    )}
                                                                     <span className="exa-cgc-date">{new Date(c.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                                                                 </div>
                                                             </div>
@@ -719,17 +778,89 @@ function StudentInscriptions({ effectiveUser }) {
                             </div>
                             <div className="exa-detail-body">
                                 {selectedInscription.statut === 'en_attente' && (
-                                    <div className="exa-status-banner warning">
-                                        <Clock size={24} />
-                                        <div>
-                                            <strong>{t.pendingValidation || 'Inscription en cours de validation'}</strong>
-                                            <p>{t.pendingValidationDesc || "Vous aurez accès aux cours et au planning une fois que l'administrateur aura approuvé votre demande."}</p>
+                                    <div className="exa-status-banner warning" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                            <Clock size={24} />
+                                            <div>
+                                                <strong>{t.pendingValidation || 'Inscription en cours de validation'}</strong>
+                                                <p>{t.pendingValidationDesc || "Vous aurez accès aux cours et au planning une fois que votre règlement sera validé par l'administration."}</p>
+                                            </div>
                                         </div>
+
+                                        {/* Proposer le bouton Stripe même si en attente */}
+                                        {(() => {
+                                            const prixSession = selectedInscription.session?.montant || 0;
+                                            const totalVerse = selectedInscription.montantVerseTotal || 0;
+                                            const resteAPayer = Math.max(0, prixSession - totalVerse);
+
+                                            if (resteAPayer > 0 && prixSession > 0) {
+                                                return (
+                                                    <div style={{ padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <div style={{ fontSize: '0.9rem' }}>
+                                                            <span>Reste à payer : <strong>{resteAPayer} TND</strong></span>
+                                                        </div>
+                                                        <button 
+                                                            className="exa-modal-btn exa-modal-btn--primary" 
+                                                            style={{ backgroundColor: '#10b981', color: 'white', border: 'none', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+                                                            onClick={() => {
+                                                                setPaymentInscription(selectedInscription);
+                                                                setPaymentModalOpen(true);
+                                                            }}
+                                                        >
+                                                            Régler par Carte (En ligne)
+                                                        </button>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
                                     </div>
                                 )}
 
-                                {selectedInscription.statut === 'approuvee' && (
+                                {selectedInscription.statut === 'approuvee' ? (
                                     <>
+                                        {/* Status de Paiement Banner */}
+                                        {(() => {
+                                            const prixSession = selectedInscription.session?.montant || 0;
+                                            const totalVerse = selectedInscription.montantVerseTotal || 0;
+                                            const resteAPayer = Math.max(0, prixSession - totalVerse);
+
+                                            if (resteAPayer > 0 && prixSession > 0) {
+                                                return (
+                                                    <div className="exa-status-banner error" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', paddingColor: '#ef4444' }}>
+                                                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                                            <Archive size={24} color="#ef4444" />
+                                                            <div>
+                                                                <strong style={{ color: '#ef4444' }}>Reste à payer : {resteAPayer} TND</strong>
+                                                                <p style={{ color: 'rgba(239, 68, 68, 0.8)', fontSize: '0.85rem' }}>Vous avez payé {totalVerse} TND sur un total de {prixSession} TND.</p>
+                                                            </div>
+                                                        </div>
+                                                        <button 
+                                                            className="exa-modal-btn exa-modal-btn--primary" 
+                                                            style={{ backgroundColor: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
+                                                            onClick={() => {
+                                                                setPaymentInscription(selectedInscription);
+                                                                setPaymentModalOpen(true);
+                                                            }}
+                                                        >
+                                                            Payer maintenant
+                                                        </button>
+                                                    </div>
+                                                );
+                                            } else if (prixSession > 0 && resteAPayer === 0) {
+                                                return (
+                                                    <div className="exa-status-banner success" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                                                        <CheckCircle size={24} color="#10b981" />
+                                                        <div>
+                                                            <strong style={{ color: '#10b981' }}>Paiement complet</strong>
+                                                            <p style={{ color: 'rgba(16, 185, 129, 0.8)', fontSize: '0.85rem' }}>Vous avez réglé la totalité des frais ({prixSession} TND).</p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
+
                                         {/* Schedule */}
                                         <section className="exa-section">
                                             <h3 className="exa-section-title"><BookOpen size={24} strokeWidth={1.5} className="exa-sect-icon" /> {t.schedule}</h3>
@@ -806,12 +937,24 @@ function StudentInscriptions({ effectiveUser }) {
                                                                                 {c.description && <h5 className="exa-cgc-desc">{c.description}</h5>}
                                                                             </div>
                                                                             <div className="exa-cgc-meta">
+                                                                                {c.matiere?.nomMatiere && (
+                                                                                    <span className="exa-cgc-matiere-badge">{c.matiere.nomMatiere}</span>
+                                                                                )}
                                                                                 <span className="exa-cgc-date">{new Date(c.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                     {c.fichier && (
                                                                         <div className="exa-cgc-actions">
+                                                                            {!isGlobalView && selectedInscription && (
+                                                                                <button 
+                                                                                    className={`exa-course-toggle-btn ${selectedInscription.coursTermines?.includes(c._id) ? 'active' : ''}`}
+                                                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleToggleCours(selectedInscription._id, c._id); }}
+                                                                                    title={selectedInscription.coursTermines?.includes(c._id) ? "Marquer comme non terminé" : "Marquer comme terminé"}
+                                                                                >
+                                                                                    {selectedInscription.coursTermines?.includes(c._id) ? <CheckCircle size={18} fill="currentColor" color="white"/> : <div className="exa-check-empty" />}
+                                                                                </button>
+                                                                            )}
                                                                             {!fileInfo.singleAction && (
                                                                                 <button onClick={() => handleDownload(getFileUrl(c.fichier), c.fichier)} className="exa-cgc-action-btn dl-btn">
                                                                                     <Download size={14} strokeWidth={2} /> {t.download || 'Download'}
@@ -883,7 +1026,15 @@ function StudentInscriptions({ effectiveUser }) {
                                             )}
                                         </section>
                                     </>
-                                )}
+                                ) : selectedInscription.statut === 'refusee' ? (
+                                    <div className="exa-status-banner error">
+                                        <XCircle size={24} color="#ef4444" />
+                                        <div>
+                                            <strong>Inscription refusée</strong>
+                                            <p>Veuillez contacter l'administration pour plus de détails.</p>
+                                        </div>
+                                    </div>
+                                ) : null}
                             </div>
 
                         </>

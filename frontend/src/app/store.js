@@ -6,6 +6,9 @@ import matiereReducer from '../features/matieres/matiereSlice';
 import coursReducer from '../features/cours/coursSlice';
 import sessionReducer from '../features/sessions/sessionSlice';
 import inscriptionReducer from '../features/inscriptions/inscriptionSlice';
+import seanceReducer from '../features/seances/seanceSlice';
+import presenceReducer from '../features/presence/presenceSlice';
+import paiementReducer from '../features/paiements/paiementSlice';
 
 export const store = configureStore({
     reducer: {
@@ -16,5 +19,8 @@ export const store = configureStore({
         cours: coursReducer,
         sessions: sessionReducer,
         inscriptions: inscriptionReducer,
+        seances: seanceReducer,
+        presence: presenceReducer,
+        paiements: paiementReducer,
     },
 });

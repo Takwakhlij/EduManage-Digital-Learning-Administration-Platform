@@ -2,34 +2,73 @@ import asyncHandler from 'express-async-handler';
 import Session from '../models/sessionModel.js';
 import Classe from '../models/classeModel.js';
 import Inscription from '../models/inscriptionModel.js';
+import Matiere from '../models/matiereModel.js';
 
 // 1. @desc    Créer une nouvelle session
 // @route   POST /api/sessions
 // @access  Private (Admin)
 export const createSession = asyncHandler(async (req, res) => {
-    const { nomSession, classe, enseignants, montant, duree, description, imageCouverture } = req.body;
+    const { nomSession, classe, programme, montant, duree, dateDebut, dateFin, description, imageCouverture } = req.body;
 
-    // Vérifier que tous les champs sont là (classe et enseignants sont obligatoires)
-    if (!nomSession || !classe || !enseignants || !montant || !duree) {
+    const missing = [];
+    if (!nomSession) missing.push('nomSession');
+    if (!classe) missing.push('classe');
+    if (!programme) missing.push('programme');
+    if (montant === undefined || montant === '') missing.push('montant');
+    if (!duree) missing.push('duree');
+
+    if (missing.length > 0) {
         res.status(400);
-        throw new Error("Veuillez remplir tous les champs obligatoires.");
+        throw new Error("Champs manquants: " + missing.join(', '));
     }
 
-    // Vérifier que enseignants est bien un tableau et n'est pas vide
-    if (!Array.isArray(enseignants) || enseignants.length === 0) {
+    if (!Array.isArray(programme) || programme.length === 0) {
         res.status(400);
-        throw new Error("Veuillez affecter au moins un enseignant à cette session.");
+        throw new Error("Le programme est vide ou invalide.");
+    }
+
+    // Extract unique teachers from the programme to keep backward compatibility
+    const enseignants = [...new Set(programme.map(p => p.enseignant).filter(Boolean))];
+
+    // Vérification stricte : Bloquer SEULEMENT si TOUTES les infos principales sont identiques
+    const sessionsWithSameName = await Session.find({ nomSession });
+    
+    const isStrictDuplicate = sessionsWithSameName.some(s => {
+        const sameClasse = Array.isArray(s.classe) 
+            ? s.classe.some(c => c.toString() === classe.toString() || (Array.isArray(classe) && classe.includes(c.toString())))
+            : s.classe?.toString() === classe?.toString();
+
+        const sameMontant = s.montant === Number(montant);
+        const sameDuree = s.duree === duree;
+        
+        const d1 = s.dateDebut ? new Date(s.dateDebut).getTime() : null;
+        const d2 = dateDebut ? new Date(dateDebut).getTime() : null;
+        const sameDateDebut = d1 === d2;
+
+        const f1 = s.dateFin ? new Date(s.dateFin).getTime() : null;
+        const f2 = dateFin ? new Date(dateFin).getTime() : null;
+        const sameDateFin = f1 === f2;
+
+        return sameClasse && sameMontant && sameDuree && sameDateDebut && sameDateFin;
+    });
+
+    if (isStrictDuplicate) {
+        res.status(400);
+        throw new Error('Une session parfaitement identique (même classe, montants, dates) existe déjà avec ce nom.');
     }
 
     const nouvelleSession = await Session.create({
         nomSession,
         classe,
+        programme,
         enseignants,
         montant,
         duree,
+        dateDebut,
+        dateFin,
         description,
         imageCouverture,
-        coursPublies: [] // Vide au début, le prof ajoutera ses cours plus tard
+        coursPublies: [] 
     });
 
     res.status(201).json({
@@ -51,7 +90,16 @@ export const getAllSessions = asyncHandler(async (req, res) => {
     }
 
     const sessionsRaw = await Session.find(query)
-        .populate('classe', 'nomClasse niveau')
+        .populate({
+            path: 'classe',
+            select: 'nomClasse niveau matieres anneeScolaire',
+            populate: [
+                {
+                    path: 'matieres',
+                    select: 'nomMatiere'
+                }
+            ]
+        })
         .populate('enseignants', 'firstName lastName email');
 
     // Ajouter le compte des étudiants pour chaque session + migration "lazy" pour isPublished
@@ -100,10 +148,40 @@ export const getPublishedSessions = asyncHandler(async (req, res) => {
 // @access  Private (Teacher)
 export const getTeacherSessions = asyncHandler(async (req, res) => {
     const sessionsRaw = await Session.find({ enseignants: req.user._id })
-        .populate('classe', 'nomClasse niveau chapitresTemplate');
+        .populate({
+            path: 'classe',
+            select: 'nomClasse niveau matieres',
+            populate: [
+                {
+                    path: 'matieres',
+                    select: 'nomMatiere programme'
+                }
+            ]
+        })
+        .populate({
+            path: 'programme.matiere',
+            select: 'nomMatiere programme'
+        });
 
-    // Ajouter le compte des étudiants pour chaque session
+    // Ajouter le compte des étudiants pour chaque session + Lazy Migration pour les matières
     const sessions = await Promise.all(sessionsRaw.map(async (s) => {
+        let hasUpdated = false;
+        
+        // Lazy Migration: Si p.matiere est vide, on essaie de le remplir par nom
+        for (let p of s.programme) {
+            if (!p.matiere) {
+                const foundMat = await Matiere.findOne({ nomMatiere: p.nomMatiere });
+                if (foundMat) {
+                    p.matiere = foundMat._id;
+                    hasUpdated = true;
+                }
+            }
+        }
+        
+        if (hasUpdated) {
+            await s.save();
+        }
+
         const etudiantsCount = await Inscription.countDocuments({ session: s._id });
         return {
             ...s.toObject(),
@@ -123,13 +201,42 @@ export const getTeacherSessions = asyncHandler(async (req, res) => {
 // @access  Private
 export const getSessionById = asyncHandler(async (req, res) => {
     const session = await Session.findById(req.params.id)
-        .populate('classe', 'nomClasse niveau chapitresTemplate')
+        .populate({
+            path: 'classe',
+            select: 'nomClasse niveau matieres',
+            populate: [
+                {
+                    path: 'matieres',
+                    select: 'nomMatiere programme'
+                }
+            ]
+        })
+        .populate({
+            path: 'programme.matiere',
+            select: 'nomMatiere programme'
+        })
         .populate('enseignants', 'firstName lastName email');
 
     if (!session) {
         res.status(404);
-        throw new Error("Session non trouvée");
+        throw new Error('Session non trouvée');
     }
+
+    // Lazy Migration pour cette session spécifique
+    let hasUpdated = false;
+    for (let p of session.programme) {
+        if (!p.matiere) {
+            const foundMat = await Matiere.findOne({ nomMatiere: p.nomMatiere });
+            if (foundMat) {
+                p.matiere = foundMat._id;
+                hasUpdated = true;
+            }
+        }
+    }
+    if (hasUpdated) {
+        await session.save();
+    }
+    
     res.status(200).json({
         success: true,
         session
@@ -187,11 +294,52 @@ export const updateSession = asyncHandler(async (req, res) => {
     const session = await Session.findById(req.params.id);
 
     if (session) {
+        // Vérifier un doublon parfait lors de l'update
+        const potentialDuplicates = await Session.find({ 
+            nomSession: req.body.nomSession || session.nomSession,
+            _id: { $ne: session._id }
+        });
+
+        const isStrictDuplicate = potentialDuplicates.some(s => {
+            const currentClasse = req.body.classe || session.classe;
+            const sameClasse = Array.isArray(s.classe) 
+                ? s.classe.some(c => c.toString() === currentClasse.toString() || (Array.isArray(currentClasse) && currentClasse.includes(c.toString())))
+                : s.classe?.toString() === currentClasse?.toString();
+
+            const sameMontant = s.montant === Number(req.body.montant !== undefined ? req.body.montant : session.montant);
+            const sameDuree = s.duree === (req.body.duree || session.duree);
+            
+            const d1 = s.dateDebut ? new Date(s.dateDebut).getTime() : null;
+            const refDateDebut = req.body.dateDebut !== undefined ? req.body.dateDebut : session.dateDebut;
+            const d2 = refDateDebut ? new Date(refDateDebut).getTime() : null;
+            const sameDateDebut = d1 === d2;
+
+            const f1 = s.dateFin ? new Date(s.dateFin).getTime() : null;
+            const refDateFin = req.body.dateFin !== undefined ? req.body.dateFin : session.dateFin;
+            const f2 = refDateFin ? new Date(refDateFin).getTime() : null;
+            const sameDateFin = f1 === f2;
+
+            return sameClasse && sameMontant && sameDuree && sameDateDebut && sameDateFin;
+        });
+
+        if (isStrictDuplicate) {
+            res.status(400);
+            throw new Error("Une autre session parfaitement identique existe déjà.");
+        }
+
         session.nomSession = req.body.nomSession || session.nomSession;
         session.classe = req.body.classe || session.classe;
-        session.enseignants = req.body.enseignants || session.enseignants;
+        
+        if (req.body.programme) {
+            session.programme = req.body.programme;
+            session.enseignants = [...new Set(req.body.programme.map(p => p.enseignant).filter(Boolean))];
+        } else if (req.body.enseignants) {
+            session.enseignants = req.body.enseignants;
+        }
         session.montant = req.body.montant || session.montant;
         session.duree = req.body.duree || session.duree;
+        if (req.body.dateDebut !== undefined) session.dateDebut = req.body.dateDebut;
+        if (req.body.dateFin !== undefined) session.dateFin = req.body.dateFin;
         session.description = req.body.description || session.description;
         session.imageCouverture = req.body.imageCouverture || session.imageCouverture;
         session.statut = req.body.statut || session.statut;

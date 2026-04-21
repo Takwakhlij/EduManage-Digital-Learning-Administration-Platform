@@ -108,6 +108,34 @@ export const togglePublishSession = createAsyncThunk(
     }
 );
 
+// Mettre à jour une session
+export const updateSession = createAsyncThunk(
+    'sessions/update',
+    async ({ id, sessionData }, thunkAPI) => {
+        try {
+            const token = thunkAPI.getState().auth.user.token;
+            return await sessionService.updateSession(id, sessionData, token);
+        } catch (error) {
+            const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
+// Supprimer une session
+export const deleteSession = createAsyncThunk(
+    'sessions/delete',
+    async (id, thunkAPI) => {
+        try {
+            const token = thunkAPI.getState().auth.user.token;
+            return await sessionService.deleteSession(id, token);
+        } catch (error) {
+            const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 export const sessionSlice = createSlice({
     name: 'sessions',
     initialState,
@@ -202,6 +230,33 @@ export const sessionSlice = createSlice({
                 state.sessions = state.sessions.map((s) => s._id === action.payload.session._id ? action.payload.session : s);
             })
             .addCase(togglePublishSession.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            // Update Session
+            .addCase(updateSession.pending, (state) => { state.isLoading = true; })
+            .addCase(updateSession.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.sessions = state.sessions.map((s) => s._id === action.payload.session._id ? action.payload.session : s);
+                if (state.session && state.session._id === action.payload.session._id) {
+                    state.session = action.payload.session;
+                }
+            })
+            .addCase(updateSession.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            // Delete Session
+            .addCase(deleteSession.pending, (state) => { state.isLoading = true; })
+            .addCase(deleteSession.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.sessions = state.sessions.filter((s) => s._id !== action.meta.arg);
+            })
+            .addCase(deleteSession.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;

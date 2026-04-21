@@ -1,11 +1,12 @@
 import Inscription from '../models/inscriptionModel.js';
 import Session from '../models/sessionModel.js';
 import User from '../models/userModel.js';
+import Cours from '../models/coursModel.js';
+import Seance from '../models/seanceModel.js';
 import asyncHandler from 'express-async-handler';
 
 // @desc    Mettre à jour le statut d'une inscription (approuvée / refusée)
 // @route   PUT /api/inscriptions/:id/statut
-// @access  Private (Admin)
 export const updateStatutInscription = asyncHandler(async (req, res) => {
     const { statut } = req.body;
 
@@ -40,6 +41,25 @@ export const updateStatutInscription = asyncHandler(async (req, res) => {
     });
 });
 
+// @desc    Supprimer une inscription
+// @route   DELETE /api/inscriptions/:id
+// @access  Private (Admin)
+export const deleteInscription = asyncHandler(async (req, res) => {
+    const inscription = await Inscription.findById(req.params.id);
+
+    if (!inscription) {
+        res.status(404);
+        throw new Error("Inscription non trouvée.");
+    }
+
+    await Inscription.deleteOne({ _id: req.params.id });
+
+    res.status(200).json({
+        success: true,
+        message: "Inscription supprimée avec succès.",
+        id: req.params.id
+    });
+});
 
 // @desc    Inscrire un étudiant à une session
 // @route   POST /api/inscriptions
@@ -162,26 +182,117 @@ export const getAllInscriptions = asyncHandler(async (req, res) => {
     });
 });
 
+
+
 // @desc    Récupérer les inscriptions de l'étudiant CONNECTÉ (espace privé)
 // @route   GET /api/inscriptions/my
-// @access  Private (Étudiant)
+// @access  Private (Étudiant/Parent)
 export const getMyInscriptions = asyncHandler(async (req, res) => {
-    // L'étudiant connecté = req.user._id
-    const inscriptions = await Inscription.find({ etudiant: req.user._id })
+    // Si c'est un parent, on veut aussi voir les inscriptions de ses enfants
+    const searchIds = [req.user._id];
+    if (req.user.role === 'parent' && req.user.children) {
+        searchIds.push(...req.user.children);
+    }
+
+    const inscriptions = await Inscription.find({ etudiant: { $in: searchIds } })
         .populate({
             path: 'session',
-            select: 'nomSession duree statut',
+            select: 'nomSession duree statut coursPublies imageCouverture montant',
             populate: [
-                { path: 'enseignants', select: 'firstName lastName' },
+                { path: 'enseignants', select: 'firstName lastName profileImage' },
                 { path: 'classe', select: 'nomClasse niveau chapitresTemplate' }
             ]
         })
         .populate('classe', 'nomClasse niveau chapitresTemplate')
         .sort({ createdAt: -1 });
 
+    const daysOrder = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const now = new Date();
+    const currentDayIdx = now.getDay(); // 0-6
+    const currentTime = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+
+    // Ajouter une info de planning dynamique
+    const inscriptionsWithSchedule = await Promise.all(inscriptions.map(async (ins) => {
+        const obj = ins.toObject();
+        if (obj.session) {
+            const allSeances = await Seance.find({ session: obj.session._id });
+            
+            if (allSeances.length > 0) {
+                // ... same sorting logic ...
+                const sorted = [...allSeances].sort((a, b) => {
+                    const idxA = daysOrder.indexOf(a.jour);
+                    const idxB = daysOrder.indexOf(b.jour);
+                    const getRelDay = (idx) => (idx < currentDayIdx ? idx + 7 : idx);
+                    const relA = getRelDay(idxA);
+                    const relB = getRelDay(idxB);
+                    if (relA !== relB) return relA - relB;
+                    return a.heureDebut.localeCompare(b.heureDebut);
+                });
+
+                const seancesToday = sorted.filter(s => daysOrder.indexOf(s.jour) === currentDayIdx);
+                const nextToday = seancesToday.find(s => s.heureDebut > currentTime);
+                const chosen = nextToday || sorted.find(s => daysOrder.indexOf(s.jour) !== currentDayIdx) || sorted[0];
+                obj.session.schedule = `${chosen.jour.substring(0, 3)}. ${chosen.heureDebut}`;
+            } else {
+                obj.session.schedule = "À définir";
+            }
+
+            // ✅ CALCULER LE NOMBRE TOTAL DE COURS PUBLIÉS (Modèle indépendant + Legacy)
+            const standaloneCount = await Cours.countDocuments({ session: obj.session._id, statut: 'Publié' });
+            const legacyCount = obj.session.coursPublies?.length || 0;
+            obj.session.totalCours = standaloneCount + legacyCount;
+        }
+        return obj;
+    }));
+
     res.status(200).json({
         success: true,
-        count: inscriptions.length,
-        inscriptions
+        count: inscriptionsWithSchedule.length,
+        inscriptions: inscriptionsWithSchedule
+    });
+});
+
+// @desc    Ajouter/Retirer un cours terminé dans une inscription
+// @route   PUT /api/inscriptions/:id/toggle-cours
+// @access  Private (Étudiant/Parent)
+export const toggleCoursTermine = asyncHandler(async (req, res) => {
+    const { coursId } = req.body;
+    const inscription = await Inscription.findById(req.params.id).populate('session');
+
+    if (!inscription) {
+        res.status(404);
+        throw new Error("Inscription non trouvée.");
+    }
+
+    // Sécurité : Uniquement l'étudiant concerné ou son parent
+    const isOwner = inscription.etudiant.toString() === req.user._id.toString();
+    const isParent = req.user.role === 'parent' && (await User.findById(req.user._id)).children.includes(inscription.etudiant);
+
+    if (!isOwner && !isParent && req.user.role !== 'admin') {
+        res.status(401);
+        throw new Error("Non autorisé à modifier cette progression.");
+    }
+
+    // Vérifier si le coursId existe bien et appartient à cette session
+    const cours = await Cours.findById(coursId);
+    if (!cours || cours.session.toString() !== inscription.session._id.toString()) {
+        res.status(400);
+        throw new Error("Ce cours n'appartient pas à la session de cette inscription.");
+    }
+
+    // Toggle la présence dans l'array
+    const index = inscription.coursTermines.indexOf(coursId);
+    if (index > -1) {
+        inscription.coursTermines.splice(index, 1);
+    } else {
+        inscription.coursTermines.push(coursId);
+    }
+
+    await inscription.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Progression mise à jour",
+        coursTermines: inscription.coursTermines
     });
 });

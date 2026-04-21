@@ -25,7 +25,9 @@
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "pdfkit": "^0.18.0",
+    "stripe": "^22.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

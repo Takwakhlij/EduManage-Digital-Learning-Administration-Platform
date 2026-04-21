@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { getUsers, updateUserStatus, deleteUser, updateUser } from '../features/admin/adminSlice';
@@ -134,27 +134,37 @@ function AdminDashboard() {
         ];
 
 
-        // 3. Registrations over time (last 6 months)
-        const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-        sixMonthsAgo.setDate(1);
+        // 3. Registrations over time (last 6 months) - Génération dynamique (Sliding Window)
+        const generateLast6Months = () => {
+            const result = [];
+            const currentDate = new Date();
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+                // Format: 'mars 26' (fr-FR short format, removing any dots)
+                let monthStr = d.toLocaleString('fr-FR', { month: 'short', year: '2-digit' });
+                // Clean up possible dots from abbreviations like 'oct.'
+                monthStr = monthStr.replace(/\./g, '');
+                result.push({ date: d, key: monthStr });
+            }
+            return result;
+        };
+
+        const last6Months = generateLast6Months();
+        const sixMonthsAgo = last6Months[0].date;
 
         const monthlyCounts = {};
-        for (let i = 0; i < 6; i++) {
-            const d = new Date(sixMonthsAgo);
-            d.setMonth(d.getMonth() + i);
-            const monthKey = d.toLocaleString('fr-FR', { month: 'short', year: '2-digit' });
-            monthlyCounts[monthKey] = 0;
-        }
+        last6Months.forEach(m => {
+            monthlyCounts[m.key] = 0;
+        });
 
-        // Aggregate
+        // Mapping des données backend
         users.forEach(user => {
             if (user.createdAt) {
                 const d = new Date(user.createdAt);
                 if (d >= sixMonthsAgo) {
-                    const monthKey = d.toLocaleString('fr-FR', { month: 'short', year: '2-digit' });
-                    if (monthlyCounts[monthKey] !== undefined) {
-                        monthlyCounts[monthKey]++;
+                    let monthStr = d.toLocaleString('fr-FR', { month: 'short', year: '2-digit' }).replace(/\./g, '');
+                    if (monthlyCounts[monthStr] !== undefined) {
+                        monthlyCounts[monthStr]++;
                     }
                 }
             }
@@ -182,7 +192,7 @@ function AdminDashboard() {
         return { roleData, registrationData, statusData, monthlyNewUsersData };
     };
 
-    const { roleData, registrationData, statusData, monthlyNewUsersData } = getChartData();
+    const { roleData, registrationData, statusData, monthlyNewUsersData } = useMemo(() => getChartData(), [users]);
 
     if (!user) return null;
 

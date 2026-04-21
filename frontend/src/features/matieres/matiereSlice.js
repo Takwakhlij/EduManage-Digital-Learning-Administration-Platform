@@ -106,9 +106,6 @@ export const matiereSlice = createSlice({
                 state.isError = true;
                 state.message = action.payload;
             })
-            .addCase(deleteMatiere.pending, (state) => {
-                state.isLoading = true;
-            })
             .addCase(deleteMatiere.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.isSuccess = true;
@@ -120,9 +117,46 @@ export const matiereSlice = createSlice({
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;
+            })
+            .addCase(updateMatiere.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(updateMatiere.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                const index = state.matieres.findIndex(
+                    (m) => m._id === action.payload._id
+                );
+                if (index !== -1) {
+                    state.matieres[index] = action.payload;
+                }
+            })
+            .addCase(updateMatiere.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
             });
     },
 });
+
+// Mettre à jour une matiere
+export const updateMatiere = createAsyncThunk(
+    'matieres/update',
+    async ({ id, matiereData }, thunkAPI) => {
+        try {
+            const token = thunkAPI.getState().auth.user.token;
+            return await matiereService.updateMatiere(id, matiereData, token);
+        } catch (error) {
+            const message =
+                (error.response &&
+                    error.response.data &&
+                    error.response.data.message) ||
+                error.message ||
+                error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
 
 export const { reset } = matiereSlice.actions;
 export default matiereSlice.reducer;

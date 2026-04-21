@@ -1,0 +1,362 @@
+/* AdminTeacherPresences.css - Premium Islamic Admin Dashboard Theme */
+
+.ap-container {
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px 40px; 
+    background: linear-gradient(rgba(4, 4, 4, 0.93), rgba(10, 10, 10, 0.952)), url('/islamic-pattern.jpg');
+    background-size: 350px; /* Adjust scale of the pattern */
+    background-repeat: repeat;
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+}
+
+.ap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+    border-left: 6px solid #d4af37; /* Gold accent */
+    padding-left: 25px;
+}
+
+.ap-header h1 {
+    font-size: 38px;
+    font-weight: 800;
+    color: #f8fafc;
+    margin: 0 0 6px 0;
+    background: linear-gradient(to right, #ffffff, #d4af37);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.ap-header p {
+    font-size: 16px;
+    color: #ffffff;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Filters Bar Styling - Islamic Premium */
+.ap-filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 30px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(10, 11, 13, 0.8));
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    padding: 20px 24px;
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.ap-search-wrapper {
+    position: relative;
+    flex: 2;
+    min-width: 300px;
+}
+
+.ap-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #f4f3f0; /* Gold */
+    pointer-events: none;
+    transition: color 0.3s;
+    z-index: 5;
+}
+
+.ap-search-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 14px 14px 14px 46px;
+    color: #f4f1f1;
+    font-size: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ap-search-input:focus {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: #f0efeb66;
+   
+    outline: none;
+}
+
+.ap-date-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.ap-calendar-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #f9f8f4; /* Gold */
+    pointer-events: none;
+    z-index: 5;
+}
+
+.ap-date-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 14px 14px 14px 46px;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.ap-date-input:focus {
+    border-color: #f0f0ed61;
+    background: rgba(0, 0, 0, 0.4);
+    outline: none;
+}
+
+.ap-btn-clear {
+    background: rgba(212, 175, 55, 0.1);
+    color: #e8b60f;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.ap-btn-clear:hover {
+    background: #d4af37;
+    color: #000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.ap-title {
+    font-size: 32px;
+    letter-spacing: -0.5px;
+}
+
+.ap-subtitle {
+    font-size: 16px;
+}
+
+/* Responsivité rapide */
+@media (max-width: 768px) {
+    .ap-filters-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .ap-search-wrapper, .ap-date-wrapper {
+        width: 100%;
+    }
+}
+
+/* Table Layout */
+.ap-table-wrap {
+    background: #1a1c23;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow-x: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.ap-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+}
+
+.ap-table th {
+    padding: 16px;
+    background: rgba(212, 175, 55, 0.05);
+    font-size: 13px;
+    font-weight: 800;
+    color: #ffdf00; /* Brighter gold for visibility */
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 2px solid #d4af37;
+    white-space: nowrap;
+}
+
+.ap-table tbody tr {
+    transition: background 0.2s, transform 0.2s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.ap-table tbody tr:hover {
+    background: rgba(212, 175, 55, 0.06);
+}
+
+.ap-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.ap-table td {
+    padding: 16px;
+    vertical-align: top;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ap-num {
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: 700;
+    font-size: 14px;
+    width: 40px;
+    vertical-align: middle !important;
+}
+
+/* Teacher Info Layout In Table */
+.ap-teacher-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ap-avatar {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #10b981, #047857);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 2px solid rgba(16, 185, 129, 0.3);
+}
+
+.ap-teacher-details h4 {
+    margin: 0 0 2px 0;
+    font-size: 14px;
+    color: #fff;
+    font-weight: 600;
+}
+
+.ap-email {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Blocks layout in Table (Class/Subject/Date) */
+.ap-cell-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ap-class, .ap-date {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.ap-subject, .ap-time {
+    font-size: 12px;
+    color: #34d399; /* Brighter Emerald */
+    font-weight: 600;
+}
+
+/* Cahier Cell Specific */
+.ap-cahier-cell {
+    width: 40%;
+}
+
+.ap-cahier-box {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.ap-cahier-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 6px;
+}
+
+.ap-status-badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    width: fit-content;
+}
+
+.ap-cahier-text {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #d1d5db;
+    white-space: pre-wrap;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+/* States */
+.ap-loading {
+    padding: 40px;
+    text-align: center;
+    color: #10b981;
+    font-weight: 600;
+}
+
+.ap-error {
+    padding: 20px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.ap-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    text-align: center;
+}
+
+.ap-empty h3 {
+    margin: 16px 0 8px 0;
+    color: #fff;
+    font-size: 18px;
+}
+
+.ap-empty p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}

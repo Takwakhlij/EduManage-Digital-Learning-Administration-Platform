@@ -22,6 +22,13 @@ import StudentInscriptions from './pages/StudentInscriptions';
 import Formations from './pages/Formations';
 import SessionsList from './pages/SessionsList';
 import InscriptionsList from './pages/InscriptionsList';
+import AdminTeacherPresences from './pages/AdminTeacherPresences';
+import AdminStudentPresences from './pages/AdminStudentPresences';
+import GlobalCalendar from './pages/GlobalCalendar';
+import EnseignantCalendar from './pages/EnseignantCalendar';
+import StudentSchedule from './pages/StudentSchedule';
+import StudentPresence from './pages/StudentPresence';
+import StudentPaiements from './pages/StudentPaiements';
 import AdminLayout from './components/AdminLayout'; // Composant qui structure l'interface Admin (Sidebar + NavBar)
 
 function App() {
@@ -46,6 +53,21 @@ function App() {
             <Route path="/teacher/sessions/:id" element={<TeacherSessionDetails />} />
             <Route path="/admin/login" element={<AdminLogin />} />
 
+            {/* Planning Général: standalone fullscreen (no AdminLayout sidebar) */}
+            <Route path="/admin/planning" element={<GlobalCalendar />} />
+
+            {/* Emploi du Temps Enseignant: standalone fullscreen (no layout) */}
+            <Route path="/teacher/planning" element={<EnseignantCalendar />} />
+
+            {/* Emploi du Temps Étudiant */}
+            <Route path="/planning" element={<StudentSchedule />} />
+
+            {/* Dashboard Présence Étudiant */}
+            <Route path="/presence" element={<StudentPresence />} />
+
+            {/* Historique Paiements Étudiant */}
+            <Route path="/paiements" element={<StudentPaiements />} />
+
             {/* Routes d'administration "Imbriquées" avec un Layout commun (Sidebar partagée) */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} /> 
@@ -54,6 +76,8 @@ function App() {
               <Route path="membres" element={<AdminMembers />} /> 
               <Route path="sessions" element={<SessionsList />} />
               <Route path="inscriptions" element={<InscriptionsList />} />
+              <Route path="presences-enseignants" element={<AdminTeacherPresences />} />
+              <Route path="presences-etudiants" element={<AdminStudentPresences />} />
             </Route>
 
             <Route path="/profile" element={<Profile />} />

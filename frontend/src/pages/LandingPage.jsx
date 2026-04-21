@@ -5,7 +5,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout, reset } from '../features/auth/authSlice';
 import './LandingPage.css';
 import { useTheme } from '../context/ThemeContext';
-import { Sparkles, Book, FileText, User, Clock, ChevronLeft, ChevronRight, LayoutDashboard, UserCircle, LogOut, CalendarDays, Megaphone, GraduationCap } from 'lucide-react';
+import { Sparkles, Book, FileText, User, Clock, ChevronLeft, ChevronRight, LayoutDashboard, UserCircle, LogOut, CalendarDays, Megaphone, GraduationCap, Calendar } from 'lucide-react';
+import PaymentModal from '../components/PaymentModal';
+import PaymentMethodModal from '../components/PaymentMethodModal';
+
 
 /* ── Animated counter hook ── */
 function useCounter(target, duration = 2000, start = false) {
@@ -54,6 +57,18 @@ export default function LandingPage() {
     const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
     const avatarMenuRef = useRef(null);
 
+    // Payment Method Selection Modal State
+    const [methodModalOpen, setMethodModalOpen] = useState(false);
+    const [selectedSession, setSelectedSession] = useState(null);
+
+    // Stripe Payment Modal State
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [paymentInscription, setPaymentInscription] = useState(null);
+
+    // Current student's inscriptions to check for duplicates
+    const [myInscriptions, setMyInscriptions] = useState([]);
+
+
     // Close avatar dropdown on click outside
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -99,6 +114,23 @@ export default function LandingPage() {
         fetchSessions();
     }, []);
 
+    useEffect(() => {
+        const fetchMyInscriptions = async () => {
+            if (!user) return;
+            try {
+                const response = await axios.get('/api/inscriptions/my', {
+                    headers: { Authorization: `Bearer ${user.token}` }
+                });
+                if (response.data.success) {
+                    setMyInscriptions(response.data.inscriptions);
+                }
+            } catch (error) {
+                console.error("Erreur récup inscriptions:", error.response?.data || error.message);
+            }
+        };
+        fetchMyInscriptions();
+    }, [user]);
+
     // Rediriger immédiatement les admins et les profs vers leurs espaces
     useEffect(() => {
         if (user) {
@@ -136,39 +168,112 @@ export default function LandingPage() {
         navigate('/');
     };
 
-    const handleEnroll = async (sessionId) => {
+    // ── Étape 1 : Ouvrir le modal de sélection du mode de paiement ──────────
+    const handleEnroll = (sessionId, sessionData) => {
         if (!user) {
             navigate('/register', { state: { sessionId } });
             return;
         }
-
         if (user.role !== 'student' && user.role !== 'parent') {
             alert("Seuls les étudiants ou parents peuvent s'inscrire à une session.");
             return;
         }
+        // Sauvegarder la session choisie et ouvrir le modal de choix
+        setSelectedSession({ ...sessionData, _id: sessionId });
+        setMethodModalOpen(true);
+    };
 
+    // ── Étape 2 : Traiter le choix du mode de paiement ───────────────────────
+    const handleMethodSelect = async (method) => {
+        if (!selectedSession) return;
         setIsEnrolling(true);
         try {
-            const etudiantId = user._id;
             const response = await axios.post('/api/inscriptions', {
-                etudiant: etudiantId,
-                session: sessionId
+                etudiant: user._id,
+                session: selectedSession._id
             }, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
 
             if (response.data.success) {
-                // Redirect to dashboard with success message
-                navigate('/dashboard', {
-                    state: { successMessage: "Votre demande d'inscription a bien été envoyée ! Elle est en attente de validation." }
-                });
+                const inscription = response.data.inscription;
+                // Enrichir l'objet inscription avec les données de la session
+                inscription.session = selectedSession;
+
+                setMethodModalOpen(false);
+
+                if (method === 'stripe') {
+                    // Option Carte : ouvrir IMMÉDIATEMENT le formulaire de paiement
+                    setPaymentInscription(inscription);
+                    setPaymentModalOpen(true);
+                } else {
+                    // Option Espèces : simple redirection avec message
+                    setSelectedSession(null);
+                    navigate('/inscriptions', {
+                        state: { successMessage: '✅ Votre demande d\'inscription a été enregistrée ! Rendez-vous à l\'association pour régler votre inscription en espèces.' }
+                    });
+                }
             }
         } catch (error) {
-            alert(error.response?.data?.message || "Erreur lors de l'inscription");
+            const errMsg = error.response?.data?.message || "Erreur lors de l'inscription";
+            setMethodModalOpen(false);
+            setSelectedSession(null);
+            if (errMsg.toLowerCase().includes('déjà inscrit') || errMsg.toLowerCase().includes('deja inscrit')) {
+                navigate('/inscriptions');
+            } else {
+                alert(errMsg);
+            }
         } finally {
             setIsEnrolling(false);
         }
     };
+
+    // ── Fermeture du modal de choix sans action ───────────────────────────────
+    const handleMethodClose = () => {
+        if (isEnrolling) return; // Ne pas fermer pendant le traitement
+        setMethodModalOpen(false);
+        setSelectedSession(null);
+    };
+
+    // ── Callback succès Stripe ─────────────────────────────────────────────────
+    const handlePaymentSuccess = async (data) => {
+        setPaymentModalOpen(false);
+        setPaymentInscription(null);
+        setSelectedSession(null);
+        
+        // Rafraîchir les inscriptions pour mettre à jour les boutons "Déjà inscrit"
+        try {
+            const response = await axios.get('/api/inscriptions/my', {
+                headers: { Authorization: `Bearer ${user.token}` }
+            });
+            if (response.data.success) {
+                setMyInscriptions(response.data.inscriptions);
+            }
+        } catch (e) {
+            console.error("Erreur refresh inscriptions after payment", e);
+        }
+
+        if (data.statutPaiement === 'Payé') {
+            navigate('/inscriptions', {
+                state: { successMessage: '🎉 Paiement complet ! Votre inscription est approuvée. Accédez à vos cours dès maintenant.' }
+            });
+        } else {
+            navigate('/inscriptions', {
+                state: { successMessage: "✅ Avance enregistrée. Votre inscription est en attente de validation par l'administrateur." }
+            });
+        }
+    };
+
+    // ── Fermeture Stripe sans payer ─────────────────────────────────────────────
+    const handleSkipPayment = () => {
+        setPaymentModalOpen(false);
+        setPaymentInscription(null);
+        setSelectedSession(null);
+        navigate('/inscriptions', {
+            state: { successMessage: "Inscription créée. Vous pouvez payer plus tard depuis votre espace 'Mes Inscriptions'." }
+        });
+    };
+
 
     const getDashboardPath = () => {
         if (!user) return '/dashboard';
@@ -179,6 +284,24 @@ export default function LandingPage() {
 
     return (
         <div className="lp-root">
+            {/* ── Modal Sélection Mode de Paiement ── */}
+            {methodModalOpen && selectedSession && (
+                <PaymentMethodModal
+                    session={selectedSession}
+                    onClose={handleMethodClose}
+                    onSelectMethod={handleMethodSelect}
+                />
+            )}
+
+            {/* ── Modal Stripe (Carte Bancaire) ── */}
+            {paymentModalOpen && paymentInscription && (
+                <PaymentModal
+                    inscription={paymentInscription}
+                    onClose={handleSkipPayment}
+                    onSuccess={handlePaymentSuccess}
+                />
+            )}
+
             {/* Modal/Toast de succès d'inscription */}
             {enrollMessage && (
                 <div className="lp-enroll-toast">
@@ -198,10 +321,21 @@ export default function LandingPage() {
                         <span className="lp-nav__name">Association Coranique</span>
                     </div>
                     <ul className={`lp-nav__links ${menuOpen ? 'open' : ''}`}>
-                        <li><button onClick={() => scrollTo('about')}>À propos</button></li>
-                        <li><button onClick={() => scrollTo('formations')}>Formations</button></li>
-                        <li><button onClick={() => scrollTo('stats')}>Chiffres</button></li>
-                        <li><button onClick={() => scrollTo('contact')}>Contact</button></li>
+                        {user ? (
+                            <>
+                                <li><Link to="/dashboard">Mon Parcours</Link></li>
+                                <li><Link to="/inscriptions">Mes Inscriptions</Link></li>
+                                <li><Link to="/formations">Formations</Link></li>
+                                <li><button onClick={() => scrollTo('actualites')}>Actualités</button></li>
+                            </>
+                        ) : (
+                            <>
+                                <li><button onClick={() => scrollTo('about')}>À propos</button></li>
+                                <li><button onClick={() => scrollTo('formations')}>Formations</button></li>
+                                <li><button onClick={() => scrollTo('stats')}>Chiffres</button></li>
+                                <li><button onClick={() => scrollTo('contact')}>Contact</button></li>
+                            </>
+                        )}
                     </ul>
                     <div className="lp-nav__actions">
                         {/* Dark Mode Toggle */}
@@ -415,8 +549,22 @@ export default function LandingPage() {
                                                 return fallbacks[index % fallbacks.length];
                                             };
 
+                                            const isAlreadyEnrolled = myInscriptions.some(ins => {
+                                                const enrolledSessionId = ins.session?._id?.toString() || ins.session?.toString();
+                                                const currentSessionId = session._id?.toString();
+                                                
+                                                // Check by ID
+                                                if (enrolledSessionId === currentSessionId) return true;
+                                                
+                                                // Check by Name (Fallback for extra safety)
+                                                const enrolledSessionName = ins.session?.nomSession;
+                                                if (enrolledSessionName && session.nomSession && enrolledSessionName === session.nomSession) return true;
+                                                
+                                                return false;
+                                            });
+
                                             return (
-                                                <div className="lp-session-card-emerald" key={session._id}>
+                                                <div className={`lp-session-card-emerald ${isAlreadyEnrolled ? 'enrolled' : ''}`} key={session._id}>
                                                     {/* ── Top: Illustration ── */}
                                                     <div className="lp-session-card-emerald__top">
                                                         <img
@@ -424,9 +572,11 @@ export default function LandingPage() {
                                                             alt={session.nomSession}
                                                             className="lp-card-exact-img"
                                                         />
-                                                        <div className="lp-card-placeholder-icon">
-                                                            {/* On garde l'icône en overlay subtil ou simple fallback si l'image fail */}
-                                                        </div>
+                                                        {isAlreadyEnrolled && (
+                                                            <div className="lp-enrolled-overlay">
+                                                                <span>Déjà inscrit</span>
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     {/* ── Content ── */}
@@ -453,6 +603,14 @@ export default function LandingPage() {
                                                                     <span>{session.duree}</span>
                                                                 </div>
                                                             )}
+                                                            {session.dateDebut && session.dateFin && (
+                                                                <div className="lp-meta-row" style={{ marginTop: '4px' }}>
+                                                                    <Calendar size={16} />
+                                                                    <span>
+                                                                        {new Date(session.dateDebut).toLocaleDateString('fr-FR')} - {new Date(session.dateFin).toLocaleDateString('fr-FR')}
+                                                                    </span>
+                                                                </div>
+                                                            )}
                                                         </div>
 
                                                         <p className="lp-session-card-emerald__desc">
@@ -460,11 +618,11 @@ export default function LandingPage() {
                                                         </p>
 
                                                         <button
-                                                            onClick={() => handleEnroll(session._id)}
-                                                            className="lp-session-card-emerald__btn"
-                                                            disabled={isEnrolling}
+                                                            onClick={() => isAlreadyEnrolled ? null : handleEnroll(session._id, session)}
+                                                            className={`lp-session-card-emerald__btn ${isAlreadyEnrolled ? 'disabled' : ''}`}
+                                                            disabled={isEnrolling || isAlreadyEnrolled}
                                                         >
-                                                            {isEnrolling ? 'Envoi...' : "Demander l'inscription"}
+                                                            {isEnrolling ? 'Envoi...' : isAlreadyEnrolled ? 'Déjà inscrit ✅' : session.montant ? `S'inscrire — ${session.montant} TND` : "S'inscrire"}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -735,7 +893,7 @@ export default function LandingPage() {
                     </section>
 
                     {/* ── Actualités / Événements de la semaine ── */}
-                    <section className="lp-connected-section">
+                    <section id="actualites" className="lp-connected-section">
                         <div className="lp-container">
                             <div className="lp-section-header">
                                 <span className="lp-section-tag"><Megaphone size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />Actualités</span>
@@ -829,16 +987,24 @@ export default function LandingPage() {
                                                                     <span>{session.duree}</span>
                                                                 </div>
                                                             )}
+                                                            {session.dateDebut && session.dateFin && (
+                                                                <div className="lp-meta-row" style={{ marginTop: '4px' }}>
+                                                                    <Calendar size={16} />
+                                                                    <span>
+                                                                        {new Date(session.dateDebut).toLocaleDateString('fr-FR')} - {new Date(session.dateFin).toLocaleDateString('fr-FR')}
+                                                                    </span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                         <p className="lp-session-card-emerald__desc">
                                                             {session.description || "Un programme complet pour progresser sereinement dans l'apprentissage du Coran."}
                                                         </p>
                                                         <button
-                                                            onClick={() => handleEnroll(session._id)}
+                                                            onClick={() => handleEnroll(session._id, session)}
                                                             className="lp-session-card-emerald__btn"
                                                             disabled={isEnrolling}
                                                         >
-                                                            {isEnrolling ? 'Envoi...' : "Demander l'inscription"}
+                                                            {isEnrolling ? 'Envoi...' : session.montant ? `S'inscrire — ${session.montant} TND` : "S'inscrire"}
                                                         </button>
                                                     </div>
                                                 </div>

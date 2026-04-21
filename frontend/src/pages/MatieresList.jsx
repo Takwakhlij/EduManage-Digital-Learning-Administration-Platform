@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getMatieres, deleteMatiere, reset } from '../features/matieres/matiereSlice';
 import CreateMatiereModal from '../components/CreateMatiereModal';
+import EditMatiereModal from '../components/EditMatiereModal';
 import './ClassesList.css'; // Reusing ClassesList CSS for consistency
 import './MatieresList.css'; // Lighter gold/green theme for matieres
 
@@ -21,6 +22,13 @@ const FaTrash = () => (
     </svg>
 );
 
+const FaEdit = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    </svg>
+);
+
 const IconBook = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
@@ -36,8 +44,10 @@ function MatieresList() {
     const { user } = useSelector((state) => state.auth);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [matiereToDelete, setMatiereToDelete] = useState(null);
+    const [matiereToEdit, setMatiereToEdit] = useState(null);
 
     useEffect(() => {
         if (isError) {
@@ -58,6 +68,11 @@ function MatieresList() {
     const handleDelete = (matiere) => {
         setMatiereToDelete(matiere);
         setShowDeleteModal(true);
+    };
+
+    const handleEdit = (matiere) => {
+        setMatiereToEdit(matiere);
+        setShowEditModal(true);
     };
 
     const confirmDelete = () => {
@@ -129,28 +144,38 @@ function MatieresList() {
                                 </div>
                                 <div className="matiere-title-wrapper" style={{ flex: 1 }}>
                                     <h3 className="matiere-title" style={{ margin: 0, fontSize: '1.2rem' }}>{matiere.nomMatiere}</h3>
-                                    <span className="matiere-coef-badge" style={{ fontSize: '0.8rem', padding: '2px 8px', borderRadius: '12px' }}>
-                                        Coef: {matiere.coefficient}
-                                    </span>
                                 </div>
-                                <button
-                                    className="btn-icon delete delete-matiere"
-                                    onClick={(e) => { e.stopPropagation(); handleDelete(matiere); }}
-                                    title="Supprimer"
-                                >
-                                    <FaTrash />
-                                </button>
+                                <div className="matiere-actions" style={{ display: 'flex', gap: '8px' }}>
+                                    <button
+                                        className="btn-icon edit edit-matiere"
+                                        onClick={(e) => { e.stopPropagation(); handleEdit(matiere); }}
+                                        title="Modifier"
+                                        style={{ color: '#c9a961' }}
+                                    >
+                                        <FaEdit />
+                                    </button>
+                                    <button
+                                        className="btn-icon delete delete-matiere"
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(matiere); }}
+                                        title="Supprimer"
+                                    >
+                                        <FaTrash />
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="classe-card-body">
-                                <p className="classe-stat">
-                                    {matiere.description || "Aucune description"}
-                                </p>
-                                <div className="matiere-details" style={{ marginTop: '10px', fontSize: '13px', color: '#4b5563' }}>
-                                    <p><strong>Classe:</strong> {matiere.classe ? matiere.classe.nomClasse : <span style={{ color: 'red' }}>Non assignée</span>}</p>
-                                    <p><strong>Enseignants:</strong> {matiere.professeurs && matiere.professeurs.length > 0
-                                        ? matiere.professeurs.map(p => `${p.firstName} ${p.lastName}`).join(', ')
-                                        : 'Aucun'}</p>
+                            <div className="classe-card-body" style={{ marginTop: '15px' }}>
+                                <div className="matiere-details" style={{ fontSize: '13px', color: '#4b5563' }}>
+                                    <p>
+                                        <strong>Classes:</strong> {
+                                            matiere.classes && matiere.classes.length > 0 
+                                            ? matiere.classes.map(c => c.nomClasse).join(', ') 
+                                            : (matiere.classe?.nomClasse || <span style={{ color: 'red' }}>Non assignée</span>)
+                                        }
+                                    </p>
+                                    <p style={{ marginTop: '5px' }}>
+                                        <strong>Programme:</strong> {matiere.programme?.length || 0} chapitres définis
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -165,6 +190,16 @@ function MatieresList() {
             {/* Modals */}
             {showCreateModal && (
                 <CreateMatiereModal onClose={() => setShowCreateModal(false)} />
+            )}
+
+            {showEditModal && (
+                <EditMatiereModal 
+                    matiere={matiereToEdit} 
+                    onClose={() => {
+                        setShowEditModal(false);
+                        setMatiereToEdit(null);
+                    }} 
+                />
             )}
 
             {/* Delete Confirmation Modal */}

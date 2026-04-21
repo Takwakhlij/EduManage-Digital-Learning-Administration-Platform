@@ -1,0 +1,418 @@
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import {
+    CheckCircle, XCircle, Clock, TrendingUp, ArrowLeft,
+    BookOpen, Calendar, AlertCircle, Award, Filter,
+    ChevronDown, Activity, Star, Shield, CreditCard
+} from 'lucide-react';
+import './StudentPresence.css';
+
+function StudentPresence() {
+    const { user } = useSelector((state) => state.auth);
+    const navigate = useNavigate();
+
+    const [stats, setStats] = useState(null);
+    const [parSession, setParSession] = useState([]);
+    const [history, setHistory] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'absent' | 'retard' | 'present'
+    const [activeTab, setActiveTab] = useState('timeline'); // 'timeline' | 'sessions'
+
+    useEffect(() => {
+        if (!user) { navigate('/login'); return; }
+        const fetchStats = async () => {
+            try {
+                setIsLoading(true);
+                const config = { headers: { Authorization: `Bearer ${user.token}` } };
+                const res = await axios.get(
+                    `http://localhost:5000/api/presences/etudiant/${user._id}/stats`,
+                    config
+                );
+                if (res.data.success) {
+                    setStats(res.data.stats);
+                    setParSession(res.data.parSession || []);
+                    setHistory(res.data.history || []);
+                }
+            } catch (err) {
+                console.error('Erreur chargement présences :', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStats();
+    }, [user, navigate]);
+
+    const getTauxColor = (t) => {
+        if (t >= 80) return '#10b981';
+        if (t >= 60) return '#f59e0b';
+        return '#ef4444';
+    };
+    const getTauxLabel = (t) => {
+        if (t >= 80) return 'Excellent';
+        if (t >= 60) return 'Passable';
+        return 'Insuffisant';
+    };
+    const getTauxGrade = (t) => {
+        if (t >= 90) return 'A+';
+        if (t >= 80) return 'A';
+        if (t >= 70) return 'B';
+        if (t >= 60) return 'C';
+        return 'D';
+    };
+
+    const filteredHistory = history.filter(p => {
+        if (activeFilter === 'all') return true;
+        return p.statut.toLowerCase() === activeFilter.toLowerCase();
+    });
+
+    if (isLoading) {
+        return (
+            <div className="sp2-loading">
+                <div className="sp2-spinner" />
+                <p>Chargement de votre assiduité...</p>
+            </div>
+        );
+    }
+
+    const taux = stats?.tauxAssiduité ?? 0;
+    const tauxColor = getTauxColor(taux);
+    const radius = 70;
+    const circ = 2 * Math.PI * radius;
+    const dash = (taux / 100) * circ;
+
+    const filterOpts = [
+        { key: 'all',     label: 'Tout',    icon: <Activity size={13}/>,     count: history.length },
+        { key: 'Present', label: 'Présent', icon: <CheckCircle size={13}/>,  count: stats?.presents ?? 0, color: '#10b981' },
+        { key: 'Absent',  label: 'Absent',  icon: <XCircle size={13}/>,      count: stats?.absents ?? 0,  color: '#ef4444' },
+        { key: 'Retard',  label: 'Retard',  icon: <Clock size={13}/>,        count: stats?.retards ?? 0,  color: '#f59e0b' },
+    ];
+
+    const statutCfg = {
+        Present: { color: '#10b981', bg: 'rgba(16,185,129,0.1)',  border: 'rgba(16,185,129,0.25)', icon: <CheckCircle size={18}/>, label: 'Présent' },
+        Absent:  { color: '#ef4444', bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.25)',  icon: <XCircle size={18}/>,     label: 'Absent'  },
+        Retard:  { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.25)', icon: <Clock size={18}/>,       label: 'Retard'  },
+    };
+
+    return (
+        <div className="sp2-page">
+
+            {/* ── SIDEBAR LEFT ── */}
+            <aside className="sp2-sidebar">
+                <button className="sp2-back" onClick={() => navigate('/dashboard')}>
+                    <ArrowLeft size={16}/> Retour
+                </button>
+
+                <div className="sp2-logo-area">
+                    <div className="sp2-arabic">بِسْمِ ٱللَّٰهِ</div>
+                    <h1 className="sp2-title">Mes Absences</h1>
+                    <p className="sp2-subtitle">{user?.firstName} {user?.lastName}</p>
+                </div>
+
+                {/* Big Donut Chart */}
+                <div className="sp2-donut-wrap">
+                    <svg viewBox="0 0 180 180" width="180" height="180">
+                        {/* Glow filter */}
+                        <defs>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        {/* Track */}
+                        <circle cx="90" cy="90" r={radius}
+                            fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="14"/>
+                        {/* Progress */}
+                        <circle cx="90" cy="90" r={radius}
+                            fill="none"
+                            stroke={tauxColor}
+                            strokeWidth="14"
+                            strokeLinecap="round"
+                            strokeDasharray={`${dash} ${circ}`}
+                            transform="rotate(-90 90 90)"
+                            style={{ filter: `drop-shadow(0 0 10px ${tauxColor})`, transition: 'stroke-dasharray 1.2s ease' }}
+                        />
+                    </svg>
+                    <div className="sp2-donut-center">
+                        <span className="sp2-donut-pct" style={{ color: tauxColor }}>{taux}%</span>
+                        <span className="sp2-donut-grade" style={{ color: tauxColor }}>{getTauxGrade(taux)}</span>
+                        <span className="sp2-donut-label">{getTauxLabel(taux)}</span>
+                    </div>
+                </div>
+
+                <p className="sp2-seances-count">{stats?.total || 0} séances enregistrées</p>
+
+                {/* Mini KPI List */}
+                <div className="sp2-kpi-list">
+                    <div className="sp2-kpi-item sp2-kpi-present">
+                        <CheckCircle size={16}/>
+                        <span className="sp2-kpi-lbl">Présences</span>
+                        <span className="sp2-kpi-val">{stats?.presents ?? 0}</span>
+                    </div>
+                    <div className="sp2-kpi-item sp2-kpi-absent">
+                        <XCircle size={16}/>
+                        <span className="sp2-kpi-lbl">Absences</span>
+                        <span className="sp2-kpi-val">{stats?.absents ?? 0}</span>
+                    </div>
+                    <div className="sp2-kpi-item sp2-kpi-retard">
+                        <Clock size={16}/>
+                        <span className="sp2-kpi-lbl">Retards</span>
+                        <span className="sp2-kpi-val">{stats?.retards ?? 0}</span>
+                    </div>
+                </div>
+
+                {/* Navigation Links */}
+                <nav className="sp2-nav">
+                    <button className="sp2-nav-item" onClick={() => navigate('/planning')}>
+                        <Calendar size={14}/> Mon Planning
+                    </button>
+                    <button className="sp2-nav-item active">
+                        <TrendingUp size={14}/> Mes Absences
+                    </button>
+                    <button className="sp2-nav-item" onClick={() => navigate('/paiements')}>
+                        <CreditCard size={14}/> Mes Paiements
+                    </button>
+                </nav>
+
+                {/* Alert ******************************************************************/}
+                {taux < 60 && stats?.total > 0 && (
+                    <div className="sp2-alert">
+                        <AlertCircle size={15}/>
+                        <span>Taux insuffisant — contactez votre enseignant.</span>
+                    </div>
+                )}
+                {taux >= 80 && stats?.total > 0 && (
+                    <div className="sp2-congrats">
+                        <Star size={15}/>
+                        <span>Excellent ! Continuez ainsi !</span>
+                    </div>
+                )}
+            </aside>
+
+            {/* ── MAIN RIGHT ── */}
+            <main className="sp2-main">
+
+                {/* Top tabs */}
+                <div className="sp2-top-tabs">
+                    <button className={`sp2-top-tab ${activeTab === 'timeline' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('timeline')}>
+                        <Calendar size={15}/> Historique
+                    </button>
+                    <button className={`sp2-top-tab ${activeTab === 'sessions' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('sessions')}>
+                        <BookOpen size={15}/> Par Session
+                    </button>
+                </div>
+
+                {/* ── TIMELINE TAB ── */}
+                {activeTab === 'timeline' && (
+                    <>
+                        {/* Filter chips */}
+                        <div className="sp2-filters">
+                            <Filter size={14} className="sp2-filter-icon"/>
+                            {filterOpts.map(f => (
+                                <button
+                                    key={f.key}
+                                    className={`sp2-chip ${activeFilter === f.key ? 'active' : ''}`}
+                                    style={activeFilter === f.key && f.color ? { '--chip-color': f.color } : {}}
+                                    onClick={() => setActiveFilter(f.key)}
+                                >
+                                    {f.icon} {f.label}
+                                    <span className="sp2-chip-count">{f.count}</span>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* ── Grid Table ── */}
+                        {(() => {
+                            // Group presences by day
+                            const grouped = filteredHistory.reduce((acc, p) => {
+                                const d = new Date(p.date).toDateString();
+                                if (!acc[d]) acc[d] = [];
+                                acc[d].push(p);
+                                return acc;
+                            }, {});
+                            const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+
+                            // Find max séances across all days (for dynamic columns)
+                            const maxSeances = sortedDates.length > 0
+                                ? Math.max(...sortedDates.map(d => grouped[d].length))
+                                : 0;
+                            const colCount = Math.max(maxSeances, 1);
+
+                            if (sortedDates.length === 0) {
+                                return (
+                                    <div className="sp2-empty">
+                                        <Award size={42}/>
+                                        <h3>Aucune présence enregistrée</h3>
+                                        <p>Aucune séance ne correspond à ce filtre.</p>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="sp2-table-wrapper">
+                                    <table className="sp2-grid-table">
+                                        <thead>
+                                            <tr>
+                                                <th rowSpan="2" className="th-date">Date et Jour</th>
+                                                <th rowSpan="2" className="th-remarks">Observations</th>
+                                                <th colSpan={colCount} className="th-seances">Séances du jour</th>
+                                                <th rowSpan="2" className="th-total">Abs.</th>
+                                                <th rowSpan="2" className="th-late">Retard</th>
+                                            </tr>
+                                            <tr>
+                                                {Array.from({ length: colCount }, (_, i) => (
+                                                    <th key={i} className="th-sub">S.{i + 1}</th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {sortedDates.map(dateKey => {
+                                                const dayPresences = grouped[dateKey];
+                                                const dateObj = new Date(dateKey);
+                                                const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                                const dayName = dateObj.toLocaleDateString('fr-FR', { weekday: 'long' });
+
+                                                const remarks = dayPresences.filter(p => p.remarque).map(p => p.remarque).join(' • ');
+                                                const sortedPres = [...dayPresences].sort((a, b) =>
+                                                    (a.seance?.heureDebut || '').localeCompare(b.seance?.heureDebut || '')
+                                                );
+                                                const dayAbsent = dayPresences.filter(p => p.statut === 'Absent').length;
+                                                const dayLate   = dayPresences.filter(p => p.statut === 'Retard').length;
+
+                                                return (
+                                                    <tr key={dateKey}>
+                                                        <td className="td-date-cell">
+                                                            <span className="date-main">{formattedDate}</span>
+                                                            <span className="date-sub">{dayName}</span>
+                                                        </td>
+                                                        <td className="td-remarks-cell" title={remarks || undefined}>
+                                                            {remarks || '—'}
+                                                        </td>
+
+                                                        {/* Dynamic séance slots */}
+                                                        {Array.from({ length: colCount }, (_, idx) => {
+                                                            const p = sortedPres[idx];
+                                                            if (!p) return <td key={idx} className="td-empty-slot"></td>;
+                                                            const tooltip = [
+                                                                p.seance?.matiere,
+                                                                p.seance?.heureDebut && p.seance?.heureFin
+                                                                    ? `${p.seance.heureDebut} – ${p.seance.heureFin}`
+                                                                    : null
+                                                            ].filter(Boolean).join('\n');
+                                                            return (
+                                                                <td key={idx} className="td-statut-slot" title={tooltip}>
+                                                                    <div className="slot-inner">
+                                                                        {p.statut === 'Absent'  && <XCircle    size={15} className="icon-abs" />}
+                                                                        {p.statut === 'Retard'  && <Clock       size={15} className="icon-ret" />}
+                                                                        {p.statut === 'Present' && <CheckCircle size={15} className="icon-pre" />}
+                                                                        <span className="slot-matiere">{p.seance?.matiere || '—'}</span>
+                                                                    </div>
+                                                                </td>
+                                                            );
+                                                        })}
+
+                                                        <td className={`td-count ${dayAbsent > 0 ? 'highlight' : ''}`}>{dayAbsent}</td>
+                                                        <td className="td-count" style={dayLate > 0 ? { color: '#f59e0b' } : {}}>{dayLate}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            );
+                        })()}
+
+                        {/* ── Résumé ── */}
+                        <div className="sp2-resume-container">
+                            <h3 className="resume-title">Résumé de Présence</h3>
+                            <table className="sp2-resume-table">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Nombre</th>
+                                        <th>Sur un total de</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td className="row-label">Présences</td>
+                                        <td style={{ color: '#10b981', fontWeight: 800 }}>{stats?.presents || 0}</td>
+                                        <td rowSpan="3" className="td-total-seances">{stats?.total || 0} séances</td>
+                                    </tr>
+                                    <tr>
+                                        <td className="row-label">Absences</td>
+                                        <td style={{ color: '#ef4444', fontWeight: 800 }}>{stats?.absents || 0}</td>
+                                    </tr>
+                                    <tr className="row-total">
+                                        <td className="row-label">Retards</td>
+                                        <td style={{ color: '#f59e0b', fontWeight: 800 }}>{stats?.retards || 0}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                )}
+
+                {/* ── SESSIONS TAB ── */}
+                {activeTab === 'sessions' && (
+                    <div className="sp2-sessions">
+                        {parSession.length === 0 ? (
+                            <div className="sp2-empty">
+                                <Award size={52}/>
+                                <h3>Aucune donnée</h3>
+                                <p>Vos présences par session apparaîtront ici.</p>
+                            </div>
+                        ) : (
+                            parSession.map(s => {
+                                const color = getTauxColor(s.taux);
+                                const r2 = 32;
+                                const c2 = 2 * Math.PI * r2;
+                                const d2 = (s.taux / 100) * c2;
+                                return (
+                                    <div key={s.sessionId} className="sp2-session-card">
+                                        <div className="sp2-scard-left">
+                                            <h3 className="sp2-scard-name">{s.nomSession}</h3>
+                                            <p className="sp2-scard-total">{s.total} séances</p>
+                                            <div className="sp2-scard-stats">
+                                                <span style={{color:'#10b981'}}><CheckCircle size={12}/> {s.presents} Présents</span>
+                                                <span style={{color:'#f59e0b'}}><Clock size={12}/> {s.retards} Retards</span>
+                                                <span style={{color:'#ef4444'}}><XCircle size={12}/> {s.absents} Absents</span>
+                                            </div>
+                                            {/* Progress bar */}
+                                            <div className="sp2-scard-bar-bg">
+                                                <div className="sp2-scard-bar" style={{ width: `${s.taux}%`, background: color }}/>
+                                            </div>
+                                        </div>
+                                        {/* Mini ring */}
+                                        <div className="sp2-scard-ring">
+                                            <svg viewBox="0 0 80 80" width="80" height="80">
+                                                <circle cx="40" cy="40" r={r2}
+                                                    fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7"/>
+                                                <circle cx="40" cy="40" r={r2}
+                                                    fill="none" stroke={color} strokeWidth="7"
+                                                    strokeLinecap="round"
+                                                    strokeDasharray={`${d2} ${c2}`}
+                                                    transform="rotate(-90 40 40)"
+                                                    style={{ filter: `drop-shadow(0 0 5px ${color})` }}
+                                                />
+                                            </svg>
+                                            <span className="sp2-scard-pct" style={{color}}>{s.taux}%</span>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                )}
+            </main>
+        </div>
+    );
+}
+
+export default StudentPresence;

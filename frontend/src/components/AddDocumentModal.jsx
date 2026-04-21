@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createCours } from '../features/cours/coursSlice';
+import { createCours, updateCours } from '../features/cours/coursSlice';
 import { X, UploadCloud, Link } from 'lucide-react';
 import './AddDocumentModal.css';
 
-function AddDocumentModal({ isOpen, onClose, sessionId, chapitre }) {
+function AddDocumentModal({ isOpen, onClose, sessionId, chapitre, editingDoc }) {
     const dispatch = useDispatch();
     const { isLoading } = useSelector((state) => state.cours);
     
@@ -14,7 +14,32 @@ function AddDocumentModal({ isOpen, onClose, sessionId, chapitre }) {
     const [lienUrl, setLienUrl] = useState('');
     const [formError, setFormError] = useState('');
 
+    // Pre-fill form when editing
+    useEffect(() => {
+        if (editingDoc) {
+            setTitre(editingDoc.titre || '');
+            const isExternal = editingDoc.fichier?.startsWith('http');
+            if (isExternal) {
+                setTypeSupport('Lien externe');
+                setLienUrl(editingDoc.fichier || '');
+            } else {
+                setTypeSupport('Fichier local');
+            }
+            setFile(null);
+            setFormError('');
+        } else {
+            // Reset form for new document
+            setTitre('');
+            setTypeSupport('Fichier local');
+            setFile(null);
+            setLienUrl('');
+            setFormError('');
+        }
+    }, [editingDoc, isOpen]);
+
     if (!isOpen) return null;
+
+    const isEditing = !!editingDoc;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,7 +49,7 @@ function AddDocumentModal({ isOpen, onClose, sessionId, chapitre }) {
             return setFormError('Le titre est requis.');
         }
 
-        if (typeSupport === 'Fichier local' && !file) {
+        if (!isEditing && typeSupport === 'Fichier local' && !file) {
             return setFormError('Veuillez sélectionner un fichier.');
         }
 
@@ -34,42 +59,64 @@ function AddDocumentModal({ isOpen, onClose, sessionId, chapitre }) {
 
         const formData = new FormData();
         formData.append('titre', titre);
-        formData.append('sessionId', sessionId);
-        if (chapitre?._id) {
-            formData.append('chapitreId', chapitre._id);
-        }
-        formData.append('statut', 'Publié'); // Auto-publié
+        formData.append('statut', 'Publié');
         formData.append('typeSupport', typeSupport);
 
-        if (typeSupport === 'Fichier local') {
+        if (!isEditing) {
+            // Creating new document
+            formData.append('sessionId', sessionId);
+            if (chapitre?._id) {
+                formData.append('chapitreId', chapitre._id);
+            }
+        }
+
+        if (typeSupport === 'Fichier local' && file) {
             formData.append('fichier', file);
-        } else {
+        } else if (typeSupport === 'Lien externe') {
             formData.append('lienUrl', lienUrl);
         }
 
-        const result = await dispatch(createCours(formData));
-        
-        if (createCours.fulfilled.match(result)) {
-            // Re-initialiser le form et fermer
-            setTitre('');
-            setFile(null);
-            setLienUrl('');
-            setTypeSupport('Fichier local');
-            onClose();
+        let result;
+        if (isEditing) {
+            result = await dispatch(updateCours({ id: editingDoc._id, coursData: formData }));
+            if (updateCours.fulfilled.match(result)) {
+                resetAndClose();
+            } else {
+                setFormError(result.payload || "Une erreur est survenue lors de la modification.");
+            }
         } else {
-            setFormError(result.payload || "Une erreur est survenue lors de l'ajout du document.");
+            result = await dispatch(createCours(formData));
+            if (createCours.fulfilled.match(result)) {
+                resetAndClose();
+            } else {
+                setFormError(result.payload || "Une erreur est survenue lors de l'ajout du document.");
+            }
         }
+    };
+
+    const resetAndClose = () => {
+        setTitre('');
+        setFile(null);
+        setLienUrl('');
+        setTypeSupport('Fichier local');
+        setFormError('');
+        onClose();
     };
 
     return (
         <div className="doc-modal-overlay">
             <div className="doc-modal-container">
-                <button className="doc-modal-close" onClick={onClose}>
+                <button className="doc-modal-close" onClick={resetAndClose}>
                     <X size={20} />
                 </button>
                 
                 <div className="doc-modal-header">
-                    <h2>Ajouter une ressource</h2>
+                    <h2>{isEditing ? 'Modifier la ressource' : 'Ajouter une ressource'}</h2>
+                    {isEditing && (
+                        <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '4px' }}>
+                            Modifiez les informations du document ci-dessous.
+                        </p>
+                    )}
                 </div>
 
                 <form onSubmit={handleSubmit} className="doc-modal-form">
@@ -108,7 +155,9 @@ function AddDocumentModal({ isOpen, onClose, sessionId, chapitre }) {
                     {typeSupport === 'Fichier local' && (
                         <div className="doc-dropzone">
                             <UploadCloud size={32} className="doc-upload-icon" />
-                            <p className="doc-dropzone-title">Glissez-déposez votre fichier ici</p>
+                            <p className="doc-dropzone-title">
+                                {isEditing ? 'Remplacer le fichier (optionnel)' : 'Glissez-déposez votre fichier ici'}
+                            </p>
                             <p className="doc-dropzone-or">ou</p>
                             <label className="doc-browse-btn">
                                 Parcourir les fichiers
@@ -122,6 +171,11 @@ function AddDocumentModal({ isOpen, onClose, sessionId, chapitre }) {
                             </label>
                             <p className="doc-dropzone-hints">PDF, Vidéo (MP4, MOV) - Max 100MB</p>
                             {file && <p className="doc-selected-file">Fichier sélectionné : {file.name}</p>}
+                            {isEditing && !file && editingDoc?.fichier && (
+                                <p className="doc-selected-file" style={{ color: '#fbbf24' }}>
+                                    Fichier actuel : {editingDoc.fichier.split('/').pop()}
+                                </p>
+                            )}
                         </div>
                     )}
 
@@ -139,11 +193,11 @@ function AddDocumentModal({ isOpen, onClose, sessionId, chapitre }) {
                     )}
 
                     <div className="doc-modal-footer">
-                        <button type="button" className="doc-btn-cancel" onClick={onClose} disabled={isLoading}>
+                        <button type="button" className="doc-btn-cancel" onClick={resetAndClose} disabled={isLoading}>
                             Annuler
                         </button>
                         <button type="submit" className="doc-btn-submit" disabled={isLoading}>
-                            {isLoading ? 'Enregistrement...' : 'Enregistrer'}
+                            {isLoading ? 'Enregistrement...' : isEditing ? 'Mettre à jour' : 'Enregistrer'}
                         </button>
                     </div>
                 </form>
