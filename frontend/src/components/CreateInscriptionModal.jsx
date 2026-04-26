@@ -5,6 +5,7 @@ import { getAllSessions } from '../features/sessions/sessionSlice';
 // Remarque: L'idéal est d'avoir un usersSlice pour récupérer les étudiants, mais on suppose ici 
 // qu'on a déjà accès à une liste ou qu'on va appeler une API (pour l'instant, on laisse la place)
 import axios from 'axios'; 
+import toast from 'react-hot-toast';
 import './CreateClasseModal.css'; // On réutilise le même style que le modal des classes
 
 const CreateInscriptionModal = ({ isOpen, onClose }) => {
@@ -46,19 +47,23 @@ const CreateInscriptionModal = ({ isOpen, onClose }) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const onSubmit = (e) => {
+    const onSubmit = async (e) => {
         e.preventDefault();
         
         if (!formData.etudiant || !formData.session) {
-            alert('Veuillez sélectionner un Étudiant et une Session.');
+            toast.error('Veuillez sélectionner un Étudiant et une Session.');
             return;
         }
 
-        dispatch(createInscription(formData));
+        const result = await dispatch(createInscription(formData));
         
-        // Reset and close
-        setFormData({ etudiant: '', session: '' });
-        onClose();
+        if (createInscription.fulfilled.match(result)) {
+            toast.success("Inscription ajoutée avec succès !");
+            setFormData({ etudiant: '', session: '' });
+            onClose();
+        } else {
+            toast.error(result.payload || "Erreur lors de la création de l'inscription.");
+        }
     };
 
     if (!isOpen) return null;

@@ -11,6 +11,7 @@ import {
     Calendar, Link, PlayCircle, Music, Users, Edit3, Trash2,
     CheckCircle, XCircle, Clock, Save, Lock
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import AddDocumentModal from '../components/AddDocumentModal';
 import './TeacherSessionDetails.css';
 
@@ -32,8 +33,6 @@ function TeacherSessionDetails() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedChapter, setSelectedChapter] = useState(null);
     const [editingDoc, setEditingDoc] = useState(null);
-    const [notification, setNotification] = useState('');
-    const [notifType, setNotifType] = useState('success'); // 'success' | 'error'
 
     // ── Appel / Présence states ──
     const [selectedSeanceId, setSelectedSeanceId] = useState('');
@@ -124,15 +123,12 @@ function TeacherSessionDetails() {
     // Notification après sauvegarde
     useEffect(() => {
         if (presenceSaved && presenceMsg) {
-            showNotif(presenceMsg, 'success');
+            toast.success(presenceMsg);
             dispatch(resetPresence());
         }
     }, [presenceSaved, presenceMsg, dispatch]);
 
-    const showNotif = (msg, type = 'success') => {
-        setNotification(msg); setNotifType(type);
-        setTimeout(() => setNotification(''), 3500);
-    };
+
 
     const toggleChapter = (index) => {
         setOpenChapterIndex(openChapterIndex === index ? null : index);
@@ -149,7 +145,7 @@ function TeacherSessionDetails() {
     const handleDeleteDoc = async (doc) => {
         if (window.confirm(`Supprimer "${doc.titre}" ?`)) {
             const result = await dispatch(deleteCours(doc._id));
-            if (deleteCours.fulfilled.match(result)) showNotif('Document supprimé avec succès');
+            if (deleteCours.fulfilled.match(result)) toast.success('Document supprimé avec succès');
         }
     };
 
@@ -176,7 +172,7 @@ function TeacherSessionDetails() {
     };
 
     const handleSavePresence = () => {
-        if (!selectedSeanceId) return showNotif('Veuillez sélectionner une séance', 'error');
+        if (!selectedSeanceId) return toast.error('Veuillez sélectionner une séance');
         if (!editable) return;
 
         const presencesArr = Object.entries(attendanceMap).map(([inscriptionId, data]) => ({
@@ -224,13 +220,7 @@ function TeacherSessionDetails() {
 
     return (
         <div className="tsd-page">
-            {/* Notification Toast */}
-            {notification && (
-                <div className={`tsd-notification-toast ${notifType === 'error' ? 'tsd-toast-error' : ''}`}>
-                    {notifType === 'success' ? <CheckCircle size={20} /> : <XCircle size={20} />}
-                    {notification}
-                </div>
-            )}
+
 
             {/* Header */}
             <header className="tsd-header">

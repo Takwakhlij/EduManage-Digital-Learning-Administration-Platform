@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateClasseEtudiants } from '../features/classes/classeSlice';
 import { getUsers } from '../features/admin/adminSlice';
+import toast from 'react-hot-toast';
 import './StudentManagerModal.css';
 
 const FaClose = () => (
@@ -49,8 +50,14 @@ function StudentManagerModal({ classe, onClose }) {
     };
 
     const handleSave = () => {
-        dispatch(updateClasseEtudiants({ id: classe._id, etudiantsData: selectedStudents }));
-        onClose();
+        dispatch(updateClasseEtudiants({ id: classe._id, etudiantsData: selectedStudents })).unwrap()
+            .then(() => {
+                toast.success('Liste des étudiants mise à jour avec succès !');
+                onClose();
+            })
+            .catch((err) => {
+                toast.error(err || 'Erreur lors de la mise à jour.');
+            });
     };
 
     return (

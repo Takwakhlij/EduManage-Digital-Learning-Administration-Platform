@@ -18,8 +18,8 @@
 .create-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.45); /* Plus transparent */
+    backdrop-filter: blur(6px); /* Flou plus doux */
     display: flex;
     align-items: center;
     justify-content: center;

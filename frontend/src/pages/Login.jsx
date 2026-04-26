@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { login, reset } from '../features/auth/authSlice';
 import { useTheme } from '../context/ThemeContext';
+import toast from 'react-hot-toast';
 import './Auth.css';
 
 function Login() {
@@ -25,7 +26,7 @@ function Login() {
 
     useEffect(() => {
         if (isError) {
-            alert(message);
+            toast.error(message);
         }
 
         if (isSuccess || user) {

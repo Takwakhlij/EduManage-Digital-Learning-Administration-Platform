@@ -71,31 +71,36 @@
 
 /* ── Dark Theme Tokens ── */
 .dark-theme {
-    /* Backgrounds */
-    --cream: #121212;
-    --ivory: #1e1e1e;
-    --beige: #2a2a2a;
-    --sand: #333333;
+    /* Backgrounds - Deeper charcoal and obsidian surfaces */
+    --cream: #080808b5;
+    --ivory: #121212;
+    --beige: #1a1a1a;
+    --sand: #222222;
 
-    /* Text */
-    --text-dark: #f3f4f6;
-    --text-medium: #d1d5db;
-    --text-gray: #9ca3af;
-    --text-light: #6b7280;
+    /* Text - High contrast white and silver */
+    --text-dark: #ffffff;
+    --text-medium: #e5e7eb;
+    --text-gray: #a1a1aa;
+    --text-light: #71717a;
 
-    /* Borders */
-    --border: #333333;
-    --border-green: rgba(26, 122, 88, 0.3);
-    --border-gold: rgba(201, 169, 97, 0.3);
+    /* Borders - Subtle and sharp */
+    --border: #1f1f1f;
+    --border-green: rgba(16, 185, 129, 0.2);
+    --border-gold: rgba(201, 169, 97, 0.2);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+    /* Shadows - Deep and soft */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.7);
+
+    /* Glass Effect Variables */
+    --glass-bg: rgba(20, 20, 20, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(12px);
 
     /* Adjusted surface colors */
-    --green-pale: #0d2b20;
-    --green-mist: #11221b;
+    --green-pale: #061a12;
+    --green-mist: #091a14;
 }
 
 /* ── Reset ── */
@@ -132,7 +137,7 @@ body {
 
 body.dark-theme {
     background-image:
-        linear-gradient(rgba(18, 18, 18, 0.94), rgba(18, 18, 18, 0.94)),
+        linear-gradient(rgba(9, 9, 9, 0.968), rgba(13, 15, 14, 0.941)),
         url('/pattern-bg.png');
 }
 

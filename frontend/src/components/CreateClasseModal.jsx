@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createClasse, reset } from '../features/classes/classeSlice';
+import { createClasse, getClasses, reset } from '../features/classes/classeSlice';
 import { getUsers } from '../features/admin/adminSlice';
 import { getMatieres } from '../features/matieres/matiereSlice';
+import toast from 'react-hot-toast';
 import './CreateClasseModal.css';
 
 const LoaderIcon = () => (
@@ -38,6 +39,8 @@ const CreateClasseModal = ({ onClose }) => {
 
     useEffect(() => {
         if (isSubmitting && isSuccess) {
+            toast.success('Classe créée avec succès !');
+            dispatch(getClasses());
             onClose();
             dispatch(reset());
         }
@@ -53,7 +56,7 @@ const CreateClasseModal = ({ onClose }) => {
     const onSubmit = (e) => {
         e.preventDefault();
         if (!nomClasse || !niveau) {
-            alert('Veuillez remplir tous les champs obligatoires');
+            toast.error('Veuillez remplir tous les champs obligatoires');
             return;
         }
 

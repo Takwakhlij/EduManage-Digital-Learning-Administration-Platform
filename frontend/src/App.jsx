@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './islamic-elements.css';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { Toaster } from 'react-hot-toast';
+import NotificationPrompt from './components/NotificationPrompt';
+
 
 // Importation des différentes Pages  de l'application
 import Login from './pages/Login';
@@ -36,8 +39,44 @@ function App() {
     // Les *Providers* enveloppent l'application pour fournir des données à tous les composants enfants
     <ThemeProvider>
       <LanguageProvider>
+        <Toaster 
+          position="top-right" 
+          reverseOrder={false} 
+          toastOptions={{
+            duration: 4000,
+            style: {
+              fontSize: '16px',
+              fontWeight: '600',
+              padding: '16px 24px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            },
+            success: {
+              style: {
+                background: '#065f46',
+                color: '#ffffff',
+              },
+              iconTheme: {
+                primary: '#ffffff',
+                secondary: '#065f46',
+              },
+            },
+            error: {
+              style: {
+                background: '#991b1b',
+                color: '#ffffff',
+              },
+              iconTheme: {
+                primary: '#ffffff',
+                secondary: '#991b1b',
+              },
+            },
+          }}
+        />
         {/* Router : Gère l'historique de navigation de l'utilisateur dans le navigateur web */}
         <Router>
+          <NotificationPrompt />
+
           {/* Routes : Vérifie l'URL actuelle et affiche le composant de Route correspondant */}
           <Routes>
             {/* Routes publiques */}

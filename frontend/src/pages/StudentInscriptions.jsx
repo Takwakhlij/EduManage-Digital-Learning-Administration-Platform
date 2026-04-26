@@ -5,7 +5,7 @@ import { getCours } from '../features/cours/coursSlice';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import {
-    User, BookOpen, Clock, CheckCircle,
+    User, BookOpen, Clock, CheckCircle, CheckCircle2,
     PlusCircle, ArrowRight, X, XCircle, ArrowLeft, Moon, Sun,
     Search, Filter, ChevronDown, ChevronUp, FileText, Video, Archive,
     Link as LinkIcon, Headphones, Download, ExternalLink, PlayCircle, Globe
@@ -285,6 +285,22 @@ function StudentInscriptions({ effectiveUser }) {
     const selectedInscription = isGlobalView ? null : myInscriptions?.find(ins => ins._id === selectedId);
     const selectedClass = selectedInscription?.classe || selectedInscription?.session?.classe;
 
+    // Helper: resolve matiere name for a course (direct or via class fallback)
+    const resolveCoursMatiere = (c) => {
+        if (c.matiere?.nomMatiere) return c.matiere.nomMatiere;
+        const ins = myInscriptions.find(i => {
+            const sId = i.session?._id || i.session;
+            const cSId = c.session?._id || c.session;
+            return sId && cSId && String(sId) === String(cSId);
+        });
+        const cl = ins?.classe || ins?.session?.classe;
+        if (cl?.matieres?.length > 0) {
+            const names = cl.matieres.map(m => m?.nomMatiere).filter(Boolean);
+            if (names.length > 0) return names.join(' • ');
+        }
+        return null;
+    };
+
     // Pool: all courses relative to MY inscriptions
     const allActiveCours = isGlobalView
         ? (cours || [])
@@ -294,7 +310,7 @@ function StudentInscriptions({ effectiveUser }) {
             return courseSessionId && targetSessionId && String(courseSessionId) === String(targetSessionId);
         }) || []);
 
-    const localCoursSubjectOptions = Array.from(new Set(allActiveCours.map(c => c.matiere?.nomMatiere).filter(Boolean)));
+    const localCoursSubjectOptions = Array.from(new Set(allActiveCours.map(c => resolveCoursMatiere(c)).filter(Boolean)));
 
     // Apply filters
     const displayedCours = allActiveCours.filter(c => {
@@ -304,7 +320,8 @@ function StudentInscriptions({ effectiveUser }) {
         const matchesSearch = !coursSearchTerm ||
             c.titre?.toLowerCase().includes(coursSearchTerm.toLowerCase()) ||
             c.description?.toLowerCase().includes(coursSearchTerm.toLowerCase());
-        const matchesMatiere = !selectedCoursMatiere || c.matiere?.nomMatiere === selectedCoursMatiere;
+        const coursMatiere = resolveCoursMatiere(c);
+        const matchesMatiere = !selectedCoursMatiere || coursMatiere === selectedCoursMatiere || coursMatiere?.includes(selectedCoursMatiere);
         
         let matchesFileType = true;
         if (selectedFileType !== 'ALL') {
@@ -341,6 +358,9 @@ function StudentInscriptions({ effectiveUser }) {
         if (getNiveauKey(niveau) === 'avance') return { color: '#ceaa5f', border: '#ceaa5f' };
         return { color: '#2fb38b', border: '#1a6e54' };
     };
+
+    // getCourseMatiere: alias to resolveCoursMatiere for use in JSX rendering
+    const getCourseMatiere = (c) => resolveCoursMatiere(c);
 
     const orderedDays = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -713,47 +733,64 @@ function StudentInscriptions({ effectiveUser }) {
                                         <p className="exa-empty-text">{t.noMaterialInClass || 'Aucun support dans les classes sélectionnées.'}</p>
                                     ) : displayedCours.length === 0 ? (
                                         <p className="exa-empty-text">{t.noMaterialMatch || 'Aucun support ne correspond à votre recherche.'}</p>
-                                    ) : (
-                                        <div className="exa-course-grid">
-                                            {displayedCours.map(c => {
-                                                const fileInfo = getFileTypeInfo(c.fichier);
-                                                return (
-                                                    <div key={c._id} className="exa-course-grid-card">
-                                                        <div className="exa-cgc-main">
-                                                            <div className="exa-cgc-icon-wrapper" style={{ backgroundColor: fileInfo.bg }}>
-                                                                <fileInfo.icon size={26} color="#ffffff" strokeWidth={1.5} />
-                                                                <span className="exa-cgc-icon-label" style={{ color: '#ffffff' }}>{fileInfo.label}</span>
-                                                            </div>
-                                                            <div className="exa-cgc-info">
-                                                                <div className="exa-cgc-header">
-                                                                    <h4 className="exa-cgc-title" title={c.titre}>{c.titre}</h4>
-                                                                    {c.description && <h5 className="exa-cgc-desc">{c.description}</h5>}
-                                                                </div>
-                                                                <div className="exa-cgc-meta">
-                                                                    {c.matiere?.nomMatiere && (
-                                                                        <span className="exa-cgc-matiere-badge">{c.matiere.nomMatiere}</span>
-                                                                    )}
-                                                                    <span className="exa-cgc-date">{new Date(c.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                                                                </div>
-                                                            </div>
+                                    ) : (() => {
+                                        // Group by resolved matiere
+                                        const grouped = displayedCours.reduce((acc, c) => {
+                                            const key = getCourseMatiere(c) || 'Autres supports';
+                                            if (!acc[key]) acc[key] = [];
+                                            acc[key].push(c);
+                                            return acc;
+                                        }, {});
+                                        return (
+                                            <div className="exa-matiere-groups">
+                                                {Object.entries(grouped).map(([matiereLabel, files]) => (
+                                                    <div key={matiereLabel} className="exa-matiere-group">
+                                                        <div className="exa-matiere-group-header">
+                                                            <span className="exa-matiere-group-dot" />
+                                                            <h4 className="exa-matiere-group-title">{matiereLabel}</h4>
+                                                            <span className="exa-matiere-group-count">{files.length} support{files.length > 1 ? 's' : ''}</span>
                                                         </div>
-                                                        {c.fichier && (
-                                                            <div className="exa-cgc-actions">
-                                                                {!fileInfo.singleAction && (
-                                                                    <button onClick={() => handleDownload(getFileUrl(c.fichier), c.fichier)} className="exa-cgc-action-btn dl-btn">
-                                                                        <Download size={14} strokeWidth={2} /> {t.download || 'Download'}
-                                                                    </button>
-                                                                )}
-                                                                <a href={getFileUrl(c.fichier)} target="_blank" rel="noopener noreferrer" className={`exa-cgc-action-btn view-btn ${fileInfo.singleAction ? 'single-action' : ''}`}>
-                                                                    <fileInfo.actionIcon size={14} strokeWidth={2} /> {fileInfo.actionText}
-                                                                </a>
-                                                            </div>
-                                                        )}
+                                                        <div className="exa-course-grid">
+                                                            {files.map(c => {
+                                                                const fileInfo = getFileTypeInfo(c.fichier);
+                                                                return (
+                                                                    <div key={c._id} className="exa-course-grid-card">
+                                                                        <div className="exa-cgc-main">
+                                                                            <div className="exa-cgc-icon-wrapper" style={{ backgroundColor: fileInfo.bg }}>
+                                                                                <fileInfo.icon size={26} color="#ffffff" strokeWidth={1.5} />
+                                                                                <span className="exa-cgc-icon-label" style={{ color: '#ffffff' }}>{fileInfo.label}</span>
+                                                                            </div>
+                                                                            <div className="exa-cgc-info">
+                                                                                <div className="exa-cgc-header">
+                                                                                    <h4 className="exa-cgc-title" title={c.titre}>{c.titre}</h4>
+                                                                                    {c.description && <h5 className="exa-cgc-desc">{c.description}</h5>}
+                                                                                </div>
+                                                                                <div className="exa-cgc-meta">
+                                                                                    <span className="exa-cgc-date">{new Date(c.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        {c.fichier && (
+                                                                            <div className="exa-cgc-actions">
+                                                                                {!fileInfo.singleAction && (
+                                                                                    <button onClick={() => handleDownload(getFileUrl(c.fichier), c.fichier)} className="exa-cgc-action-btn dl-btn">
+                                                                                        <Download size={14} strokeWidth={2} /> {t.download || 'Download'}
+                                                                                    </button>
+                                                                                )}
+                                                                                <a href={getFileUrl(c.fichier)} target="_blank" rel="noopener noreferrer" className={`exa-cgc-action-btn view-btn ${fileInfo.singleAction ? 'single-action' : ''}`}>
+                                                                                    <fileInfo.actionIcon size={14} strokeWidth={2} /> {fileInfo.actionText}
+                                                                                </a>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+                                                ))}
+                                            </div>
+                                        );
+                                    })()}
                                 </section>
                             </div>
                         </>
@@ -937,9 +974,6 @@ function StudentInscriptions({ effectiveUser }) {
                                                                                 {c.description && <h5 className="exa-cgc-desc">{c.description}</h5>}
                                                                             </div>
                                                                             <div className="exa-cgc-meta">
-                                                                                {c.matiere?.nomMatiere && (
-                                                                                    <span className="exa-cgc-matiere-badge">{c.matiere.nomMatiere}</span>
-                                                                                )}
                                                                                 <span className="exa-cgc-date">{new Date(c.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                                                                             </div>
                                                                         </div>
@@ -952,7 +986,14 @@ function StudentInscriptions({ effectiveUser }) {
                                                                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleToggleCours(selectedInscription._id, c._id); }}
                                                                                     title={selectedInscription.coursTermines?.includes(c._id) ? "Marquer comme non terminé" : "Marquer comme terminé"}
                                                                                 >
-                                                                                    {selectedInscription.coursTermines?.includes(c._id) ? <CheckCircle size={18} fill="currentColor" color="white"/> : <div className="exa-check-empty" />}
+                                                                                    {selectedInscription.coursTermines?.includes(c._id) ? (
+                                                                                        <>
+                                                                                            <CheckCircle2 size={20} color="#10b981" strokeWidth={2.5} />
+                                                                                            <span className="exa-course-toggle-label">Terminé</span>
+                                                                                        </>
+                                                                                    ) : (
+                                                                                        <div className="exa-check-empty" />
+                                                                                    )}
                                                                                 </button>
                                                                             )}
                                                                             {!fileInfo.singleAction && (
@@ -969,56 +1010,28 @@ function StudentInscriptions({ effectiveUser }) {
                                                             );
                                                         };
 
-                                                        if (selectedClass?.chapitresTemplate?.length > 0 && !isGlobalView) {
-                                                            const sansChapitre = displayedCours.filter(c => !c.chapitreRef);
-                                                            return (
-                                                                <div className="exa-chapters-container" style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%', padding: '0' }}>
-                                                                    {selectedClass.chapitresTemplate.map((chap, index) => {
-                                                                        const chapCourses = displayedCours.filter(c => c.chapitreRef === chap._id);
-                                                                        if (chapCourses.length === 0) return null;
-                                                                        
-                                                                        return (
-                                                                            <div key={chap._id} className="exa-chapter-section" style={{ display: 'block' }}>
-                                                                                <div style={{ marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
-                                                                                    <h4 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#ceaa5f', margin: '0 0 4px 0', fontFamily: 'Amiri, Cairo, sans-serif' }}>
-                                                                                        {index + 1}. {chap.titre}
-                                                                                    </h4>
-                                                                                    {chap.description && (
-                                                                                        <p style={{ fontSize: '0.85rem', color: '#9ca3af', margin: '4px 0 0 0', fontFamily: 'Inter, sans-serif' }}>
-                                                                                            {chap.description}
-                                                                                        </p>
-                                                                                    )}
-                                                                                </div>
-                                                                                <div className="exa-course-grid">
-                                                                                    {chapCourses.map(renderCourseCard)}
-                                                                                </div>
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                    
-                                                                    {sansChapitre.length > 0 && (
-                                                                        <div className="exa-chapter-section" style={{ display: 'block' }}>
-                                                                            <div style={{ marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
-                                                                                <h4 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#ceaa5f', margin: '0 0 4px 0', fontFamily: 'Amiri, Cairo, sans-serif' }}>
-                                                                                    Autres supports
-                                                                                </h4>
-                                                                                <p style={{ fontSize: '0.85rem', color: '#9ca3af', margin: '4px 0 0 0', fontFamily: 'Inter, sans-serif' }}>
-                                                                                    Supports non rattachés à un chapitre ({sansChapitre.length})
-                                                                                </p>
-                                                                            </div>
-                                                                            <div className="exa-course-grid">
-                                                                                {sansChapitre.map(renderCourseCard)}
-                                                                            </div>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        }
+                                                        // Group displayedCours by matiere
+                                                        const grouped = displayedCours.reduce((acc, c) => {
+                                                            const key = getCourseMatiere(c) || 'Autres supports';
+                                                            if (!acc[key]) acc[key] = [];
+                                                            acc[key].push(c);
+                                                            return acc;
+                                                        }, {});
 
-                                                        // Default flat view for global view or classes without chapters
                                                         return (
-                                                            <div className="exa-course-grid">
-                                                                {displayedCours.map(renderCourseCard)}
+                                                            <div className="exa-matiere-groups">
+                                                                {Object.entries(grouped).map(([matiereLabel, files]) => (
+                                                                    <div key={matiereLabel} className="exa-matiere-group">
+                                                                        <div className="exa-matiere-group-header">
+                                                                            <span className="exa-matiere-group-dot" />
+                                                                            <h4 className="exa-matiere-group-title">{matiereLabel}</h4>
+                                                                            <span className="exa-matiere-group-count">{files.length} support{files.length > 1 ? 's' : ''}</span>
+                                                                        </div>
+                                                                        <div className="exa-course-grid">
+                                                                            {files.map(renderCourseCard)}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
                                                             </div>
                                                         );
                                                     })()}

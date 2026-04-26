@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import './TeacherDashboard.css';
 import logo from '../assets/logo.png';
+import NotificationCenter from '../components/NotificationCenter';
 
 function TeacherDashboard() {
     const navigate = useNavigate();
@@ -374,7 +375,10 @@ function TeacherDashboard() {
                         <Users size={18} /> <span>{t.myStudents}</span>
                     </button>
                     <button className="td-nav-link" onClick={() => navigate('/profile')}><User size={18} /> <span>{t.profile}</span></button>
-                    <button className="td-nav-link"><Bell size={18} /> <span>Notifications</span></button>
+                    <div style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', gap: '12px' }}>
+                        <NotificationCenter />
+                        <span style={{ fontSize: '14px', color: 'var(--td-text-mute)' }}>Notifications</span>
+                    </div>
                     <button className="td-nav-link"><Settings size={18} /> <span>{t.settings}</span></button>
                 </nav>
             </aside>
@@ -388,7 +392,7 @@ function TeacherDashboard() {
                         <input type="text" placeholder="Rechercher un Ã©tudiant, une sourate..." />
                     </div>
                     <div className="td-topbar-actions">
-                        <button className="td-top-icon"><Bell size={20} /></button>
+                        <NotificationCenter />
                         <button className="td-top-icon" onClick={() => navigate('/')}><Home size={20} /></button>
                         <div className="td-user-profile">
                             <div className="td-user-info">

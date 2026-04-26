@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { login, reset } from '../features/auth/authSlice';
 import logo from '../assets/logo.png';
+import toast from 'react-hot-toast';
 import './AdminLogin.css';
 
 function AdminLogin() {
@@ -22,7 +23,7 @@ function AdminLogin() {
 
     useEffect(() => {
         if (isError) {
-            alert(message);
+            toast.error(message);
         }
 
         if (isSuccess || user) {
@@ -30,7 +31,7 @@ function AdminLogin() {
                 navigate('/admin');
             } else {
                 // Si ce n'est pas un admin, rediriger vers login normal
-                alert('Accès réservé aux administrateurs');
+                toast.error('Accès réservé aux administrateurs');
                 navigate('/login');
             }
         }

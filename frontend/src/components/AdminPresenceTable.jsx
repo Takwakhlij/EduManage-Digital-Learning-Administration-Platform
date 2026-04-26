@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import toast from 'react-hot-toast';
 import './AdminPresenceTable.css';
 
 const AdminPresenceTable = ({ presences, onRefresh, selectedSessionId, selectedClass }) => {
@@ -86,8 +87,10 @@ const AdminPresenceTable = ({ presences, onRefresh, selectedSessionId, selectedC
       setStudentPresences(prev => prev.map(p => 
         p.inscription._id === studentId ? { ...p, statut: newStatus } : p
       ));
+      toast.success('Présence de l\'étudiant mise à jour !');
     } catch (error) {
       console.error('Error updating student status:', error);
+      toast.error('Erreur lors de la mise à jour.');
     }
   };
 
@@ -115,9 +118,11 @@ const AdminPresenceTable = ({ presences, onRefresh, selectedSessionId, selectedC
       };
       await axios.post('http://localhost:5000/api/teacher-presences', payload, config);
       if (onRefresh) await onRefresh();
+      toast.success('Séance validée avec succès !');
       setEditingSeance(null);
     } catch (error) {
       console.error(error);
+      toast.error('Erreur lors de la validation.');
     } finally {
       setIsSaving(false);
     }

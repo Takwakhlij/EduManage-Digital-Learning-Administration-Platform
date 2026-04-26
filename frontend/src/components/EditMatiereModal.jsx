@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateMatiere, reset } from '../features/matieres/matiereSlice';
+import { updateMatiere, getMatieres, reset } from '../features/matieres/matiereSlice';
 import { getClasses } from '../features/classes/classeSlice';
+import toast from 'react-hot-toast';
 import './CreateClasseModal.css';
 
 const LoaderIcon = () => (
@@ -40,6 +41,8 @@ const EditMatiereModal = ({ matiere, onClose }) => {
 
     useEffect(() => {
         if (isSubmitting && isSuccess) {
+            toast.success('Matière modifiée avec succès !');
+            dispatch(getMatieres());
             onClose();
             dispatch(reset());
         }
@@ -70,7 +73,7 @@ const EditMatiereModal = ({ matiere, onClose }) => {
     const onSubmit = (e) => {
         e.preventDefault();
         if (!nomMatiere) {
-            alert('Veuillez ajouter un nom de matière');
+            toast.error('Veuillez ajouter un nom de matière');
             return;
         }
 

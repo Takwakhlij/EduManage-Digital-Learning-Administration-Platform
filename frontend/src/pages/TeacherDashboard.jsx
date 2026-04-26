@@ -786,75 +786,22 @@ function TeacherDashboard() {
                     {activeTab === 'cours' && (
                         <div className="td-cours-view td-animate">
                             <div className="td-section-head">
-                                <h2>{t.myCoursesMaterials}</h2>
-                                <button className="td-btn-primary" onClick={() => { setEditingCours(null); setCoursForm({ titre: '', description: '', matiere: '', statut: 'Brouillon' }); setShowAddCours(true); }}>
-                                    {t.addCourse}
-                                </button>
+                                <h2>Historique de mes Documents & Supports</h2>
+                                <p style={{ color: 'var(--td-text-mute)', fontSize: '14px' }}>
+                                    Retrouvez ici tous les documents que vous avez publiés dans vos sessions.
+                                </p>
                             </div>
 
                             {formSuccess && <div className="td-alert success">{formSuccess}</div>}
                             {formError && <div className="td-alert error">{formError}</div>}
 
-                            {showAddCours && (
-                                <div className="td-form-card">
-                                    <h3>{editingCours ? t.editCourse : t.newCourse}</h3>
-                                    <form onSubmit={handleCoursSubmit} className="td-form">
-                                        <div className="td-form-group">
-                                            <label>{t.titleRequired}</label>
-                                            <input type="text" placeholder={t.titlePlaceholder} value={coursForm.titre} onChange={e => setCoursForm({ ...coursForm, titre: e.target.value })} required />
-                                        </div>
-                                        <div className="td-form-group">
-                                            <label>{t.descriptionText}</label>
-                                            <textarea placeholder={t.descriptionPlaceholder} value={coursForm.description} onChange={e => setCoursForm({ ...coursForm, description: e.target.value })} rows={3} />
-                                        </div>
-                                        <div className="td-form-row">
-                                            <div className="td-form-group">
-                                                <label>Session liée (optionnelle)</label>
-                                                <select value={coursForm.classeId} onChange={e => setCoursForm({ ...coursForm, classeId: e.target.value })}>
-                                                    <option value="">-- Aucune session --</option>
-                                                    {sessions.map(s => <option key={s._id} value={s._id}>{s.nomSession} ({s.classe?.nomClasse})</option>)}
-                                                </select>
-                                            </div>
-                                            <div className="td-form-group">
-                                                <label>{t.subjectRequired}</label>
-                                                <select value={coursForm.matiere} onChange={e => setCoursForm({ ...coursForm, matiere: e.target.value })} required>
-                                                    <option value="">{t.selectSubject}</option>
-                                                    {matieres.map(m => <option key={m._id} value={m._id}>{m.nomMatiere}</option>)}
-                                                </select>
-                                            </div>
-                                            <div className="td-form-group">
-                                                <label>{t.status}</label>
-                                                <select value={coursForm.statut} onChange={e => setCoursForm({ ...coursForm, statut: e.target.value })}>
-                                                    <option value="Brouillon">{t.statusDraft}</option>
-                                                    <option value="Publié">{t.statusPublished}</option>
-                                                    <option value="Archivé">{t.statusArchived}</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className="td-form-group">
-                                            <label>{t.fileUpload}</label>
-                                            <div className="td-file-upload" onClick={() => fileInputRef.current?.click()}>
-                                                <span>📎</span>
-                                                <span>{selectedFile ? selectedFile.name : t.clickToUpload}</span>
-                                            </div>
-                                            <input ref={fileInputRef} type="file" accept=".pdf,.mp4,.mov,.avi,.mkv,.webm,.mp3,.wav,.ogg" style={{ display: 'none' }} onChange={e => setSelectedFile(e.target.files[0] || null)} />
-                                        </div>
-                                        <div className="td-form-actions">
-                                            <button type="button" className="td-btn-secondary" onClick={() => { setShowAddCours(false); setEditingCours(null); }}>{t.cancelButton}</button>
-                                            <button type="submit" className="td-btn-primary" disabled={coursLoading}>{coursLoading ? t.loading : editingCours ? t.updateCourseButton : t.createCourseButton}</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            )}
-
                             {coursLoading ? (
                                 <p className="td-loading">{t.loadingCourses}</p>
-                            ) : cours.length === 0 && !showAddCours ? (
+                            ) : cours.length === 0 ? (
                                 <div className="td-empty-state">
                                     <BookOpen size={48} style={{ opacity: 0.5 }} />
-                                    <h3>{t.noCoursesPublished}</h3>
-                                    <p>{t.startCreatingCourse}</p>
-                                    <button className="td-btn-primary" onClick={() => setShowAddCours(true)}>{t.createFirstCourse}</button>
+                                    <h3>Aucun document publié</h3>
+                                    <p>Vous n'avez pas encore partagé de documents dans vos sessions.</p>
                                 </div>
                             ) : (
                                 <div className="td-cours-list">

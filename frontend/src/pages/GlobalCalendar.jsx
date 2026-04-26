@@ -11,6 +11,7 @@ import {
 import fr from 'date-fns/locale/fr';
 import { getAllSeances, createSeance, deleteSeance, updateSeance } from '../features/seances/seanceSlice';
 import { getAllSessions } from '../features/sessions/sessionSlice';
+import toast from 'react-hot-toast';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import './GlobalCalendar.css';
@@ -193,7 +194,7 @@ function SlotCreationModal({ isOpen, onClose, slotData, sessions, filterSessionI
         e.preventDefault();
         // Seules Session et Classe restent obligatoires ici
         if (!sessionId || !classeId) {
-            alert('Veuillez sélectionner au moins une Session et une Classe.');
+            toast.error('Veuillez sélectionner au moins une Session et une Classe.');
             return;
         }
         onSubmit({
@@ -515,9 +516,10 @@ function GlobalCalendar() {
                     setSlotModalOpen(false);
                     setSlotData(null);
                     setSeanceToEdit(null);
+                    toast.success('Séance modifiée avec succès');
                 })
                 .catch((err) => {
-                    alert(`Erreur : ${err}`);
+                    toast.error(`Erreur : ${err}`);
                 });
         } else {
             dispatch(createSeance(seanceData))
@@ -526,9 +528,10 @@ function GlobalCalendar() {
                     dispatch(getAllSeances());
                     setSlotModalOpen(false);
                     setSlotData(null);
+                    toast.success('Séance créée avec succès');
                 })
                 .catch((err) => {
-                    alert(`Erreur : ${err}`);
+                    toast.error(`Erreur : ${err}`);
                 });
         }
     }, [dispatch, seanceToEdit]);
@@ -545,7 +548,10 @@ function GlobalCalendar() {
         const seanceId = event.id;
         const s = event.resource;
         if (window.confirm(`Supprimer la séance "${s.matiere?.nomMatiere || 'Séance'}" du ${s.jour} (${s.heureDebut} - ${s.heureFin}) ?`)) {
-            dispatch(deleteSeance(seanceId)).then(() => dispatch(getAllSeances()));
+            dispatch(deleteSeance(seanceId)).then(() => {
+                dispatch(getAllSeances());
+                toast.success('Séance supprimée avec succès');
+            });
             setTooltip((prev) => ({ ...prev, visible: false }));
         }
     }, [dispatch]);
@@ -557,9 +563,12 @@ function GlobalCalendar() {
             seanceData: { jour: indexToJour[start.getDay()], heureDebut: format(start, 'HH:mm'), heureFin: format(end, 'HH:mm') },
         }))
             .unwrap()
-            .then(() => dispatch(getAllSeances()))
+            .then(() => {
+                dispatch(getAllSeances());
+                toast.success('Séance déplacée avec succès');
+            })
             .catch((err) => {
-                alert(`Conflit détecté : ${err}`);
+                toast.error(`Conflit détecté : ${err}`);
                 dispatch(getAllSeances()); // Recharger pour remettre l'événement à sa place
             });
     }, [dispatch]);
@@ -571,9 +580,12 @@ function GlobalCalendar() {
             seanceData: { heureDebut: format(start, 'HH:mm'), heureFin: format(end, 'HH:mm') },
         }))
             .unwrap()
-            .then(() => dispatch(getAllSeances()))
+            .then(() => {
+                dispatch(getAllSeances());
+                toast.success('Horaire de séance modifié avec succès');
+            })
             .catch((err) => {
-                alert(`Conflit détecté : ${err}`);
+                toast.error(`Conflit détecté : ${err}`);
                 dispatch(getAllSeances()); // Recharger pour remettre l'événement à sa taille initiale
             });
     }, [dispatch]);

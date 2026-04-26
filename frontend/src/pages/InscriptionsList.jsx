@@ -8,6 +8,7 @@ import {
     XCircle, History, Mail, Folder, BookOpen, CheckCircle,
     Clock, X, Trash2, AlertTriangle, DollarSign, Users, TrendingUp, Filter
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import './InscriptionsList.css';
 
 const InscriptionsList = () => {
@@ -15,7 +16,6 @@ const InscriptionsList = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isPaiementModalOpen, setIsPaiementModalOpen] = useState(false);
     const [selectedInscription, setSelectedInscription] = useState(null);
-    const [notification, setNotification] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatut, setFilterStatut] = useState('tous');
     const [filterPaiement, setFilterPaiement] = useState('tous');
@@ -29,10 +29,7 @@ const InscriptionsList = () => {
         dispatch(getAllInscriptions());
     }, [dispatch]);
 
-    const showNotif = (type, text) => {
-        setNotification({ type, text });
-        setTimeout(() => setNotification(null), 4000);
-    };
+
 
     const handleUpdateStatut = async (id, statut, studentName) => {
         const label = statut === 'approuvee' ? 'approuver' : 'refuser';
@@ -42,7 +39,11 @@ const InscriptionsList = () => {
             const msg = statut === 'approuvee'
                 ? `✅ Inscription de ${studentName} approuvée.`
                 : `❌ Inscription de ${studentName} refusée.`;
-            showNotif(statut === 'approuvee' ? 'success' : 'error', msg);
+            if (statut === 'approuvee') {
+                toast.success(msg);
+            } else {
+                toast.error(msg);
+            }
         }
     };
 
@@ -50,9 +51,9 @@ const InscriptionsList = () => {
         if (!window.confirm(`⚠️ Supprimer DÉFINITIVEMENT l'inscription de ${studentName} ?`)) return;
         const result = await dispatch(deleteInscription(id));
         if (deleteInscription.fulfilled.match(result)) {
-            showNotif('success', `Inscription de ${studentName} supprimée.`);
+            toast.success(`Inscription de ${studentName} supprimée.`);
         } else {
-            showNotif('error', result.payload || "Erreur lors de la suppression.");
+            toast.error(result.payload || "Erreur lors de la suppression.");
         }
     };
 
@@ -152,20 +153,7 @@ const InscriptionsList = () => {
                 onPaiementSuccess={handlePaiementSuccess}
             />
 
-            {/* Notification Toast */}
-            {notification && (
-                <div style={{
-                    position: 'fixed', top: '20px', right: '20px',
-                    backgroundColor: notification.type === 'success' ? '#10b981' : '#ef4444',
-                    color: 'white', padding: '16px 24px', borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.2)', zIndex: 10000,
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    maxWidth: '420px', animation: 'slideIn 0.3s ease-out'
-                }}>
-                    {notification.type === 'success' ? <CheckCircle size={20} /> : <X size={20} />}
-                    <span style={{ fontWeight: '500', fontSize: '14px' }}>{notification.text}</span>
-                </div>
-            )}
+
 
             {/* Header */}
             <div className="inscriptions-header">

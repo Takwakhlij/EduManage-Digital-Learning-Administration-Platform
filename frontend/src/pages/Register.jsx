@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { register, reset } from '../features/auth/authSlice';
+import toast from 'react-hot-toast';
 import './Auth.css'; // Import Auth Styles
 
 function Register() {
@@ -42,13 +43,13 @@ function Register() {
 
     useEffect(() => {
         if (isError) {
-            alert(message);
+            toast.error(message);
         }
 
         if (isSuccess) {
             // If registration is successful, user is NOT logged in (no token).
             // Alert user and redirect to login.
-            alert("Inscription réussie ! Votre compte est en attente de validation par un administrateur. Vous recevrez l'accès une fois validé.");
+            toast.success("Inscription réussie ! Votre compte est en attente de validation par un administrateur. Vous recevrez l'accès une fois validé.");
             navigate('/login');
             dispatch(reset()); // Clear any user state just in case
         }
@@ -65,7 +66,7 @@ function Register() {
         e.preventDefault();
 
         if (password !== confirmPassword) {
-            alert('Les mots de passe ne correspondent pas');
+            toast.error('Les mots de passe ne correspondent pas');
             return;
         }
 

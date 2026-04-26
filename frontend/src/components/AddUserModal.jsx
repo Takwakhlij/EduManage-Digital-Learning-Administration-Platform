@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createUserAdmin } from '../features/admin/adminSlice';
+import toast from 'react-hot-toast';
 import '../pages/EditUserModal.css'; // Path adapted since AddUserModal is in components/
 
 function AddUserModal({ onClose }) {
@@ -23,8 +24,13 @@ function AddUserModal({ onClose }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await dispatch(createUserAdmin(formData));
-        onClose();
+        try {
+            await dispatch(createUserAdmin(formData)).unwrap();
+            toast.success("Utilisateur créé avec succès !");
+            onClose();
+        } catch (error) {
+            toast.error(error || "Erreur lors de la création de l'utilisateur");
+        }
     };
 
     return (

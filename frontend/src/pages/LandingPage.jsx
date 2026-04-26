@@ -8,7 +8,7 @@ import { useTheme } from '../context/ThemeContext';
 import { Sparkles, Book, FileText, User, Clock, ChevronLeft, ChevronRight, LayoutDashboard, UserCircle, LogOut, CalendarDays, Megaphone, GraduationCap, Calendar } from 'lucide-react';
 import PaymentModal from '../components/PaymentModal';
 import PaymentMethodModal from '../components/PaymentMethodModal';
-
+import toast from 'react-hot-toast';
 
 /* ── Animated counter hook ── */
 function useCounter(target, duration = 2000, start = false) {
@@ -175,7 +175,7 @@ export default function LandingPage() {
             return;
         }
         if (user.role !== 'student' && user.role !== 'parent') {
-            alert("Seuls les étudiants ou parents peuvent s'inscrire à une session.");
+            toast.error("Seuls les étudiants ou parents peuvent s'inscrire à une session.");
             return;
         }
         // Sauvegarder la session choisie et ouvrir le modal de choix
@@ -221,7 +221,7 @@ export default function LandingPage() {
             if (errMsg.toLowerCase().includes('déjà inscrit') || errMsg.toLowerCase().includes('deja inscrit')) {
                 navigate('/inscriptions');
             } else {
-                alert(errMsg);
+                toast.error(errMsg);
             }
         } finally {
             setIsEnrolling(false);
@@ -775,7 +775,7 @@ export default function LandingPage() {
                                     </div>
                                 </div>
                             </div>
-                            <form className="lp-contact__form" onSubmit={(e) => { e.preventDefault(); alert('Message envoyé ! Nous vous répondrons sous 24h. بارك الله فيكم'); }}>
+                            <form className="lp-contact__form" onSubmit={(e) => { e.preventDefault(); toast.success('Message envoyé ! Nous vous répondrons sous 24h. بارك الله فيكم'); }}>
                                 <div className="lp-form-row">
                                     <div className="lp-form-group">
                                         <label>Nom complet</label>

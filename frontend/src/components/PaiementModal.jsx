@@ -12,6 +12,7 @@ import {
     CheckCircle2, AlertTriangle, Trash2, TrendingUp, History, Download
 } from 'lucide-react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import './PaiementModal.css';
 
 const PaiementModal = ({ isOpen, onClose, inscription, onPaiementSuccess }) => {
@@ -22,7 +23,6 @@ const PaiementModal = ({ isOpen, onClose, inscription, onPaiementSuccess }) => {
     const [modePaiement, setModePaiement] = useState('Espèces');
     const [note, setNote] = useState('');
     const [submitting, setSubmitting] = useState(false);
-    const [notification, setNotification] = useState(null);
 
     const prixSession = inscription?.session?.montant || 0;
     const montantVerseTotal = inscription?.montantVerseTotal || 0;
@@ -56,7 +56,7 @@ const PaiementModal = ({ isOpen, onClose, inscription, onPaiementSuccess }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!montant || parseFloat(montant) <= 0) {
-            setNotification({ type: 'error', text: 'Veuillez saisir un montant valide.' });
+            toast.error('Veuillez saisir un montant valide.');
             return;
         }
         setSubmitting(true);
@@ -68,17 +68,16 @@ const PaiementModal = ({ isOpen, onClose, inscription, onPaiementSuccess }) => {
         }));
 
         if (enregistrerPaiement.fulfilled.match(result)) {
-            setNotification({ type: 'success', text: `✅ ${montant} TND enregistrés avec succès !` });
+            toast.success(`✅ ${montant} TND enregistrés avec succès !`);
             setMontant('');
             setNote('');
             // Rafraîchir l'historique
             dispatch(getPaiementsParInscription(inscription._id));
             if (onPaiementSuccess) onPaiementSuccess(result.payload.inscription);
         } else {
-            setNotification({ type: 'error', text: result.payload || 'Erreur lors de l\'enregistrement.' });
+            toast.error(result.payload || 'Erreur lors de l\'enregistrement.');
         }
         setSubmitting(false);
-        setTimeout(() => setNotification(null), 3500);
     };
 
     const handleDeletePaiement = async (paiementId) => {
@@ -91,7 +90,7 @@ const PaiementModal = ({ isOpen, onClose, inscription, onPaiementSuccess }) => {
     };
     const handleDownloadReport = async () => {
         try {
-            setNotification({ type: 'success', text: '📥 Génération du rapport...' });
+            toast.success('📥 Génération du rapport...');
             const { token } = JSON.parse(localStorage.getItem('user'));
             const config = { headers: { Authorization: `Bearer ${token}` } };
             
@@ -99,12 +98,10 @@ const PaiementModal = ({ isOpen, onClose, inscription, onPaiementSuccess }) => {
             
             if (res.data.success) {
                 window.open(`http://localhost:5000${res.data.reportUrl}`, '_blank');
-                setNotification(null);
             }
         } catch (err) {
             console.error('Erreur téléch. rapport:', err);
-            setNotification({ type: 'error', text: 'Erreur lors de la génération du rapport.' });
-            setTimeout(() => setNotification(null), 3000);
+            toast.error('Erreur lors de la génération du rapport.');
         }
     };
 
@@ -147,12 +144,7 @@ const PaiementModal = ({ isOpen, onClose, inscription, onPaiementSuccess }) => {
                     <button className="pm-close" onClick={onClose}><X size={18} /></button>
                 </div>
 
-                {/* Notification */}
-                {notification && (
-                    <div className={`pm-notification ${notification.type}`}>
-                        {notification.text}
-                    </div>
-                )}
+
 
                 <div className="pm-body">
                     {/* Résumé financier */}

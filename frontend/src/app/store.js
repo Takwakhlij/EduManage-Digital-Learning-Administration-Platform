@@ -9,6 +9,7 @@ import inscriptionReducer from '../features/inscriptions/inscriptionSlice';
 import seanceReducer from '../features/seances/seanceSlice';
 import presenceReducer from '../features/presence/presenceSlice';
 import paiementReducer from '../features/paiements/paiementSlice';
+import notificationReducer from '../features/notifications/notificationSlice';
 
 export const store = configureStore({
     reducer: {
@@ -22,5 +23,6 @@ export const store = configureStore({
         seances: seanceReducer,
         presence: presenceReducer,
         paiements: paiementReducer,
+        notifications: notificationReducer,
     },
 });

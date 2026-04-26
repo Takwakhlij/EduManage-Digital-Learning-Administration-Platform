@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateClasse, reset } from '../features/classes/classeSlice';
+import { updateClasse, getClasses, reset } from '../features/classes/classeSlice';
 import { getUsers } from '../features/admin/adminSlice';
 import { getMatieres } from '../features/matieres/matiereSlice';
+import toast from 'react-hot-toast';
 import './CreateClasseModal.css'; // Reusing the same CSS
 
 const LoaderIcon = () => (
@@ -75,11 +76,12 @@ const EditClasseModal = ({ classe, onClose }) => {
 
     useEffect(() => {
         if (isSubmitting && isSuccess) {
+            toast.success('Classe modifiée avec succès !');
+            dispatch(getClasses());
             onClose();
-            onClose();
-            // dispatch(reset()); // Removed to avoid clearing list state
+            dispatch(reset());
         }
-    }, [isSuccess, isSubmitting, onClose, dispatch]);
+    }, [isSuccess, isSubmitting, onClose]);
 
     const onChange = (e) => {
         setFormData((prev) => ({
@@ -91,7 +93,7 @@ const EditClasseModal = ({ classe, onClose }) => {
     const onSubmit = (e) => {
         e.preventDefault();
         if (!nomClasse || !niveau) {
-            alert('Veuillez remplir tous les champs');
+            toast.error('Veuillez remplir tous les champs');
             return;
         }
 

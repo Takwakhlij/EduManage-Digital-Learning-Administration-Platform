@@ -4,6 +4,7 @@ import { createSession, getAllSessions, reset } from '../features/sessions/sessi
 import { getClasses } from '../features/classes/classeSlice';
 import { getUsers } from '../features/admin/adminSlice';
 import { getMatieres } from '../features/matieres/matiereSlice';
+import toast from 'react-hot-toast';
 import './CreateClasseModal.css'; 
 
 const LoaderIcon = () => (
@@ -51,6 +52,7 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
     // Kif tenja7 l'khedma
     useEffect(() => {
         if (isSubmitting && isSuccess) {
+            toast.success('Session créée avec succès !');
             dispatch(getAllSessions());
             onClose();
             dispatch(reset());
@@ -65,9 +67,10 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
     // Kif tsir erreur, n-wa9fou l'animation mta3 l'bouton
     useEffect(() => {
         if (isSubmitting && isError) {
+            toast.error(message || 'Une erreur est survenue.');
             setIsSubmitting(false);
         }
-    }, [isError, isSubmitting]);
+    }, [isError, isSubmitting, message]);
 
     useEffect(() => {
         if (classe && classes) {
@@ -123,14 +126,14 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
             const start = new Date(dateDebut);
             const end = new Date(dateFin);
             if (end < start) {
-                alert("Erreur de configuration : La date de fin doit être ultérieure à la date de début.");
+                toast.error("Erreur de configuration : La date de fin doit être ultérieure à la date de début.");
                 return;
             }
         }
         
         // Ensure the class has subjects
         if (programmeSession.length === 0) {
-            alert("Impossible de créer la session : la classe sélectionnée n'a aucune matière. Veuillez d'abord ajouter des matières.");
+            toast.error("Impossible de créer la session : la classe n'a aucune matière.");
             return;
         }
 

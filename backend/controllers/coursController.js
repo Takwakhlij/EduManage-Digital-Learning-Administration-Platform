@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import Cours from '../models/coursModel.js';
 import Classe from '../models/classeModel.js';
 import Inscription from '../models/inscriptionModel.js';
+import { sendPushNotification } from './notificationController.js';
 
 // @desc    Récupérer les cours (filtrés par professeur connecté ou par matière)
 // @route   GET /api/cours
@@ -114,6 +115,32 @@ const createCours = asyncHandler(async (req, res) => {
         .populate('professeur', 'firstName lastName email')
         .populate('session', 'nomSession');
 
+    // ✅ Notification si le cours est publié
+    if (populated.statut === 'Publié' && populated.session) {
+        const sessionId = populated.session._id || populated.session;
+        
+        // On cherche TOUS les étudiants inscrits à cette session (pour être sûr que ça marche pendant vos tests)
+        const inscriptions = await Inscription.find({
+            session: sessionId
+        }).select('etudiant');
+
+        const studentIds = inscriptions.map(i => i.etudiant);
+        const nomSupport = populated.matiere?.nomMatiere || populated.session?.nomSession || 'Nouveau Document';
+        const nomProf = `${populated.professeur?.firstName || ''} ${populated.professeur?.lastName || ''}`.trim();
+        
+        console.log(`[DEBUG NOTIF] Envoi à ${studentIds.length} étudiants pour la session ${populated.session?.nomSession}`);
+
+        for (const studentId of studentIds) {
+            sendPushNotification(studentId, {
+                title: 'Nouveau document disponible ! 📚',
+                body: `${nomProf} a partagé : ${populated.titre} (${nomSupport})`,
+                type: 'cours',
+                senderId: req.user._id,
+                url: `/student/cours`
+            });
+        }
+    }
+
     res.status(201).json({
         success: true,
         message: 'Cours créé avec succès',
@@ -132,12 +159,15 @@ const updateCours = asyncHandler(async (req, res) => {
         throw new Error('Cours non trouvé');
     }
 
-    // Only the cours owner or admin can update
+    // Seul le propriétaire ou l'admin peut modifier
     if (cours.professeur.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
         res.status(403);
-        throw new Error('Non autorisé à modifier ce cours');
+        throw new Error('Non autorisé');
     }
 
+    const wasDraft = cours.statut === 'Brouillon';
+
+    // Mise à jour des champs
     cours.titre = req.body.titre || cours.titre;
     cours.description = req.body.description ?? cours.description;
     cours.statut = req.body.statut || cours.statut;
@@ -150,8 +180,31 @@ const updateCours = asyncHandler(async (req, res) => {
     const updated = await cours.save();
 
     const populated = await Cours.findById(updated._id)
-        .populate('matiere', 'nomMatiere coefficient')
-        .populate('professeur', 'firstName lastName email');
+        .populate('matiere', 'nomMatiere')
+        .populate('professeur', 'firstName lastName')
+        .populate('session', 'nomSession');
+
+    // ✅ Notification si le cours passe en "Publié"
+    if (populated.statut === 'Publié' && populated.session) {
+        const sessionId = populated.session._id || populated.session;
+        
+        // On cherche tous les étudiants inscrits (approuvés ou en attente pour les tests)
+        const inscriptions = await Inscription.find({ session: sessionId }).select('etudiant');
+
+        const studentIds = inscriptions.map(i => i.etudiant);
+        const nomSupport = populated.matiere?.nomMatiere || populated.session?.nomSession || 'Nouveau Document';
+        const nomProf = `${populated.professeur?.firstName || ''} ${populated.professeur?.lastName || ''}`.trim();
+
+        for (const studentId of studentIds) {
+            sendPushNotification(studentId, {
+                title: 'Document mis à jour ! 📚',
+                body: `${nomProf} a partagé : ${populated.titre} (${nomSupport})`,
+                type: 'cours',
+                senderId: req.user._id,
+                url: `/student/cours`
+            });
+        }
+    }
 
     res.status(200).json({
         success: true,

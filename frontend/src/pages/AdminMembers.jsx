@@ -5,6 +5,7 @@ import { getUsers, updateUserStatus, deleteUser, updateUser } from '../features/
 import { getClasses } from '../features/classes/classeSlice';
 import { getAllSessions } from '../features/sessions/sessionSlice';
 import AddUserModal from '../components/AddUserModal';
+import toast from 'react-hot-toast';
 import './DashboardAdmin.css';
 import './EditUserModal.css';
 
@@ -484,10 +485,14 @@ function AdminMembers() {
                                                         <button
                                                             className="action-btn approve"
                                                             title="Approuver"
-                                                            onClick={() => dispatch(updateUserStatus({
-                                                                id: member._id,
-                                                                status: 'active'
-                                                            }))}
+                                                            onClick={() => {
+                                                                dispatch(updateUserStatus({
+                                                                    id: member._id,
+                                                                    status: 'active'
+                                                                })).unwrap()
+                                                                .then(() => toast.success('Compte approuvé avec succès !'))
+                                                                .catch(err => toast.error(err || 'Erreur lors de l\'approbation'));
+                                                            }}
                                                         >
                                                             ✓
                                                         </button>
@@ -499,7 +504,9 @@ function AdminMembers() {
                                                                     dispatch(updateUserStatus({
                                                                         id: member._id,
                                                                         status: 'rejected'
-                                                                    }));
+                                                                    })).unwrap()
+                                                                    .then(() => toast.success('Compte rejeté avec succès !'))
+                                                                    .catch(err => toast.error(err || 'Erreur lors du rejet'));
                                                                 }
                                                             }}
                                                         >
@@ -512,7 +519,9 @@ function AdminMembers() {
                                                     title="Supprimer"
                                                     onClick={() => {
                                                         if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${member.name}?`)) {
-                                                            dispatch(deleteUser(member._id));
+                                                            dispatch(deleteUser(member._id)).unwrap()
+                                                            .then(() => toast.success('Compte supprimé avec succès !'))
+                                                            .catch(err => toast.error(err || 'Erreur lors de la suppression'));
                                                         }
                                                     }}
                                                 >
@@ -551,8 +560,12 @@ function AdminMembers() {
                                     role: formData.get('role'),
                                     status: formData.get('status'),
                                 };
-                                dispatch(updateUser({ id: editingUser._id, userData }));
-                                setShowEditModal(false);
+                                dispatch(updateUser({ id: editingUser._id, userData })).unwrap()
+                                .then(() => {
+                                    toast.success('Utilisateur modifié avec succès !');
+                                    setShowEditModal(false);
+                                })
+                                .catch(err => toast.error(err || 'Erreur lors de la modification'));
                             }}>
                                 <div className="modal-form-row">
                                     <div className="modal-form-group">

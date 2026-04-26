@@ -4,7 +4,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Amiri:ital,wght@1,700&display=swap');
 
 :root {
-    --td-sidebar-w: 340px;
+    --td-sidebar-w: 360px;
     --td-bg: #fdfbf7;
     /* Ivory background for light mode */
     --td-surface: #ffffff;
@@ -75,13 +75,13 @@ body.dark-theme .td-app {
 /* ================== SIDEBAR ================== */
 .td-sidebar {
     width: var(--td-sidebar-w);
-    background: #032519;
-    /* Solid deep green exactly like the calendar */
+    background: linear-gradient(180deg, #121c14 0%);
+    /* Match Admin Sidebar color */
     backdrop-filter: blur(10px);
     border-right: 1px solid var(--td-border);
     display: flex;
     flex-direction: column;
-    padding: 24px;
+    padding: 15px;
     gap: 32px;
 }
 
@@ -91,7 +91,7 @@ body.dark-theme .td-app {
 }
 
 .dark-theme .td-sidebar {
-    background: #032519;
+    background: #121c14;
 }
 
 .td-sidebar-logo {
@@ -101,7 +101,7 @@ body.dark-theme .td-app {
 }
 
 .td-sidebar-logo img {
-    height: 72px;
+    height: 200px;
     max-width: 100%;
     object-fit: contain;
     filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.6));
@@ -122,7 +122,7 @@ body.dark-theme .td-app {
     border: none;
     border-radius: 8px;
     color: rgba(255, 255, 255, 0.65);
-    font-size: 14px;
+    font-size: 17px;
     font-weight: 500;
     cursor: pointer;
     text-align: left;
@@ -137,19 +137,19 @@ body.dark-theme .td-app {
 }
 
 .td-nav-link.active {
-    color: var(--td-gold);
-    font-weight: 700;
-    background: rgba(201, 169, 97, 0.15);
-    border: 1px solid rgba(201, 169, 97, 0.3);
+    color: var(--gold, #c9a961);
+    font-weight: 600;
+    background: rgba(201, 169, 97, 0.08);
+    border: 1px solid rgba(201, 169, 97, 0.2);
 }
 
 [dir="rtl"] .td-nav-link.active {
-    border-right: 3px solid var(--td-gold);
+    border-right: 3px solid var(--gold, #c9a961);
     border-left: none;
 }
 
 [dir="ltr"] .td-nav-link.active {
-    border-left: 3px solid var(--td-gold);
+    border-left: 3px solid var(--gold, #c9a961);
     border-right: none;
 }
 
@@ -160,18 +160,18 @@ body.dark-theme .td-app {
 }
 
 .dark-theme .td-nav-link.active {
-    color: var(--td-gold);
-    background: rgba(201, 169, 97, 0.15);
-    border: 1px solid rgba(201, 169, 97, 0.3);
+    color: var(--gold, #c9a961);
+    background: rgba(201, 169, 97, 0.08);
+    border: 1px solid rgba(201, 169, 97, 0.2);
 }
 
 [dir="rtl"] .dark-theme .td-nav-link.active {
-    border-right: 3px solid var(--td-gold);
+    border-right: 3px solid var(--gold, #c9a961);
     border-left: none;
 }
 
 [dir="ltr"] .dark-theme .td-nav-link.active {
-    border-left: 3px solid var(--td-gold);
+    border-left: 3px solid var(--gold, #c9a961);
     border-right: none;
 }
 
@@ -1235,9 +1235,9 @@ body.dark-theme .td-app {
 .td-sc-action {
     margin-top: auto;
     background: transparent;
-    border: 2px solid #059669;
+    border: 2px solid var(--gold, #c9a961);
     padding: 12px 24px;
-    color: #059669;
+    color: var(--gold, #c9a961);
     font-size: 14px;
     font-weight: 700;
     border-radius: 14px;
@@ -1249,10 +1249,10 @@ body.dark-theme .td-app {
 }
 
 .td-sc-action:hover {
-    background: #059669;
-    color: #ffffff;
+    background: var(--gold, #c9a961);
+    color: #121c14; /* Dark background to contrast with gold */
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.25);
+    box-shadow: 0 6px 20px rgba(201, 169, 97, 0.25);
 }
 
 .td-sc-action:active {

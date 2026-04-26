@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import axios from 'axios';
 import './StudentDashboard.css';
+import NotificationCenter from '../components/NotificationCenter';
 import logo from '../assets/logo.png';
 import quranImg from '../assets/quran-hifz.png';
 import libraryImg from '../assets/library-study.png';
@@ -405,7 +406,7 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                             style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'36px', height:'36px', borderRadius:'50%', border:'none', background:'transparent', color:'var(--text-color)', cursor:'pointer', transition:'all 0.2s ease' }}>
                             {isDarkMode ? '☀️' : '🌙'}
                         </button>
-                        <button className="icon-btn"><Bell size={20}/></button>
+                        <NotificationCenter />
                         <div className="user-badge" onClick={() => navigate('/profile')}>
                             <div className="badge-img-container">
                                 {((parentUser || user)?.profileImage) ? (

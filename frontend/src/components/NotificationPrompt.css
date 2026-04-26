@@ -1,0 +1,196 @@
+/* ══════════════════════════════════════
+   NotificationPrompt - Style Chrome Native
+   ══════════════════════════════════════ */
+
+/* ── Positionnement (coin supérieur gauche comme Chrome) ── */
+.np-wrapper {
+    position: fixed;
+    top: 10px;
+    left: 20px;
+    z-index: 99999;
+    animation: np-drop-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes np-drop-in {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ── Bandeau supérieur ── */
+.np-top-banner {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    background: linear-gradient(90deg, #1a5276 0%, #1a3a52 100%);
+    color: #ffffff;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    border-radius: 12px 12px 0 0;
+}
+
+.np-top-icon {
+    font-size: 13px;
+}
+
+/* ── Carte blanche style Chrome ── */
+.np-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 10px 30px -5px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(0, 0, 0, 0.06);
+    width: 320px;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ── En-tête ── */
+.np-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.np-site-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.np-site-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e8f0fe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1a73e8;
+    flex-shrink: 0;
+}
+
+.np-site-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.np-close-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: background 0.15s;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.np-close-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* ── Corps ── */
+.np-body {
+    padding: 14px 16px 12px;
+}
+
+.np-wants-to {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 10px 0;
+}
+
+.np-permission-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.np-perm-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.np-perm-text {
+    font-size: 13px;
+    color: #374151;
+    font-weight: 500;
+}
+
+/* ── Boutons style "pill" empilés ── */
+.np-buttons {
+    padding: 8px 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.np-pill-btn {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 100px;
+    border: none;
+    background: #e8f0fe;
+    color: #1a73e8;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+    text-align: center;
+}
+
+.np-pill-btn:hover:not(:disabled) {
+    background: #d2e3fc;
+    box-shadow: 0 1px 4px rgba(26, 115, 232, 0.2);
+}
+
+.np-pill-btn:active:not(:disabled) {
+    background: #c5d9fb;
+}
+
+.np-pill-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ── Responsive Mobile ── */
+@media (max-width: 380px) {
+    .np-wrapper {
+        top: 60px;
+        left: 12px;
+        right: 12px;
+        transform: none;
+    }
+
+    .np-card {
+        width: 100%;
+    }
+}

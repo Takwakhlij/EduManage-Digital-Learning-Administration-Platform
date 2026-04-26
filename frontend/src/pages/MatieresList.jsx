@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getMatieres, deleteMatiere, reset } from '../features/matieres/matiereSlice';
 import CreateMatiereModal from '../components/CreateMatiereModal';
 import EditMatiereModal from '../components/EditMatiereModal';
+import toast from 'react-hot-toast';
 import './ClassesList.css'; // Reusing ClassesList CSS for consistency
 import './MatieresList.css'; // Lighter gold/green theme for matieres
 
@@ -77,7 +78,9 @@ function MatieresList() {
 
     const confirmDelete = () => {
         if (matiereToDelete) {
-            dispatch(deleteMatiere(matiereToDelete._id));
+            dispatch(deleteMatiere(matiereToDelete._id)).unwrap()
+            .then(() => toast.success('Matière supprimée avec succès !'))
+            .catch(err => toast.error(err || 'Erreur lors de la suppression de la matière'));
             setShowDeleteModal(false);
             setMatiereToDelete(null);
         }
@@ -112,79 +115,70 @@ function MatieresList() {
                     <h1>Gestion des Matières</h1>
                     <p>Gérez les matières enseignées dans l'établissement.</p>
                 </div>
+                {user && user.role === 'admin' && (
+                    <button className="btn-create-table" onClick={() => setShowCreateModal(true)}>
+                        <FaPlus /> Créer une matière
+                    </button>
+                )}
             </div>
 
-            {/* Debug section removed */}
-
-            <div className="classes-grid">
-                {/* Create Card */}
-                {user && user.role === 'admin' && (
-                    <div
-                        className="classe-card create-card"
-                        onClick={() => setShowCreateModal(true)}
-                        role="button"
-                        tabIndex={0}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <div className="create-icon-wrapper">
-                            <FaPlus />
-                        </div>
-                        <h3>Ajouter une matière</h3>
-                        <p>Créer une nouvelle matière</p>
-                    </div>
-                )}
-
-                {/* Matiere Cards */}
-                {matieres.length > 0 ? (
-                    matieres.map((matiere) => (
-                        <div key={matiere._id} className="classe-card">
-                            <div className="classe-card-header matiere-card-header">
-                                <div className="create-icon-wrapper matiere-icon-wrapper" style={{ width: '40px', height: '40px' }}>
-                                    <IconBook />
-                                </div>
-                                <div className="matiere-title-wrapper" style={{ flex: 1 }}>
-                                    <h3 className="matiere-title" style={{ margin: 0, fontSize: '1.2rem' }}>{matiere.nomMatiere}</h3>
-                                </div>
-                                <div className="matiere-actions" style={{ display: 'flex', gap: '8px' }}>
-                                    <button
-                                        className="btn-icon edit edit-matiere"
-                                        onClick={(e) => { e.stopPropagation(); handleEdit(matiere); }}
-                                        title="Modifier"
-                                        style={{ color: '#c9a961' }}
-                                    >
-                                        <FaEdit />
-                                    </button>
-                                    <button
-                                        className="btn-icon delete delete-matiere"
-                                        onClick={(e) => { e.stopPropagation(); handleDelete(matiere); }}
-                                        title="Supprimer"
-                                    >
-                                        <FaTrash />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="classe-card-body" style={{ marginTop: '15px' }}>
-                                <div className="matiere-details" style={{ fontSize: '13px', color: '#4b5563' }}>
-                                    <p>
-                                        <strong>Classes:</strong> {
-                                            matiere.classes && matiere.classes.length > 0 
+            <div className="classes-table-container" style={{ marginTop: '24px' }}>
+                <table className="classes-table">
+                    <thead>
+                        <tr>
+                            <th>Nom de la matière</th>
+                            <th>Classes affectées</th>
+                            <th>Programme</th>
+                            <th className="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {matieres && matieres.length > 0 ? (
+                            matieres.map((matiere) => (
+                                <tr key={matiere._id}>
+                                    <td className="font-medium">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <span style={{ color: 'var(--accent-gold)' }}><IconBook /></span>
+                                            {matiere.nomMatiere}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {matiere.classes && matiere.classes.length > 0 
                                             ? matiere.classes.map(c => c.nomClasse).join(', ') 
-                                            : (matiere.classe?.nomClasse || <span style={{ color: 'red' }}>Non assignée</span>)
-                                        }
-                                    </p>
-                                    <p style={{ marginTop: '5px' }}>
-                                        <strong>Programme:</strong> {matiere.programme?.length || 0} chapitres définis
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <div className="no-classes">
-                        <p>Aucune matière disponible.</p>
-                    </div>
-                )}
+                                            : (matiere.classe?.nomClasse || <span style={{ color: '#ef4444' }}>Non assignée</span>)}
+                                    </td>
+                                    <td>
+                                        <span className="niveau-badge niveau-intermédiaire" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                            {matiere.programme?.length || 0} chapitres
+                                        </span>
+                                    </td>
+                                    <td className="actions-cell">
+                                        {user && user.role === 'admin' && (
+                                            <>
+                                                <button className="btn-icon btn-edit" onClick={(e) => { e.stopPropagation(); handleEdit(matiere); }} title="Modifier">
+                                                    <FaEdit />
+                                                </button>
+                                                <button className="btn-icon btn-delete" onClick={(e) => { e.stopPropagation(); handleDelete(matiere); }} title="Supprimer">
+                                                    <FaTrash />
+                                                </button>
+                                            </>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="4" className="empty-table-cell">
+                                    <div className="empty-state">
+                                        <IconBook size={48} />
+                                        <h2>Aucune matière trouvée</h2>
+                                        <p>Créez une nouvelle matière pour commencer.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
 
             {/* Modals */}

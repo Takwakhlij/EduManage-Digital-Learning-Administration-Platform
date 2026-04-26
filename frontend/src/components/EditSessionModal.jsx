@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateSession, reset } from '../features/sessions/sessionSlice';
+import { updateSession, getAllSessions, reset } from '../features/sessions/sessionSlice';
 import { getClasses } from '../features/classes/classeSlice';
 import { getUsers } from '../features/admin/adminSlice';
 import { getMatieres } from '../features/matieres/matiereSlice';
+import toast from 'react-hot-toast';
 
 const LoaderIcon = () => (
     <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -97,14 +98,17 @@ const EditSessionModal = ({ isOpen, onClose, session }) => {
 
     useEffect(() => {
         if (isSuccess && isSubmitting) {
+            toast.success('Session modifiée avec succès !');
+            dispatch(getAllSessions());
             setIsSubmitting(false);
             onClose();
             dispatch(reset());
         }
         if (isError && isSubmitting) {
+            toast.error(message || 'Une erreur est survenue.');
             setIsSubmitting(false);
         }
-    }, [isSuccess, isError, dispatch, onClose, isSubmitting]);
+    }, [isSuccess, isError, dispatch, onClose, isSubmitting, message]);
 
     if (!isOpen) return null;
 
@@ -128,13 +132,13 @@ const EditSessionModal = ({ isOpen, onClose, session }) => {
             const start = new Date(dateDebut);
             const end = new Date(dateFin);
             if (end < start) {
-                alert("Erreur de configuration : La date de fin doit être ultérieure à la date de début.");
+                toast.error("Erreur de configuration : La date de fin doit être ultérieure à la date de début.");
                 return;
             }
         }
 
         if (programmeSession.length === 0) {
-            alert("La classe sélectionnée n'a aucune matière.");
+            toast.error("La classe sélectionnée n'a aucune matière.");
             return;
         }
 

@@ -8,6 +8,7 @@ import {
     Eye, EyeOff, CheckCircle, Clock, Users, BookOpen, 
     Trash2, Edit, Plus, Search, Filter, Mail, Folder, FileText, Calendar
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import './DashboardAdmin.css';
 
 const SessionsList = () => {
@@ -69,7 +70,7 @@ const SessionsList = () => {
                 setLocalSessions(prev => prev.map(s => 
                     s._id === sessionId ? { ...s, isPublished: currentStatus } : s
                 ));
-                alert("Erreur : Impossible de changer la visibilité. Veuillez réessayer.");
+                toast.error("Erreur : Impossible de changer la visibilité. Veuillez réessayer.");
             } else if (togglePublishSession.fulfilled.match(result)) {
                 // Succès: on synchronise avec la vraie valeur retournée par le serveur
                 const updatedSession = result.payload?.session;
@@ -77,6 +78,7 @@ const SessionsList = () => {
                     setLocalSessions(prev => prev.map(s => 
                         s._id === sessionId ? { ...s, isPublished: updatedSession.isPublished } : s
                     ));
+                    toast.success(updatedSession.isPublished ? "Session publiée avec succès" : "Session masquée avec succès");
                 }
             }
         } catch (error) {
@@ -90,7 +92,13 @@ const SessionsList = () => {
 
     const handleDeleteSession = (id, name) => {
         if (window.confirm(`Êtes-vous sûr de vouloir supprimer la session "${name}" ? Cette action est irréversible.`)) {
-            dispatch(deleteSession(id));
+            dispatch(deleteSession(id)).unwrap()
+                .then(() => {
+                    toast.success('Session supprimée avec succès !');
+                })
+                .catch((err) => {
+                    toast.error(err || 'Erreur lors de la suppression de la session');
+                });
         }
     };
 

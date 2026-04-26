@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getSeancesBySession, createSeance, deleteSeance, reset } from '../features/seances/seanceSlice';
+import toast from 'react-hot-toast';
 import './PlanningManagerModal.css';
 
 const FaClose = () => (
@@ -39,10 +40,12 @@ function PlanningManagerModal({ session, onClose }) {
         };
     }, [dispatch, session]);
 
+
+
     const handleAddSlot = (e) => {
         e.preventDefault();
         if (!heureDebut || !heureFin || !matiereId || !enseignantId) {
-            alert("Veuillez remplir tous les champs du créneau.");
+            toast.error("Veuillez remplir tous les champs du créneau.");
             return;
         }
 
@@ -56,18 +59,31 @@ function PlanningManagerModal({ session, onClose }) {
             type: 'Présentiel' // Par défaut
         };
 
-        dispatch(createSeance(seanceData));
-
-        // Reset form
-        setHeureDebut('');
-        setHeureFin('');
-        setMatiereId('');
-        setEnseignantId('');
+        dispatch(createSeance(seanceData)).unwrap()
+            .then(() => {
+                toast.success("Séance ajoutée avec succès !");
+                dispatch(getSeancesBySession(session._id));
+                // Reset form
+                setHeureDebut('');
+                setHeureFin('');
+                setMatiereId('');
+                setEnseignantId('');
+            })
+            .catch((err) => {
+                toast.error(err || "Erreur lors de l'ajout de la séance.");
+            });
     };
 
     const handleDeleteSeance = (id) => {
         if (window.confirm("Voulez-vous vraiment supprimer cette séance ?")) {
-            dispatch(deleteSeance(id));
+            dispatch(deleteSeance(id)).unwrap()
+                .then(() => {
+                    toast.success("Séance supprimée avec succès !");
+                    dispatch(getSeancesBySession(session._id));
+                })
+                .catch((err) => {
+                    toast.error(err || "Erreur lors de la suppression.");
+                });
         }
     };
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createCours, updateCours } from '../features/cours/coursSlice';
 import { X, UploadCloud, Link } from 'lucide-react';
+import toast from 'react-hot-toast';
 import './AddDocumentModal.css';
 
 function AddDocumentModal({ isOpen, onClose, sessionId, chapitre, editingDoc }) {
@@ -80,16 +81,22 @@ function AddDocumentModal({ isOpen, onClose, sessionId, chapitre, editingDoc }) 
         if (isEditing) {
             result = await dispatch(updateCours({ id: editingDoc._id, coursData: formData }));
             if (updateCours.fulfilled.match(result)) {
+                toast.success("Ressource modifiée avec succès !");
                 resetAndClose();
             } else {
-                setFormError(result.payload || "Une erreur est survenue lors de la modification.");
+                const errorMsg = result.payload || "Une erreur est survenue lors de la modification.";
+                toast.error(errorMsg);
+                setFormError(errorMsg);
             }
         } else {
             result = await dispatch(createCours(formData));
             if (createCours.fulfilled.match(result)) {
+                toast.success("Ressource ajoutée avec succès !");
                 resetAndClose();
             } else {
-                setFormError(result.payload || "Une erreur est survenue lors de l'ajout du document.");
+                const errorMsg = result.payload || "Une erreur est survenue lors de l'ajout du document.";
+                toast.error(errorMsg);
+                setFormError(errorMsg);
             }
         }
     };

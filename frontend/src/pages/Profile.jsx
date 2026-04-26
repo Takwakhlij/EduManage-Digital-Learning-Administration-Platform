@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Camera, Save, User, Mail, Phone, Lock, ChevronLeft, Trash2 } from 'lucide-react';
 import { updateProfile, deactivateAccount, logout, reset } from '../features/auth/authSlice';
+import toast from 'react-hot-toast';
 import './Profile.css';
 
 function Profile() {
@@ -38,7 +39,7 @@ function Profile() {
         }
 
         if (isError) {
-            alert(message);
+            toast.error(message);
             setUpdateInitiated(false); // Reset on error
         }
 
@@ -75,7 +76,7 @@ function Profile() {
         e.preventDefault();
 
         if (password && password !== confirmPassword) {
-            alert('Les mots de passe ne correspondent pas');
+            toast.error('Les mots de passe ne correspondent pas');
             return;
         }
 

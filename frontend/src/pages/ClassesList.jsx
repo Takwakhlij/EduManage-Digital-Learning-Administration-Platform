@@ -5,6 +5,7 @@ import { getClasses, deleteClasse, reset } from '../features/classes/classeSlice
 import CreateClasseModal from '../components/CreateClasseModal';
 import EditClasseModal from '../components/EditClasseModal';
 import PlanningManagerModal from '../components/PlanningManagerModal';
+import toast from 'react-hot-toast';
 import './ClassesList.css';
 
 /* ── Inline SVG Icons ── */
@@ -263,8 +264,10 @@ function ClassesList() {
     const [editingClasse, setEditingClasse] = useState(null); 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [classeToDelete, setClasseToDelete] = useState(null);
-    const [selectedClasse, setSelectedClasse] = useState(null); 
-    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedClasse, setSelectedClasse] = useState(null);
+
+    const [filterNiveau, setFilterNiveau] = useState('');
+    const [filterClasse, setFilterClasse] = useState('');
 
     useEffect(() => {
         dispatch(getClasses());
@@ -276,9 +279,15 @@ function ClassesList() {
     const handleDelete = (classe) => { setClasseToDelete(classe); setShowDeleteModal(true); };
     const confirmDelete = () => {
         if (classeToDelete) {
-            dispatch(deleteClasse(classeToDelete._id));
-            setShowDeleteModal(false);
-            setClasseToDelete(null);
+            dispatch(deleteClasse(classeToDelete._id)).unwrap()
+            .then(() => {
+                toast.success('Classe supprimée avec succès !');
+                setShowDeleteModal(false);
+                setClasseToDelete(null);
+            })
+            .catch((err) => {
+                toast.error(err || 'Erreur lors de la suppression de la classe');
+            });
         }
     };
     const cancelDelete = () => { setShowDeleteModal(false); setClasseToDelete(null); };
@@ -289,6 +298,15 @@ function ClassesList() {
 
     const handleViewDetails = (classe) => setSelectedClasse(classe);
     const closeDetails = () => setSelectedClasse(null);
+
+    const filteredClasses = classes?.filter(classe => {
+        const matchesNiveau = filterNiveau ? classe.niveau === filterNiveau : true;
+        const matchesClasse = filterClasse ? classe._id === filterClasse : true;
+        return matchesNiveau && matchesClasse;
+    });
+
+    // Obtenir la liste unique des classes pour le filtre
+    const uniqueClasses = classes ? Array.from(new Map(classes.map(c => [c._id, c])).values()) : [];
 
     if (isLoading && (!classes || classes.length === 0)) {
         return (
@@ -306,111 +324,90 @@ function ClassesList() {
                     <h1>Gestion des Classes</h1>
                     <p>Retrouvez et gérez l'ensemble des classes de l'association.</p>
                 </div>
-            </div>
-
-            <div className="classes-grid">
-                {/* ── Create Class Card (Admin Only) ── */}
                 {user && user.role === 'admin' && (
-                    <div
-                        className="classe-card create-card"
-                        onClick={() => setShowCreateModal(true)} 
-                        role="button"
-                        tabIndex={0}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <div className="create-icon-wrapper">
-                            <FaPlus size={32} />
-                        </div>
-                        <h3>Créer une classe</h3>
-                    </div>
+                    <button className="btn-create-table" onClick={() => setShowCreateModal(true)}>
+                        <FaPlus /> Créer une classe
+                    </button>
                 )}
-
-                {/* ── Classes List ── */}
-                {classes && classes.map((classe) => (
-                    <div key={classe._id} className="classe-card">
-                        <div className="classe-card-header">
-                            <h3>{classe.nomClasse}</h3>
-                            <span className={`niveau-badge niveau-${classe.niveau?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}>
-                                {classe.niveau}
-                            </span>
-                        </div>
-
-                        <div className="classe-card-body">
-                            <div className="classe-info">
-                                <span className="info-label">Année scolaire :</span>
-                                <span className="info-value">{classe.anneeScolaire}</span>
-                            </div>
-                            <div className="classe-info">
-                                <span className="info-label">Créé le :</span>
-                                <span className="info-value">
-                                    {new Date(classe.createdAt).toLocaleDateString('fr-FR')}
-                                </span>
-                            </div>
-                            {/* Affichage des matières */}
-                            <div className="classe-info">
-                                <span className="info-label">Matières :</span>
-                                <span className="info-value">{classe.matieres ? classe.matieres.length : 0}</span>
-                            </div>
-
-                            {/* Affichage des chapitres */}
-                            <div className="classe-info">
-                                <span className="info-label">Chapitres (total) :</span>
-                                <span className="info-value" style={{ color: 'var(--gold-dark)', fontWeight: 'bold' }}>
-                                    {classe.matieres ? classe.matieres.reduce((total, m) => total + (m.programme?.length || 0), 0) : 0}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* ── Actions ── */}
-                        <div className="classe-card-actions">
-                            <button
-                                type="button"
-                                className="btn-icon btn-view"
-                                onClick={() => handleViewDetails(classe)}
-                                title="Voir les détails"
-                            >
-                                <FaEye />
-                            </button>
-
-                            {user && user.role === 'admin' && (
-                                <>
-                                    {/* Planning is now managed at the Session level */}
-                                    
-                                    {/* Na7ina l'bouton mta3 les étudiants men houni */}
-                                    
-                                    <button
-                                        type="button"
-                                        className="btn-icon btn-edit"
-                                        title="Modifier"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditingClasse(classe); 
-                                        }}
-                                    >
-                                        <FaEdit />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="btn-icon btn-delete"
-                                        onClick={() => handleDelete(classe)}
-                                        title="Supprimer"
-                                    >
-                                        <FaTrash />
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                ))}
             </div>
 
-            {(!classes || classes.length === 0) && user?.role !== 'admin' && (
-                <div className="empty-state">
-                    <FaGraduationCap size={64} />
-                    <h2>Aucune classe trouvée</h2>
-                    <p>Aucune classe n'a encore été créée.</p>
+            <div className="classes-filters" style={{ justifyContent: 'flex-end', gap: '12px' }}>
+                <div className="filter-select">
+                    <select value={filterClasse} onChange={(e) => setFilterClasse(e.target.value)}>
+                        <option value="">Toutes les classes</option>
+                        {uniqueClasses.map((c) => (
+                            <option key={c._id} value={c._id}>
+                                {c.nomClasse}
+                            </option>
+                        ))}
+                    </select>
                 </div>
-            )}
+                <div className="filter-select">
+                    <select value={filterNiveau} onChange={(e) => setFilterNiveau(e.target.value)}>
+                        <option value="">Tous les niveaux</option>
+                        <option value="Débutant">Débutant</option>
+                        <option value="Intermédiaire">Intermédiaire</option>
+                        <option value="Avancé">Avancé</option>
+                    </select>
+                </div>
+            </div>
+
+            <div className="classes-table-container">
+                <table className="classes-table">
+                    <thead>
+                        <tr>
+                            <th>Nom de la classe</th>
+                            <th>Niveau</th>
+                            <th>Année scolaire</th>
+                            <th>Matières</th>
+                            <th>Créée le</th>
+                            <th className="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredClasses && filteredClasses.length > 0 ? (
+                            filteredClasses.map((classe) => (
+                                <tr key={classe._id}>
+                                    <td className="font-medium">{classe.nomClasse}</td>
+                                    <td>
+                                        <span className={`niveau-badge niveau-${classe.niveau?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`}>
+                                            {classe.niveau}
+                                        </span>
+                                    </td>
+                                    <td>{classe.anneeScolaire}</td>
+                                    <td>{classe.matieres ? classe.matieres.length : 0}</td>
+                                    <td>{new Date(classe.createdAt).toLocaleDateString('fr-FR')}</td>
+                                    <td className="actions-cell">
+                                        <button className="btn-icon btn-view" onClick={() => handleViewDetails(classe)} title="Voir les détails">
+                                            <FaEye />
+                                        </button>
+                                        {user && user.role === 'admin' && (
+                                            <>
+                                                <button className="btn-icon btn-edit" onClick={(e) => { e.stopPropagation(); setEditingClasse(classe); }} title="Modifier">
+                                                    <FaEdit />
+                                                </button>
+                                                <button className="btn-icon btn-delete" onClick={() => handleDelete(classe)} title="Supprimer">
+                                                    <FaTrash />
+                                                </button>
+                                            </>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="6" className="empty-table-cell">
+                                    <div className="empty-state">
+                                        <FaGraduationCap size={48} />
+                                        <h2>Aucune classe trouvée</h2>
+                                        <p>Essayez de modifier vos filtres ou créez une nouvelle classe.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
 
             {/* ── Delete Confirm Modal ── */}
             {showDeleteModal && (
