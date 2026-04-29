@@ -13,7 +13,7 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['cours', 'paiement', 'absence', 'autre'],
+        enum: ['cours', 'paiement', 'absence', 'retard', 'inscription', 'systeme', 'planning', 'autre'],
         required: true
     },
     title: {
@@ -27,6 +27,14 @@ const notificationSchema = new mongoose.Schema({
     isRead: {
         type: Boolean,
         default: false
+    },
+    relatedId: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null
+    },
+    url: {
+        type: String,
+        default: null
     }
 }, {
     timestamps: true

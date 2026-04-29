@@ -40,6 +40,27 @@ function TeacherSessionDetails() {
     const [attendanceMap, setAttendanceMap] = useState({}); // { inscriptionId: { statut, remarque } }
     const [isApelLoaded, setIsApelLoaded] = useState(false);
 
+    const isFutureSession = () => {
+        if (!selectedDate) return false;
+        const now = new Date();
+        const selected = new Date(selectedDate);
+        selected.setHours(0, 0, 0, 0);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selected > today) return true;
+
+        if (selected.getTime() === today.getTime() && selectedSeanceObj) {
+            const [hours, minutes] = selectedSeanceObj.heureDebut.split(':').map(Number);
+            const seanceTime = new Date();
+            seanceTime.setHours(hours, minutes, 0, 0);
+            // On laisse une marge de 15 minutes avant le début
+            return now.getTime() < (seanceTime.getTime() - (15 * 60 * 1000));
+        }
+        return false;
+    };
+
     const getResourceIcon = (doc) => {
         const type = doc.typeFichier?.toLowerCase() || '';
         const url = doc.fichier?.toLowerCase() || '';
@@ -432,8 +453,10 @@ function TeacherSessionDetails() {
 
                         {/* Bandeau de statut : Modifiable ou Verrouillé */}
                         {isApelLoaded && (
-                            <div className={`tsd-appel-status-bar ${editable ? 'tsd-editable' : 'tsd-locked'}`}>
-                                {editable ? (
+                            <div className={`tsd-appel-status-bar ${isFutureSession() ? 'tsd-future' : (editable ? 'tsd-editable' : 'tsd-locked')}`}>
+                                {isFutureSession() ? (
+                                    <><Lock size={16} /> Séance dans le futur — Vous ne pouvez pas faire l'appel avant le début du cours.</>
+                                ) : editable ? (
                                     <><CheckCircle size={16} /> Modifiable — Vous êtes dans la fenêtre de 48 heures.</>
                                 ) : (
                                     <><Lock size={16} /> Verrouillé — La date dépasse 48 heures, l'appel est en lecture seule.</>
@@ -446,6 +469,12 @@ function TeacherSessionDetails() {
                             <div className="tsd-appel-empty">
                                 <CheckCircle size={40} />
                                 <p>Sélectionnez une séance pour commencer l'appel.</p>
+                            </div>
+                        ) : isFutureSession() ? (
+                            <div className="tsd-appel-empty tsd-future-block">
+                                <Calendar size={48} style={{ color: '#64748b', marginBottom: '1rem' }} />
+                                <h3>Accès bloqué</h3>
+                                <p>Cette séance n'a pas encore eu lieu. Revenez à l'heure du cours pour faire l'appel.</p>
                             </div>
                         ) : presenceLoading ? (
                             <div className="tsd-loading-small">Chargement de l'appel...</div>

@@ -69,19 +69,27 @@ const markAsRead = asyncHandler(async (req, res) => {
 // Fonction utilitaire (interne) pour envoyer une notification Push
 const sendPushNotification = async (userId, payload) => {
     try {
+        console.log(`[NOTIF DEBUG] Tentative d'envoi à l'utilisateur: ${userId} | Titre: ${payload.title}`);
+        
         // 1. Enregistrer dans l'historique (Modèle Notification)
         const notif = await Notification.create({
             receiver: userId,
             type: payload.type || 'autre',
             title: payload.title,
             message: payload.body,
-            sender: payload.senderId || null
+            sender: payload.senderId || null,
+            url: payload.url || null,
+            relatedId: payload.relatedId || null
         });
-        console.log(`[NOTIF] Historique créé pour l'utilisateur ${userId}: ${payload.title}`);
+        console.log(`[NOTIF DEBUG] Historique créé (ID: ${notif._id})`);
 
-        // 2. Récupérer tous les appareils (tickets) de cet utilisateur
+        // 2. Récupérer tous les appareils (subscriptions) de cet utilisateur
         const subscriptions = await PushSubscription.find({ user: userId });
-        console.log(`[NOTIF] ${subscriptions.length} abonnements Push trouvés pour ${userId}`);
+        console.log(`[NOTIF DEBUG] ${subscriptions.length} abonnement(s) Push trouvé(s) pour l'utilisateur ${userId}`);
+
+        if (subscriptions.length === 0) {
+            console.warn(`[NOTIF DEBUG] Aucun abonnement Push (navigateur) pour l'utilisateur ${userId}. La notification sera uniquement visible dans l'historique UI.`);
+        }
 
         // 3. Envoyer le message à chaque appareil
         const notificationsPromises = subscriptions.map(sub => {
@@ -94,18 +102,19 @@ const sendPushNotification = async (userId, payload) => {
             };
 
             return webpush.sendNotification(pushConfig, JSON.stringify(payload))
+                .then(() => console.log(`[NOTIF DEBUG] Push envoyé avec succès à l'endpoint: ${sub.endpoint.substring(0, 30)}...`))
                 .catch(err => {
                     if (err.statusCode === 410 || err.statusCode === 404) {
-                        // L'abonnement a expiré ou est invalide, on le supprime
+                        console.log(`[NOTIF DEBUG] Abonnement expiré pour l'endpoint: ${sub.endpoint.substring(0, 30)}... Suppression.`);
                         return PushSubscription.deleteOne({ _id: sub._id });
                     }
-                    console.error('Erreur envoi push:', err);
+                    console.error('[NOTIF DEBUG] Erreur lors de l\'envoi webpush:', err.message);
                 });
         });
 
         await Promise.all(notificationsPromises);
     } catch (error) {
-        console.error('Erreur globale sendPushNotification:', error);
+        console.error('[NOTIF DEBUG ERROR] Erreur globale sendPushNotification:', error);
     }
 };
 

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import './TeacherDashboard.css';
 import logo from '../assets/logo.png';
+import NotificationCenter from '../components/NotificationCenter';
 
 function TeacherDashboard() {
     const navigate = useNavigate();
@@ -405,7 +406,10 @@ function TeacherDashboard() {
                         <Users size={18} /> <span>{t.myStudents}</span>
                     </button>
                     <button className="td-nav-link" onClick={() => navigate('/profile')}><User size={18} /> <span>{t.profile}</span></button>
-                    <button className="td-nav-link"><Bell size={18} /> <span>Notifications</span></button>
+                    <div style={{display:'flex', alignItems:'center', gap:'8px', padding:'10px 16px'}}>
+                        <NotificationCenter />
+                        <span style={{fontSize:'14px', opacity:0.7}}>Notifications</span>
+                    </div>
                     <button className="td-nav-link"><Settings size={18} /> <span>{t.settings}</span></button>
                 </nav>
             </aside>
@@ -419,7 +423,7 @@ function TeacherDashboard() {
                         <input type="text" placeholder="Rechercher un étudiant, une sourate..." />
                     </div>
                     <div className="td-topbar-actions">
-                        <button className="td-top-icon"><Bell size={20} /></button>
+                        <NotificationCenter />
                         <button className="td-top-icon" onClick={() => navigate('/')}><Home size={20} /></button>
                         <div className="td-user-profile">
                             <div className="td-user-info">
@@ -863,7 +867,7 @@ function TeacherDashboard() {
 
                                 {/* Champ 1 : Session */}
                                 <div className="td-apel-control-group">
-                                    <label className="td-apel-label"><span className="td-apel-step">1</span> Session</label>
+                                    <label className="td-apel-label">Session</label>
                                     <select
                                         className="td-apel-select"
                                         value={apelSessionId}
@@ -878,7 +882,7 @@ function TeacherDashboard() {
 
                                 {/* Champ 2 : Classe & Horaire */}
                                 <div className="td-apel-control-group">
-                                    <label className="td-apel-label"><span className="td-apel-step">2</span> Classe &amp; Horaire</label>
+                                    <label className="td-apel-label">Classe &amp; Horaire</label>
                                     <select
                                         className="td-apel-select"
                                         value={apelSeanceId}
@@ -901,7 +905,7 @@ function TeacherDashboard() {
 
                                 {/* Champ 3 : Date */}
                                 <div className="td-apel-control-group td-apel-date-group">
-                                    <label className="td-apel-label"><span className="td-apel-step">3</span> Date du cours</label>
+                                    <label className="td-apel-label">Date du cours</label>
                                     <input
                                         type="date"
                                         className="td-apel-select"

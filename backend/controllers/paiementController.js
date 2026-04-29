@@ -5,6 +5,7 @@ import Inscription from '../models/inscriptionModel.js';
 import Session from '../models/sessionModel.js';
 import { generateReceiptPDF, generateHistoryPDF } from '../utils/receiptGenerator.js';
 import User from '../models/userModel.js';
+import { sendPushNotification } from './notificationController.js';
 
 // Initialisation de Stripe
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -111,6 +112,31 @@ export const enregistrerPaiement = asyncHandler(async (req, res) => {
         montantVerseTotal: inscriptionMaj.montantVerseTotal,
         resteAPayer: inscriptionMaj.resteAPayer
     });
+
+    // --- NOTIFICATION PUSH : Confirmation de paiement ---
+    try {
+        const studentId = inscription.etudiant;
+        const sessionName = inscription.session?.nomSession || 'Session';
+        
+        const notifPayload = {
+            title: 'Paiement Enregistré ✅',
+            body: `Votre versement de ${montant} TND pour la session "${sessionName}" a bien été enregistré. Merci !`,
+            type: 'paiement',
+            senderId: req.user._id,
+            url: '/paiements'
+        };
+
+        // 1. Notifier l'étudiant
+        sendPushNotification(studentId, notifPayload).catch(err => console.error(err));
+
+        // 2. Notifier les parents
+        const parents = await User.find({ children: studentId, role: 'parent' }).select('_id');
+        for (const parent of parents) {
+            sendPushNotification(parent._id, notifPayload).catch(err => console.error(err));
+        }
+    } catch (notifErr) {
+        console.error('Erreur notification paiement:', notifErr);
+    }
 });
 
 // @desc    Récupérer l'historique des paiements d'une inscription
@@ -362,6 +388,44 @@ export const confirmStripePayment = asyncHandler(async (req, res) => {
         resteAPayer: inscriptionMaj.resteAPayer,
         montantVerseTotal: inscriptionMaj.montantVerseTotal
     });
+
+    // --- NOTIFICATION PUSH : Confirmation Paiement en ligne ---
+    try {
+        const studentId = inscription.etudiant;
+        const student = await User.findById(studentId).select('firstName lastName');
+        const studentName = student ? `${student.firstName} ${student.lastName}` : 'Un étudiant';
+        const sessionName = inscription.session?.nomSession || 'Session';
+        
+        const notifPayload = {
+            title: 'Paiement en Ligne Réussi 💳',
+            body: `Votre paiement de ${montant} TND pour "${sessionName}" a été validé avec succès.`,
+            type: 'paiement',
+            senderId: req.user._id,
+            url: '/paiements'
+        };
+
+        // Notifier Étudiant + Parents
+        sendPushNotification(studentId, notifPayload).catch(err => console.error(err));
+        const parents = await User.find({ children: studentId, role: 'parent' }).select('_id');
+        for (const parent of parents) {
+            sendPushNotification(parent._id, notifPayload).catch(err => console.error(err));
+        }
+
+        // Notifier les ADMINS
+        const admins = await User.find({ role: 'admin' }).select('_id');
+        for (const admin of admins) {
+            sendPushNotification(admin._id, {
+                title: 'Nouveau Paiement en Ligne 💸',
+                body: `${studentName} vient de payer ${montant} TND en ligne pour la session "${sessionName}".`,
+                type: 'paiement',
+                senderId: studentId,
+                url: '/admin/inscriptions',
+                relatedId: inscriptionId
+            }).catch(err => console.error(err));
+        }
+    } catch (notifErr) {
+        console.error('Erreur notification paiement Stripe:', notifErr);
+    }
 });
 // @desc    Obtenir l'historique des paiements de l'étudiant connecté
 // @route   GET /api/paiements/my
@@ -524,6 +588,43 @@ export const handleStripeWebhook = asyncHandler(async (req, res) => {
             await paiement.save();
         } catch (pdfErr) {
             console.error('⚠️ Erreur PDF Webhook:', pdfErr);
+        }
+
+        // --- NOTIFICATION PUSH via Webhook ---
+        try {
+            const studentId = inscription.etudiant;
+            const student = await User.findById(studentId).select('firstName lastName');
+            const studentName = student ? `${student.firstName} ${student.lastName}` : 'Un étudiant';
+            const sessionName = inscription.session?.nomSession || 'Session';
+            
+            const notifPayload = {
+                title: 'Paiement Confirmé ✅',
+                body: `Votre paiement Stripe de ${finalAmount} TND pour "${sessionName}" a été confirmé.`,
+                type: 'paiement',
+                url: '/paiements'
+            };
+            
+            // Notifier Étudiant + Parents
+            sendPushNotification(studentId, notifPayload).catch(err => console.error(err));
+            const parents = await User.find({ children: studentId, role: 'parent' }).select('_id');
+            for (const parent of parents) {
+                sendPushNotification(parent._id, notifPayload).catch(err => console.error(err));
+            }
+
+            // Notifier les ADMINS
+            const admins = await User.find({ role: 'admin' }).select('_id');
+            for (const admin of admins) {
+                sendPushNotification(admin._id, {
+                    title: 'Paiement en Ligne (Stripe) 💳',
+                    body: `${studentName} a payé ${finalAmount} TND en ligne pour "${sessionName}".`,
+                    type: 'paiement',
+                    senderId: studentId,
+                    url: '/admin/inscriptions',
+                    relatedId: inscriptionId
+                }).catch(err => console.error(err));
+            }
+        } catch (notifErr) {
+            console.error('Erreur notification Webhook:', notifErr);
         }
     }
 

@@ -247,6 +247,19 @@ const AdminLayout = () => {
                         <span>Membres</span>
                     </button>
 
+                    <button
+                        className={`nav-item ${isActive('/admin/actualites') ? 'active' : ''}`}
+                        onClick={() => {
+                            navigate('/admin/actualites');
+                            setIsSidebarOpen(false);
+                        }}
+                    >
+                        <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span>Actualités</span>
+                    </button>
+
                     <button className="nav-item">
                         <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="20" x2="18" y2="10"></line>

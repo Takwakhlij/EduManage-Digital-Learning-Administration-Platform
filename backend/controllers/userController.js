@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import Inscription from '../models/inscriptionModel.js';
+import { sendPushNotification } from './notificationController.js';
+import sendEmail from '../utils/sendEmail.js';
 
 // @desc    Register new user
 // @route   POST /api/users/register
@@ -93,6 +95,29 @@ const registerUser = asyncHandler(async (req, res) => {
         // If we created a child, populate it for the return
         if (role === 'parent' && childrenIds.length > 0) {
             await user.populate('children', 'firstName lastName currentLevel status');
+        }
+
+        // ✅ Notification Push -> Alerter tous les Admins qu'un nouveau User s'est inscrit
+        try {
+            const roleLabel = role === 'teacher' ? 'Enseignant' : role === 'parent' ? 'Parent' : 'Étudiant';
+            const admins = await User.find({ role: 'admin' }).select('_id');
+            console.log(`[DEBUG] Nouveau User: ${user.firstName} (${role}) | Admins à notifier: ${admins.length}`);
+            
+            if (admins.length > 0) {
+                const notifPromises = admins.map(admin => 
+                    sendPushNotification(admin._id, {
+                        title: 'Nouvelle inscription en attente ! 👤',
+                        body: `${user.firstName} ${user.lastName} vient de créer un compte en tant que ${roleLabel}.`,
+                        type: 'inscription',
+                        senderId: user._id,
+                        url: '/admin/membres'
+                    })
+                );
+                await Promise.all(notifPromises);
+                console.log(`[DEBUG] Notifications envoyées avec succès.`);
+            }
+        } catch (error) {
+            console.error('[DEBUG ERROR] Erreur lors de l\'envoi des notifications admin:', error.message);
         }
 
         res.status(201).json({
@@ -292,8 +317,50 @@ const updateUserStatus = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (user) {
+        const previousStatus = user.status;
         user.status = req.body.status || user.status;
         const updatedUser = await user.save();
+
+        // Envoi d'une notification à l'utilisateur si son statut a changé
+        if (previousStatus !== updatedUser.status) {
+            let notifTitle = '';
+            let notifBody = '';
+            
+            if (updatedUser.status === 'active') {
+                notifTitle = 'Compte validé ! 🎉';
+                notifBody = 'Votre compte a été approuvé par l\'administration. Vous avez maintenant accès à la plateforme.';
+            } else if (updatedUser.status === 'inactive' || updatedUser.status === 'rejected') {
+                notifTitle = 'Mise à jour de votre compte ⚠️';
+                notifBody = 'Votre compte a été désactivé ou refusé par l\'administration. Veuillez nous contacter pour plus d\'informations.';
+            }
+
+            if (notifTitle) {
+                // 1. Notification Push / In-App
+                try {
+                    await sendPushNotification(updatedUser._id, {
+                        title: notifTitle,
+                        body: notifBody,
+                        type: 'systeme',
+                        senderId: req.user._id,
+                        url: '/dashboard'
+                    });
+                } catch (err) {
+                    console.error('Erreur notification validation:', err);
+                }
+
+                // 2. Notification E-mail (via Nodemailer)
+                try {
+                    await sendEmail({
+                        email: updatedUser.email,
+                        subject: notifTitle,
+                        message: `Bonjour ${updatedUser.firstName},\n\n${notifBody}\n\nCordialement,\nL'équipe de l'Association Coranique`
+                    });
+                    console.log(`E-mail de statut envoyé à ${updatedUser.email}`);
+                } catch (err) {
+                    console.error('Erreur envoi email de validation:', err);
+                }
+            }
+        }
 
         // Return full object to preserve all fields in frontend
         res.json({

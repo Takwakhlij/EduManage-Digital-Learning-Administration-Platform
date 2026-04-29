@@ -15,6 +15,7 @@ import presenceRoutes from './routes/presenceRoutes.js';
 import teacherPresenceRoutes from './routes/teacherPresenceRoutes.js'; 
 import paiementRoutes from './routes/paiementRoutes.js'; 
 import notificationRoutes from './routes/notificationRoutes.js'; 
+import actualiteRoutes from './routes/actualiteRoutes.js';
 
 import fs from 'fs';
 import path from 'path';
@@ -52,6 +53,7 @@ app.use('/api/presences', presenceRoutes);
 app.use('/api/teacher-presences', teacherPresenceRoutes);
 app.use('/api/paiements', paiementRoutes); 
 app.use('/api/notifications', notificationRoutes); 
+app.use('/api/actualites', actualiteRoutes);
 
 // Root route
 app.get('/', (req, res) => {

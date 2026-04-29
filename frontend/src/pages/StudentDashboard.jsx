@@ -1,4 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
+import { subscribeToPush } from '../features/notifications/notificationSlice';
 import { BookOpen, GraduationCap, FileText, Award, User, Settings, LogOut, Menu, Bell, Users, Clock, Calendar, ChevronRight, ArrowLeft, TrendingUp, Hourglass, X, CheckCircle, XCircle, AlertCircle, BookMarked, CreditCard } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -203,6 +204,24 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
     const dispatch = useDispatch();
     const { isDarkMode, toggleTheme } = useTheme();
     const { t, lang, setLang } = useLanguage();
+    const [notifBannerDismissed, setNotifBannerDismissed] = useState(false);
+    const [notifPermission, setNotifPermission] = useState(
+        ('Notification' in window) ? Notification.permission : 'denied'
+    );
+    const [isSubscribing, setIsSubscribing] = useState(false);
+
+    const handleActivateNotifs = async () => {
+        setIsSubscribing(true);
+        try {
+            await dispatch(subscribeToPush()).unwrap();
+            setNotifPermission('granted');
+        } catch (err) {
+            console.error('Erreur activation notifications:', err);
+            setNotifPermission(Notification.permission);
+        } finally {
+            setIsSubscribing(false);
+        }
+    };
 
     useEffect(() => {
         if (successMessage) {
@@ -435,6 +454,40 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                             <h1 className="sd-greeting-title">As-salamou alaykoum, {user?.firstName}.</h1>
                             <p className="sd-greeting-sub">Votre voyage spirituel continue aujourd'hui. Voici votre progression.</p>
                         </div>
+
+                        {/* ── Notification Activation Banner ── */}
+                        {notifPermission !== 'granted' && !notifBannerDismissed && (
+                            <div style={{
+                                display: 'flex', alignItems: 'center', gap: '14px',
+                                background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.08))',
+                                border: '1px solid rgba(16,185,129,0.3)',
+                                borderRadius: '12px', padding: '14px 18px', marginBottom: '20px',
+                                cursor: 'pointer', transition: 'all 0.2s'
+                            }}>
+                                <div style={{ fontSize: '24px', flexShrink: 0 }}>🔔</div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: 700, color: '#10b981', fontSize: '14px', marginBottom: '2px' }}>
+                                        Activez vos notifications push
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
+                                        Recevez immédiatement les alertes d'inscription, paiement et cours directement sur votre navigateur.
+                                    </div>
+                                </div>
+                                <button onClick={handleActivateNotifs} disabled={isSubscribing} style={{
+                                    background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px',
+                                    padding: '8px 16px', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                                    whiteSpace: 'nowrap', flexShrink: 0
+                                }}>
+                                    {isSubscribing ? 'Activation...' : 'Activer'}
+                                </button>
+                                <button onClick={() => setNotifBannerDismissed(true)} style={{
+                                    background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.4)',
+                                    cursor: 'pointer', padding: '4px', flexShrink: 0
+                                }}>
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        )}
 
                         {/* ── Top Row: Ayat + Suivi de Présence ── */}
                         <div className="sd-top-row">

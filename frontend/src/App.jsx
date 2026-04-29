@@ -21,6 +21,7 @@ import Profile from './pages/Profile';
 import ClassesList from './pages/ClassesList';
 import MatieresList from './pages/MatieresList';
 import AdminMembers from './pages/AdminMembers';
+import AdminActualites from './pages/AdminActualites';
 import StudentInscriptions from './pages/StudentInscriptions';
 import Formations from './pages/Formations';
 import SessionsList from './pages/SessionsList';
@@ -117,6 +118,7 @@ function App() {
               <Route path="inscriptions" element={<InscriptionsList />} />
               <Route path="presences-enseignants" element={<AdminTeacherPresences />} />
               <Route path="presences-etudiants" element={<AdminStudentPresences />} />
+              <Route path="actualites" element={<AdminActualites />} />
             </Route>
 
             <Route path="/profile" element={<Profile />} />

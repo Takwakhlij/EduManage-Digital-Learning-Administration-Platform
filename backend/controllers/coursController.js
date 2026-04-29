@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import Cours from '../models/coursModel.js';
 import Classe from '../models/classeModel.js';
 import Inscription from '../models/inscriptionModel.js';
+import User from '../models/userModel.js';
 import { sendPushNotification } from './notificationController.js';
 
 // @desc    Récupérer les cours (filtrés par professeur connecté ou par matière)
@@ -136,8 +137,28 @@ const createCours = asyncHandler(async (req, res) => {
                 body: `${nomProf} a partagé : ${populated.titre} (${nomSupport})`,
                 type: 'cours',
                 senderId: req.user._id,
-                url: `/student/cours`
+                url: `/inscriptions`,
+                relatedId: sessionId
             });
+        }
+
+        // ✅ Notification pour l'Admin (Confirmation de présence de l'enseignant)
+        console.log(`[COURS DEBUG] Tentative d'envoi de notification admin pour le cours publié ${populated._id}`);
+        const admins = await User.find({ role: 'admin' }).select('_id');
+        console.log(`[COURS DEBUG] Nombre d'admins trouvés: ${admins.length}`);
+        
+        if (admins.length > 0) {
+            const adminPromises = admins.map(admin => {
+                return sendPushNotification(admin._id, {
+                    title: 'Nouveau Support de Cours 📚',
+                    body: `L'enseignant ${nomProf} a publié un nouveau support de cours : "${populated.titre}" (Session: ${nomSupport}).`,
+                    type: 'systeme',
+                    senderId: req.user._id,
+                    url: '/admin/cours'
+                });
+            });
+            await Promise.all(adminPromises);
+            console.log(`[COURS DEBUG] Notifications envoyées aux admins.`);
         }
     }
 
@@ -201,8 +222,28 @@ const updateCours = asyncHandler(async (req, res) => {
                 body: `${nomProf} a partagé : ${populated.titre} (${nomSupport})`,
                 type: 'cours',
                 senderId: req.user._id,
-                url: `/student/cours`
+                url: `/inscriptions`,
+                relatedId: sessionId
             });
+        }
+
+        // ✅ Notification pour l'Admin (Confirmation de présence de l'enseignant)
+        console.log(`[COURS DEBUG] Tentative d'envoi de notification admin pour la MAJ du cours ${populated._id}`);
+        const admins = await User.find({ role: 'admin' }).select('_id');
+        console.log(`[COURS DEBUG] Nombre d'admins trouvés: ${admins.length}`);
+        
+        if (admins.length > 0) {
+            const adminPromises = admins.map(admin => {
+                return sendPushNotification(admin._id, {
+                    title: 'Cours Mis à Jour 📚',
+                    body: `L'enseignant ${nomProf} a mis à jour le support de cours : "${populated.titre}" (Session: ${nomSupport}).`,
+                    type: 'systeme',
+                    senderId: req.user._id,
+                    url: '/admin/cours'
+                });
+            });
+            await Promise.all(adminPromises);
+            console.log(`[COURS DEBUG] Notifications envoyées aux admins.`);
         }
     }
 

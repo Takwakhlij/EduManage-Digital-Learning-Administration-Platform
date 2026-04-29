@@ -1,0 +1,505 @@
+/* ══════════════════════════════════════════════════════
+   ADMIN ACTUALITÉS — Styles autonomes
+   ══════════════════════════════════════════════════════ */
+
+/* Page wrapper */
+.act-page {
+    padding: 2rem 2.5rem;
+    min-height: 100vh;
+}
+
+/* ── En-tête ── */
+.act-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.act-header-text {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.act-header-icon-wrap {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #0b441d);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.act-header-text h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #064e3b;
+    margin: 0 0 0.2rem 0;
+}
+
+body.dark-theme .act-header-text h1 {
+    color: #f8fafc;
+}
+
+.act-header-text p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+/* ── Bouton Ajouter ── */
+.act-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    white-space: nowrap;
+}
+
+.act-add-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.45);
+}
+
+/* ── Tableau ── */
+.act-table-wrapper {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+}
+
+body.dark-theme .act-table-wrapper {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.07);
+}
+
+.act-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.act-table thead {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+body.dark-theme .act-table thead {
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+.act-table th {
+    padding: 14px 18px;
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.act-table td {
+    padding: 14px 18px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+body.dark-theme .act-table td {
+    border-bottom-color: rgba(255, 255, 255, 0.04);
+    color: #f8fafc;
+}
+
+.act-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.act-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+body.dark-theme .act-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Thumbnail image */
+.act-thumb {
+    width: 70px;
+    height: 50px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.act-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Titre & description dans le tableau */
+.act-title-cell {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+body.dark-theme .act-title-cell {
+    color: #f8fafc;
+}
+
+.act-desc-cell {
+    display: block;
+    font-size: 0.82rem;
+    color: #64748b;
+    max-width: 280px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Date badge */
+.act-date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f0fdf4;
+    color: #059669;
+    border: 1px solid #d1fae5;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+body.dark-theme .act-date-badge {
+    background: #064e3b;
+    border-color: #059669;
+    color: #6ee7b7;
+}
+
+/* Action buttons */
+.act-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.act-btn-edit,
+.act-btn-delete {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: #94a3b8;
+}
+
+.act-btn-edit:hover {
+    background: rgba(59, 130, 246, 0.08);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.act-btn-delete:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Loading / Empty states */
+.act-loading {
+    padding: 3rem;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
+.act-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 4rem 2rem;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.act-empty svg {
+    opacity: 0.35;
+}
+
+.act-empty p {
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* ── Modal ── */
+.act-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.act-modal {
+    background: #fff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    animation: act-modal-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.dark-theme .act-modal {
+    background: #1e2228;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@keyframes act-modal-in {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+}
+
+.act-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 1.75rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+body.dark-theme .act-modal-header {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.act-modal-header h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #064e3b;
+    margin: 0;
+}
+
+body.dark-theme .act-modal-header h2 {
+    color: #f8fafc;
+}
+
+.act-modal-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.act-modal-close:hover {
+    background: #fee2e2;
+    color: #ef4444;
+    border-color: #fecaca;
+}
+
+/* Form inside modal */
+.act-modal-form {
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.act-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.act-form-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #374151;
+}
+
+body.dark-theme .act-form-group label {
+    color: #e2e8f0;
+}
+
+.act-form-group input[type="text"],
+.act-form-group input[type="date"],
+.act-form-group textarea {
+    padding: 11px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #1e293b;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+    resize: vertical;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+body.dark-theme .act-form-group input[type="text"],
+body.dark-theme .act-form-group input[type="date"],
+body.dark-theme .act-form-group textarea {
+    background: #2a2d35;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #f8fafc;
+    color-scheme: dark;
+}
+
+.act-form-group input[type="text"]:focus,
+.act-form-group input[type="date"]:focus,
+.act-form-group textarea:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+/* Placeholder couleur */
+.act-form-group input::placeholder,
+.act-form-group textarea::placeholder {
+    color: #94a3b8;
+}
+
+body.dark-theme .act-form-group input::placeholder,
+body.dark-theme .act-form-group textarea::placeholder {
+    color: #64748b;
+}
+
+/* File upload button */
+.act-file-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.act-file-label:hover {
+    border-color: #10b981;
+    background: #f0fdf4;
+    color: #059669;
+}
+
+body.dark-theme .act-file-label {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #94a3b8;
+}
+
+/* Image preview */
+.act-preview {
+    margin-top: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+    max-height: 180px;
+    border: 1px solid #e2e8f0;
+}
+
+.act-preview img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+/* Modal Actions */
+.act-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+    border-top: 1px solid #f1f5f9;
+    margin-top: 0.5rem;
+}
+
+body.dark-theme .act-modal-actions {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+.act-btn-cancel {
+    padding: 10px 20px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 9px;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.act-btn-cancel:hover {
+    background: #f1f5f9;
+}
+
+body.dark-theme .act-btn-cancel {
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #94a3b8;
+}
+
+.act-btn-submit {
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.act-btn-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+}
+
+.act-btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

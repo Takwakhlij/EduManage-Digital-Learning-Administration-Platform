@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllInscriptions, updateInscriptionStatut, deleteInscription } from '../features/inscriptions/inscriptionSlice';
+import { useLocation } from 'react-router-dom';
 import CreateInscriptionModal from '../components/CreateInscriptionModal';
 import PaiementModal from '../components/PaiementModal';
 import {
@@ -24,10 +25,24 @@ const InscriptionsList = () => {
     const [showDebiteurs, setShowDebiteurs] = useState(false);
 
     const { inscriptions, isLoading } = useSelector((state) => state.inscriptions);
+    const location = useLocation();
 
     useEffect(() => {
         dispatch(getAllInscriptions());
     }, [dispatch]);
+
+    // ✅ AUTO-OPEN MODAL if selectedId is passed from notification
+    useEffect(() => {
+        if (location.state?.selectedId && inscriptions?.length > 0) {
+            const ins = inscriptions.find(i => i._id === location.state.selectedId);
+            if (ins) {
+                setSelectedInscription(ins);
+                setIsPaiementModalOpen(true);
+                // On peut aussi filtrer pour ne voir que celui-là
+                setSearchTerm(ins.etudiant?.firstName || '');
+            }
+        }
+    }, [location.state, inscriptions]);
 
 
 

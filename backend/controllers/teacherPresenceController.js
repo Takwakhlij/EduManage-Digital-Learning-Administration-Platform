@@ -3,6 +3,7 @@ import TeacherPresence from '../models/teacherPresenceModel.js';
 import Presence from '../models/presenceModel.js';
 import Inscription from '../models/inscriptionModel.js';
 import Seance from '../models/seanceModel.js';
+import { sendPushNotification } from './notificationController.js';
 
 // @desc    Créer ou mettre à jour la présence (Cahier de texte) d'un enseignant
 // @route   POST /api/teacher-presences
@@ -59,6 +60,33 @@ const saveTeacherPresence = asyncHandler(async (req, res) => {
     }
 
     res.status(200).json({ success: true, data: tp });
+
+    // --- NOTIFICATION PUSH : Enseignant absent marqué par l'admin ---
+    // On n'envoie que si c'est l'admin qui marque l'absence (pas l'enseignant lui-même)
+    if (req.user.role === 'admin' && (statut === 'Absent' || statut === 'absent')) {
+        try {
+            const teacherId = seance.enseignant;
+            if (teacherId) {
+                // Populer la matière pour un message plus précis
+                await seance.populate('matiere', 'nomMatiere');
+                const matiereName = seance.matiere?.nomMatiere || 'Cours';
+                const dateStr = new Date(date).toLocaleDateString('fr-FR', {
+                    weekday: 'long', day: 'numeric', month: 'long'
+                });
+
+                await sendPushNotification(teacherId, {
+                    title: 'Absence Enregistrée ⚠️',
+                    body: `L’administration a enregistré votre absence pour la séance de ${matiereName} du ${dateStr} (⏰ ${seance.heureDebut} - ${seance.heureFin}). Veuillez contacter l’administration pour toute réclamation.`,
+                    type: 'absence',
+                    senderId: req.user._id,
+                    url: '/teacher/planning'
+                });
+                console.log(`[NOTIF] Notification d’absence enseignant envoyée à ${teacherId}`);
+            }
+        } catch (notifErr) {
+            console.error('[NOTIF] Erreur notification absence enseignant:', notifErr);
+        }
+    }
 });
 
 // @desc    Récupérer le cahier de texte pour une séance et date

@@ -2,6 +2,8 @@ import asyncHandler from 'express-async-handler';
 import Presence from '../models/presenceModel.js';
 import Inscription from '../models/inscriptionModel.js';
 import Seance from '../models/seanceModel.js';
+import User from '../models/userModel.js';
+import { sendPushNotification } from './notificationController.js';
 
 // ─────────────────────────────────────────────────────────────
 // HELPER: Vérifie si une date est encore modifiable (< 48h)
@@ -9,8 +11,20 @@ import Seance from '../models/seanceModel.js';
 const isEditable = (date) => {
     const now = new Date();
     const presenceDate = new Date(date);
+    
+    // 1. Bloquer si la date est dans le futur (lendemain ou plus)
+    const startOfTomorrow = new Date();
+    startOfTomorrow.setHours(0, 0, 0, 0);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+    
+    if (presenceDate >= startOfTomorrow) {
+        return false;
+    }
+
+    // 2. Bloquer si le délai de 48h est dépassé
     const diffMs = now - presenceDate;
     const diffHours = diffMs / (1000 * 60 * 60);
+    
     return diffHours <= 48;
 };
 
@@ -115,6 +129,86 @@ const savePresence = asyncHandler(async (req, res) => {
     }));
 
     await Presence.bulkWrite(operations);
+
+    // --- ENVOI DES NOTIFICATIONS (ABSENCE & RETARD) ---
+    try {
+        const inscriptionsToNotifyIds = presences
+            .filter(p => p.statut === 'Absent' || p.statut === 'Retard')
+            .map(p => p.inscriptionId);
+
+        if (inscriptionsToNotifyIds.length > 0) {
+            // Récupérer les étudiants concernés
+            const inscriptionsToNotify = await Inscription.find({ _id: { $in: inscriptionsToNotifyIds } })
+                .populate('etudiant', 'firstName email _id');
+            
+            // Tenter de récupérer le nom de la matière pour un message plus précis
+            await seance.populate('matiere', 'nomMatiere');
+            const matiereName = seance.matiere?.nomMatiere || 'Cours';
+            
+            // Format de date lisible
+            const dateStr = presenceDate.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            for (const ins of inscriptionsToNotify) {
+                if (ins.etudiant) {
+                    const studentId = ins.etudiant._id;
+                    
+                    // Trouver le statut spécifique pour cet étudiant dans la requête originale
+                    const pData = presences.find(p => p.inscriptionId.toString() === ins._id.toString());
+                    const currentStatut = pData ? pData.statut : 'Absent';
+
+                    let notifTitle = '';
+                    let notifBody = '';
+                    let notifType = '';
+
+                    if (currentStatut === 'Absent') {
+                        notifTitle = 'Nouvelle Absence Enregistrée ❌';
+                        notifBody = `Vous avez été marqué absent au cours de ${matiereName} le ${dateStr}. Si c'est une erreur, veuillez contacter l'administration.`;
+                        notifType = 'absence';
+                    } else if (currentStatut === 'Retard') {
+                        notifTitle = 'Retard Enregistré ⚠️';
+                        notifBody = `Vous avez été marqué en retard au cours de ${matiereName} le ${dateStr}. Merci de veiller à la ponctualité à l'avenir.`;
+                        notifType = 'retard';
+                    }
+
+                    if (notifTitle) {
+                        // Notification Push / In-App uniquement
+                        await sendPushNotification(studentId, {
+                            title: notifTitle,
+                            body: notifBody,
+                            type: notifType,
+                            senderId: req.user._id,
+                            url: '/presence'
+                        }).catch(err => console.error(`Erreur Push ${notifType}:`, err));
+                    }
+                }
+            }
+        }
+
+        // ✅ NOTIFICATION POUR L'ADMIN (Cahier de texte validé)
+        const admins = await User.find({ role: 'admin' }).select('_id');
+        if (admins.length > 0) {
+            // Re-populate pour avoir le nom de la matière et de l'enseignant si besoin
+            await seance.populate('matiere', 'nomMatiere');
+            const teacherName = req.user.firstName + ' ' + req.user.lastName;
+            const matiereName = seance.matiere?.nomMatiere || 'Cours';
+            const dateStr = presenceDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+            const adminPromises = admins.map(admin => 
+                sendPushNotification(admin._id, {
+                    title: 'Enseignant Présent 👨‍🏫',
+                    body: `L'enseignant ${teacherName} a été présent aujourd'hui à la séance de ${matiereName} du ${dateStr}.`,
+                    type: 'systeme',
+                    senderId: req.user._id,
+                    url: '/admin/presences'
+                })
+            );
+            await Promise.all(adminPromises);
+        }
+
+    } catch (err) {
+        console.error('Erreur globale lors de l\'envoi des notifications de présence:', err);
+    }
+    // -----------------------------------------
 
     res.status(200).json({
         success: true,

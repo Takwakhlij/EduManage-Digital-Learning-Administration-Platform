@@ -631,8 +631,16 @@ function GlobalCalendar() {
         const color = matiereColorMap[s.matiere?.nomMatiere] || SESSION_COLORS[0];
         return {
             style: {
-                background: color.bg, borderLeft: `4px solid ${color.border}`, borderRadius: '8px',
-                color: 'inherit', padding: '0', fontSize: '12px', border: 'none', boxShadow: `0 2px 8px rgba(0,0,0,0.15)`,
+                background: color.bg, 
+                borderLeft: `4px solid ${color.border}`, 
+                borderRadius: '8px',
+                color: 'inherit', 
+                padding: '0', 
+                fontSize: '12px', 
+                borderTop: 'none',
+                borderBottom: 'none',
+                borderRight: 'none',
+                boxShadow: `0 2px 8px rgba(0,0,0,0.15)`,
             },
         };
     }, [matiereColorMap]);
@@ -677,7 +685,6 @@ function GlobalCalendar() {
                     selectedDate={calendarDate}
                     onSelectDate={(date) => {
                         setCalendarDate(date);
-                        if (calendarRef.current) calendarRef.current.handleNavigate(date);
                     }}
                 />
 

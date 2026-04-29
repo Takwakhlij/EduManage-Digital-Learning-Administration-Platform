@@ -51,6 +51,11 @@ export default function LandingPage() {
     // Dynamic Sessions State
     const [activeSessions, setActiveSessions] = useState([]);
     const [isSessionsLoading, setIsSessionsLoading] = useState(true);
+    
+    // Dynamic Actualités State
+    const [actualites, setActualites] = useState([]);
+    const [isActualitesLoading, setIsActualitesLoading] = useState(true);
+
     const [enrollMessage, setEnrollMessage] = useState(null);
     const [isEnrolling, setIsEnrolling] = useState(false);
     const [isCarouselPaused, setIsCarouselPaused] = useState(false);
@@ -112,6 +117,20 @@ export default function LandingPage() {
             }
         };
         fetchSessions();
+
+        const fetchActualites = async () => {
+            try {
+                const response = await axios.get('/api/actualites');
+                if (response.data.success) {
+                    setActualites(response.data.data);
+                }
+            } catch (error) {
+                console.error("Erreur lors de la récupération des actualités :", error);
+            } finally {
+                setIsActualitesLoading(false);
+            }
+        };
+        fetchActualites();
     }, []);
 
     useEffect(() => {
@@ -645,6 +664,58 @@ export default function LandingPage() {
                         </div>
                     </section>
 
+                    {/* ══════════ ACTUALITÉS ══════════ */}
+                    <section id="actualites" className="lp-actualites" style={{ padding: '5rem 0', backgroundColor: 'var(--bg-secondary, #f8fafc)' }}>
+                        <div className="lp-container">
+                            <div className="lp-section-header">
+                                <span className="lp-section-tag">Restez informés</span>
+                                <h2 className="lp-section-title">Actualités & Événements</h2>
+                                <p className="lp-section-sub">Découvrez les dernières nouvelles, compétitions et cérémonies de notre association.</p>
+                            </div>
+
+                            {isActualitesLoading ? (
+                                <div style={{ width: '100%', textAlign: 'center', padding: '40px' }}>
+                                    <div style={{ border: '4px solid rgba(13,95,71,0.15)', borderTop: '4px solid #059669', borderRadius: '50%', width: '40px', height: '40px', animation: 'lp-spin 0.8s linear infinite', margin: '0 auto' }}></div>
+                                    <p style={{ marginTop: '15px', color: '#6b7280' }}>Chargement des actualités...</p>
+                                </div>
+                            ) : actualites.length > 0 ? (
+                                <div className="lp-actualites-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem', marginTop: '2rem' }}>
+                                    {actualites.map((act) => (
+                                        <div key={act._id} className="lp-actualite-card" style={{ background: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', transition: 'transform 0.3s' }}>
+                                            <div style={{ height: '200px', overflow: 'hidden' }}>
+                                                <img 
+                                                    src={`http://localhost:5000${act.image}`} 
+                                                    alt={act.titre} 
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                                />
+                                            </div>
+                                            <div style={{ padding: '1.5rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontSize: '0.85rem', fontWeight: '600', marginBottom: '0.75rem' }}>
+                                                    <Calendar size={14} />
+                                                    {act.dateEvenement
+                                                        ? new Date(act.dateEvenement).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+                                                        : new Date(act.dateCreation).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+                                                    }
+                                                </div>
+                                                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#111827', marginBottom: '0.75rem', lineHeight: '1.3' }}>
+                                                    {act.titre}
+                                                </h3>
+                                                <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: '1.6', margin: '0' }}>
+                                                    {act.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ textAlign: 'center', padding: '3rem', background: '#fff', borderRadius: '16px', border: '1px dashed #e2e8f0' }}>
+                                    <Megaphone size={40} style={{ color: '#94a3b8', margin: '0 auto 1rem' }} />
+                                    <p style={{ color: '#64748b', fontSize: '1rem' }}>Aucune actualité pour le moment.</p>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
                     {/* ══════════ STATS ══════════ */}
                     <section id="stats" className="lp-stats" ref={statsRef}>
                         <div className="lp-stats__bg">
@@ -892,33 +963,41 @@ export default function LandingPage() {
                         </div>
                     </section>
 
-                    {/* ── Actualités / Événements de la semaine ── */}
-                    <section id="actualites" className="lp-connected-section">
-                        <div className="lp-container">
-                            <div className="lp-section-header">
-                                <span className="lp-section-tag"><Megaphone size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />Actualités</span>
-                                <h2 className="lp-section-title">Événements de la semaine</h2>
-                            </div>
-                            <div className="lp-events-grid">
-                                <div className="lp-event-card">
-                                    <div className="lp-event-card__icon"><CalendarDays size={28} /></div>
-                                    <div className="lp-event-card__body">
-                                        <h3>Reprise des cours</h3>
-                                        <p>Les cours reprennent normalement cette semaine. Consultez votre emploi du temps mis à jour.</p>
-                                        <span className="lp-event-card__date">📅 Cette semaine</span>
-                                    </div>
+                    {/* ── Actualités dynamiques depuis la base de données ── */}
+                    {actualites.length > 0 && (
+                        <section id="actualites" className="lp-connected-section">
+                            <div className="lp-container">
+                                <div className="lp-section-header">
+                                    <span className="lp-section-tag"><Megaphone size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />Actualités</span>
+                                    <h2 className="lp-section-title">Événements & Annonces</h2>
                                 </div>
-                                <div className="lp-event-card">
-                                    <div className="lp-event-card__icon"><Megaphone size={28} /></div>
-                                    <div className="lp-event-card__body">
-                                        <h3>Concours de Tajwid</h3>
-                                        <p>Préparez-vous pour le concours annuel de Tajwid. Inscriptions ouvertes dès maintenant !</p>
-                                        <span className="lp-event-card__date">📅 Prochainement</span>
-                                    </div>
+                                <div className="lp-actualites-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
+                                    {actualites.map((act) => (
+                                        <div key={act._id} className="lp-event-card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0' }}>
+                                            <div style={{ height: '160px', overflow: 'hidden' }}>
+                                                <img
+                                                    src={`http://localhost:5000${act.image}`}
+                                                    alt={act.titre}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                />
+                                            </div>
+                                            <div style={{ padding: '1.25rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontSize: '0.8rem', fontWeight: '600', marginBottom: '0.6rem' }}>
+                                                    <Calendar size={13} />
+                                                    {act.dateEvenement
+                                                        ? new Date(act.dateEvenement).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+                                                        : new Date(act.dateCreation).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+                                                    }
+                                                </div>
+                                                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.05rem', fontWeight: '700' }}>{act.titre}</h3>
+                                                <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b', lineHeight: '1.5' }}>{act.description}</p>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    )}
 
                     {/* ── Sessions Disponibles (Catalogue) ── */}
                     <section id="formations" className="lp-formations">

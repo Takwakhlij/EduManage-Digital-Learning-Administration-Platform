@@ -1,6 +1,10 @@
 import asyncHandler from 'express-async-handler';
 import Seance from '../models/seanceModel.js';
 import Session from '../models/sessionModel.js';
+import User from '../models/userModel.js';
+import Inscription from '../models/inscriptionModel.js';
+import Matiere from '../models/matiereModel.js';
+import { sendPushNotification } from './notificationController.js';
 
 // @desc    Récupérer toutes les séances (pour le calendrier global)
 // @route   GET /api/seances
@@ -83,6 +87,63 @@ export const createSeance = asyncHandler(async (req, res) => {
     });
 
     if (seance) {
+        // --- NOTIFICATION PUSH ---
+        console.log('[DEBUG] Déclenchement notification pour createSeance');
+        try {
+            const matiereId = seance.matiere?._id || seance.matiere;
+            const matiereDoc = matiereId ? await Matiere.findById(matiereId) : null;
+            const matiereName = matiereDoc ? matiereDoc.nomMatiere : 'un cours';
+            
+            const title = 'Nouvelle Séance Ajoutée 📅';
+            const body = `Une nouvelle séance de ${matiereName} a été ajoutée à votre emploi du temps pour le ${seance.jour} à ${seance.heureDebut}.`;
+
+            console.log(`[DEBUG] Notification préparée: "${title}"`);
+
+            // 1. Notifier l'enseignant
+            if (seance.enseignant) {
+                sendPushNotification(seance.enseignant, {
+                    title,
+                    body,
+                    type: 'planning',
+                    senderId: req.user._id,
+                    url: '/teacher/planning'
+                }).catch(err => console.error(err));
+            }
+
+            // 2. Notifier les étudiants et parents concernés
+            if (seance.classe) {
+                const inscriptions = await Inscription.find({ classe: seance.classe, statut: 'approuvee' }).select('etudiant');
+                const studentIds = inscriptions.map(i => i.etudiant);
+
+                for (const studentId of studentIds) {
+                    if (!studentId) continue;
+                    
+                    // Notifier l'étudiant
+                    sendPushNotification(studentId, {
+                        title,
+                        body,
+                        type: 'planning',
+                        senderId: req.user._id,
+                        url: '/planning'
+                    }).catch(err => console.error(err));
+
+                    // Notifier les parents de l'étudiant
+                    const parents = await User.find({ children: studentId, role: 'parent' }).select('_id');
+                    for (const parent of parents) {
+                        sendPushNotification(parent._id, {
+                            title,
+                            body,
+                            type: 'planning',
+                            senderId: req.user._id,
+                            url: '/planning'
+                        }).catch(err => console.error(err));
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Erreur envoi notification createSeance:', error);
+        }
+
         res.status(201).json(seance);
     } else {
         res.status(400);
@@ -166,6 +227,67 @@ export const updateSeance = asyncHandler(async (req, res) => {
         if (req.body.matiere) seance.matiere = req.body.matiere;
 
         const updatedSeance = await seance.save();
+
+        // --- NOTIFICATION PUSH ---
+        console.log(`[DEBUG] Déclenchement notification pour updateSeance (ID: ${updatedSeance._id})`);
+        try {
+            const matiereId = updatedSeance.matiere?._id || updatedSeance.matiere;
+            const matiereDoc = matiereId ? await Matiere.findById(matiereId) : null;
+            const matiereName = matiereDoc ? matiereDoc.nomMatiere : 'un cours';
+            
+            const title = "Modification d'Emploi du Temps 🔄";
+            const body = `La séance de ${matiereName} du ${updatedSeance.jour} a été mise à jour. 📍 Salle: ${updatedSeance.salle} | 🕒 ${updatedSeance.heureDebut}-${updatedSeance.heureFin}. Veuillez consulter votre planning.`;
+
+            console.log(`[DEBUG] Notification préparée: "${title}" pour la matière "${matiereName}"`);
+
+            // 1. Notifier l'enseignant
+            if (updatedSeance.enseignant) {
+                console.log(`[DEBUG] Envoi notification à l'enseignant: ${updatedSeance.enseignant}`);
+                sendPushNotification(updatedSeance.enseignant, {
+                    title,
+                    body,
+                    type: 'planning',
+                    senderId: req.user._id,
+                    url: '/teacher/planning'
+                }).catch(err => console.error(err));
+            }
+
+            // 2. Notifier les étudiants et parents concernés
+            if (updatedSeance.classe) {
+                console.log(`[DEBUG] Recherche étudiants pour la classe: ${updatedSeance.classe}`);
+                const inscriptions = await Inscription.find({ classe: updatedSeance.classe, statut: 'approuvee' }).select('etudiant');
+                const studentIds = inscriptions.map(i => i.etudiant);
+                console.log(`[DEBUG] ${studentIds.length} étudiants trouvés.`);
+
+                for (const studentId of studentIds) {
+                    if (!studentId) continue;
+                    
+                    // Notifier l'étudiant
+                    sendPushNotification(studentId, {
+                        title,
+                        body,
+                        type: 'planning',
+                        senderId: req.user._id,
+                        url: '/planning'
+                    }).catch(err => console.error(err));
+
+                    // Notifier les parents de l'étudiant
+                    const parents = await User.find({ children: studentId, role: 'parent' }).select('_id');
+                    for (const parent of parents) {
+                        sendPushNotification(parent._id, {
+                            title,
+                            body,
+                            type: 'planning',
+                            senderId: req.user._id,
+                            url: '/planning'
+                        }).catch(err => console.error(err));
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Erreur envoi notification updateSeance:', error);
+        }
+
         res.json(updatedSeance);
     } else {
         res.status(404);

@@ -10,6 +10,7 @@ import seanceReducer from '../features/seances/seanceSlice';
 import presenceReducer from '../features/presence/presenceSlice';
 import paiementReducer from '../features/paiements/paiementSlice';
 import notificationReducer from '../features/notifications/notificationSlice';
+import actualiteReducer from '../features/actualites/actualiteSlice';
 
 export const store = configureStore({
     reducer: {
@@ -24,5 +25,6 @@ export const store = configureStore({
         presence: presenceReducer,
         paiements: paiementReducer,
         notifications: notificationReducer,
+        actualites: actualiteReducer,
     },
 });

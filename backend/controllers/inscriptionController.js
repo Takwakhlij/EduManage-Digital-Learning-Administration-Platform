@@ -4,6 +4,7 @@ import User from '../models/userModel.js';
 import Cours from '../models/coursModel.js';
 import Seance from '../models/seanceModel.js';
 import asyncHandler from 'express-async-handler';
+import { sendPushNotification } from './notificationController.js';
 
 // @desc    Mettre à jour le statut d'une inscription (approuvée / refusée)
 // @route   PUT /api/inscriptions/:id/statut
@@ -22,17 +23,60 @@ export const updateStatutInscription = asyncHandler(async (req, res) => {
         throw new Error("Inscription non trouvée.");
     }
 
+    const previousStatut = inscription.statut;
     inscription.statut = statut;
     await inscription.save();
 
     const updated = await Inscription.findById(inscription._id)
-        .populate('etudiant', 'firstName lastName email profileImage')
+        .populate('etudiant', 'firstName lastName email _id')
         .populate({
             path: 'session',
             select: 'nomSession montant duree',
             populate: { path: 'enseignants', select: 'firstName lastName' }
         })
         .populate('classe', 'nomClasse niveau');
+
+    // --- NOTIFICATION ÉTUDIANT/PARENT sur changement de statut ---
+    if (previousStatut !== statut && updated.etudiant) {
+        const student = updated.etudiant;
+        const sessionName = updated.session?.nomSession || 'la session';
+        const className = updated.classe?.nomClasse || '';
+
+        let notifTitle = '';
+        let notifBody = '';
+
+        if (statut === 'approuvee') {
+            notifTitle = 'Inscription Approuvée ! 🎉';
+            notifBody = `Félicitations ! Votre inscription à la session "${sessionName}"${className ? ` (${className})` : ''} a été approuvée par l'administration. Bienvenue !`;
+        } else if (statut === 'refusee') {
+            notifTitle = 'Inscription Refusée ❌';
+            notifBody = `Votre inscription à la session "${sessionName}"${className ? ` (${className})` : ''} a été refusée. Veuillez contacter l'administration pour plus d'informations.`;
+        }
+
+        if (notifTitle) {
+            const notifPayload = {
+                title: notifTitle,
+                body: notifBody,
+                type: 'inscription',
+                senderId: req.user._id,
+                url: '/inscriptions'
+            };
+
+            // 1. Notifier l'ÉTUDIANT
+            sendPushNotification(student._id, notifPayload).catch(err => console.error('Erreur Push inscription (student):', err));
+
+            // 2. Notifier les PARENTS (si c'est un enfant)
+            try {
+                const parents = await User.find({ children: student._id, role: 'parent' }).select('_id');
+                for (const parent of parents) {
+                    sendPushNotification(parent._id, notifPayload).catch(err => console.error('Erreur Push inscription (parent):', err));
+                }
+            } catch (pErr) {
+                console.error('Erreur recherche parents pour notification:', pErr);
+            }
+        }
+    }
+    // -------------------------------------------------------------
 
     res.status(200).json({
         success: true,
@@ -118,6 +162,35 @@ export const inscrireEtudiant = asyncHandler(async (req, res) => {
         message: "Inscription réussie avec succès", 
         inscription: nouvelleInscription 
     });
+
+    // ✅ NOTIFICATION ADMIN : Nouvelle demande de session
+    try {
+        console.log(`[DEBUG INSCRIPTION] Début notification admin pour étudiant: ${etudiant} et session: ${session}`);
+        const student = await User.findById(etudiant).select('firstName lastName');
+        const sessionObj = await Session.findById(session).select('nomSession');
+        const admins = await User.find({ role: 'admin' }).select('_id');
+        
+        console.log(`[DEBUG INSCRIPTION] Étudiant: ${student?.firstName}, Session: ${sessionObj?.nomSession}, Admins trouvés: ${admins.length}`);
+
+        if (admins.length > 0) {
+            const notifPromises = admins.map(admin => 
+                sendPushNotification(admin._id, {
+                    title: 'Nouvelle Inscription Session ! 📝',
+                    body: `${student?.firstName} ${student?.lastName} s'est inscrit à la session "${sessionObj?.nomSession}".`,
+                    type: 'inscription',
+                    senderId: etudiant,
+                    url: '/admin/inscriptions',
+                    relatedId: nouvelleInscription._id
+                })
+            );
+            await Promise.all(notifPromises);
+            console.log(`[DEBUG INSCRIPTION] Notifications envoyées aux ${admins.length} admins.`);
+        } else {
+            console.warn(`[DEBUG INSCRIPTION] Aucun admin trouvé pour recevoir la notification.`);
+        }
+    } catch (err) {
+        console.error('[DEBUG INSCRIPTION ERROR] Erreur notification admin inscription:', err);
+    }
 });
 
 // @desc    Récupérer les inscriptions d'une session
