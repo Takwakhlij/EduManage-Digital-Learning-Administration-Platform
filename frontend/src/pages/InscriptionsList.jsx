@@ -363,12 +363,12 @@ const InscriptionsList = () => {
                                             <td>
                                                 <div className="student-cell">
                                                     <div className="student-avatar">
-                                                        {inscription.etudiant ? inscription.etudiant.firstName.charAt(0).toUpperCase() : '?'}
+                                                        {inscription.etudiant?.firstName ? inscription.etudiant.firstName.charAt(0).toUpperCase() : '?'}
                                                     </div>
                                                     <div className="student-info">
                                                         <span className="student-name">{studentName}</span>
                                                         <span className="student-sub">
-                                                            <Mail size={12} /> {inscription.etudiant ? inscription.etudiant.email : ''}
+                                                            <Mail size={12} /> {inscription.etudiant?.email || ''}
                                                         </span>
                                                     </div>
                                                 </div>

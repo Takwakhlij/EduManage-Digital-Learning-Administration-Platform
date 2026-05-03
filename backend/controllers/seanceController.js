@@ -11,7 +11,7 @@ import { sendPushNotification } from './notificationController.js';
 // @access  Private/Admin
 export const getAllSeances = asyncHandler(async (req, res) => {
     const seances = await Seance.find({})
-        .populate('session', 'nomSession')
+        .populate('session', 'nomSession dateDebut dateFin')
         .populate('classe', 'nomClasse niveau')
         .populate('matiere', 'nomMatiere')
         .populate('enseignant', 'firstName lastName email')
@@ -156,7 +156,7 @@ export const createSeance = asyncHandler(async (req, res) => {
 // @access  Private
 export const getSeancesBySession = asyncHandler(async (req, res) => {
     const seances = await Seance.find({ session: req.params.sessionId })
-        .populate('session', 'nomSession')
+        .populate('session', 'nomSession dateDebut dateFin')
         .populate('classe', 'nomClasse niveau')
         .populate('matiere', 'nomMatiere')
         .populate('enseignant', 'firstName lastName nom prenom email')

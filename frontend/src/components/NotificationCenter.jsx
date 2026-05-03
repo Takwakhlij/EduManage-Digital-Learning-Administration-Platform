@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BookOpen, CreditCard, XCircle, Clock, UserPlus, Calendar } from 'lucide-react';
+import { Bell, BookOpen, CreditCard, XCircle, Clock, UserPlus, Calendar, Megaphone } from 'lucide-react';
 import { getMyNotifications, markNotificationAsRead } from '../features/notifications/notificationSlice';
 import './NotificationCenter.css';
 
@@ -76,25 +76,26 @@ const NotificationCenter = () => {
         } else if (notif.type === 'absence' || notif.type === 'retard') {
             navigate('/presence');
         } else if (notif.type === 'planning') {
-            // Pour les enseignants → teacher planning, sinon planning étudiant
             navigate(notif.url || '/planning');
+        } else if (notif.type === 'actualite') {
+            navigate('/');
         } else if (notif.type === 'systeme') {
             navigate('/dashboard');
         } else {
-            // Par défaut
             navigate('/dashboard');
         }
     };
 
     const getTypeIcon = (type) => {
         switch (type) {
-            case 'cours': return <div className="notif-type-icon notif-icon-cours"><BookOpen size={16} /></div>;
-            case 'paiement': return <div className="notif-type-icon notif-icon-paiement"><CreditCard size={16} /></div>;
-            case 'absence': return <div className="notif-type-icon notif-icon-absence"><XCircle size={16} /></div>;
-            case 'retard': return <div className="notif-type-icon notif-icon-retard"><Clock size={16} /></div>;
+            case 'cours':       return <div className="notif-type-icon notif-icon-cours"><BookOpen size={16} /></div>;
+            case 'paiement':    return <div className="notif-type-icon notif-icon-paiement"><CreditCard size={16} /></div>;
+            case 'absence':     return <div className="notif-type-icon notif-icon-absence"><XCircle size={16} /></div>;
+            case 'retard':      return <div className="notif-type-icon notif-icon-retard"><Clock size={16} /></div>;
             case 'inscription': return <div className="notif-type-icon notif-icon-inscription"><UserPlus size={16} /></div>;
-            case 'planning': return <div className="notif-type-icon notif-icon-planning" style={{background:'rgba(16,185,129,0.15)',color:'#10b981'}}><Calendar size={16} /></div>;
-            default: return <div className="notif-type-icon notif-icon-default"><Bell size={16} /></div>;
+            case 'planning':    return <div className="notif-type-icon notif-icon-planning" style={{background:'rgba(16,185,129,0.15)',color:'#10b981'}}><Calendar size={16} /></div>;
+            case 'actualite':   return <div className="notif-type-icon" style={{background:'rgba(245,158,11,0.15)',color:'#f59e0b'}}><Megaphone size={16} /></div>;
+            default:            return <div className="notif-type-icon notif-icon-default"><Bell size={16} /></div>;
         }
     };
 

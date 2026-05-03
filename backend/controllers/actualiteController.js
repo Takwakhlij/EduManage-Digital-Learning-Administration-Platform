@@ -1,5 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import Actualite from '../models/actualiteModel.js';
+import User from '../models/userModel.js';
+import { sendPushNotification } from './notificationController.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -7,7 +9,6 @@ import path from 'path';
 // @route   GET /api/actualites
 // @access  Public
 export const getActualites = asyncHandler(async (req, res) => {
-    // Trier du plus récent au plus ancien
     const actualites = await Actualite.find().sort({ dateCreation: -1 });
     res.status(200).json({ success: true, count: actualites.length, data: actualites });
 });
@@ -37,7 +38,33 @@ export const createActualite = asyncHandler(async (req, res) => {
         dateEvenement: req.body.dateEvenement || null
     });
 
+    // ── Répondre immédiatement ──
     res.status(201).json({ success: true, data: actualite });
+
+    // ── Envoyer une notification push à TOUS les utilisateurs (async, sans bloquer) ──
+    try {
+        const users = await User.find({
+            role: { $in: ['student', 'parent', 'teacher'] },
+            status: 'active'
+        }).select('_id');
+
+        console.log(`[ACTUALITE] Envoi de notifications push à ${users.length} utilisateur(s)...`);
+
+        const notifPromises = users.map(user =>
+            sendPushNotification(user._id, {
+                title: `📢 Nouvelle annonce : ${titre}`,
+                body: description.length > 100 ? description.substring(0, 97) + '...' : description,
+                type: 'actualite',
+                senderId: req.user._id,
+                url: '/'
+            }).catch(err => console.error(`[ACTUALITE] Erreur push pour ${user._id}:`, err.message))
+        );
+
+        await Promise.all(notifPromises);
+        console.log(`[ACTUALITE] Notifications envoyées avec succès.`);
+    } catch (err) {
+        console.error('[ACTUALITE] Erreur lors de l\'envoi des notifications:', err.message);
+    }
 });
 
 // @desc    Mettre à jour une actualité

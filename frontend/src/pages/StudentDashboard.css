@@ -39,7 +39,7 @@ body.dark-theme .dashboard-layout {
 }
 
 :root {
-    --sidebar-bg: #16220e;
+    --sidebar-bg: #121c14;
     /* Vert émeraude profond premium */
 }
 
@@ -2567,4 +2567,68 @@ body:not(.dark-theme) .sdm-cours-check.checked {
     .sdm-panel { width: 100vw; }
     .sdm-presence-row { flex-direction: column; align-items: flex-start; }
     .sd-top-row { grid-template-columns: 1fr; }
+}
+/* -- Event Cards (Premium) -- */
+.lum-event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.lum-event-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.lum-event-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateX(4px);
+}
+
+.lum-event-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    padding: 8px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lum-event-content {
+    flex: 1;
+}
+
+.lum-event-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 4px 0;
+}
+
+.lum-event-date {
+    font-size: 0.75rem;
+    color: #10b981;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.lum-event-desc {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.4;
+    margin: 0;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
 }

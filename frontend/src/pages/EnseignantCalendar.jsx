@@ -295,7 +295,7 @@ function EnseignantCalendar() {
                 />
 
                 {/* Session Filter only */}
-                <div className="gc-sidebar-section">
+                <div className="gc-sidebar-section" style={{ flex: 'none' }}>
                     <p className="gc-sidebar-section-title">Filtres</p>
 
                     <div className="gc-sidebar-filter">
@@ -322,12 +322,12 @@ function EnseignantCalendar() {
 
                     <div className="gc-filter-count">
                         <span>Séances affichées :</span>
-                        <span className="gc-count-badge">{events.length}</span>
+                        <span className="gc-count-badge">{filteredSeances.length}</span>
                     </div>
                 </div>
 
                 {/* ── Weekly Summary ── */}
-                <div className="gc-sidebar-section">
+                <div className="gc-sidebar-section" style={{ marginTop: 'auto', flex: 'none' }}>
                     <p className="gc-sidebar-section-title">Résumé de la semaine</p>
                     <div style={{
                         display: 'flex', flexDirection: 'column', gap: '8px',

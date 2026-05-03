@@ -1,9 +1,10 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { subscribeToPush } from '../features/notifications/notificationSlice';
-import { BookOpen, GraduationCap, FileText, Award, User, Settings, LogOut, Menu, Bell, Users, Clock, Calendar, ChevronRight, ArrowLeft, TrendingUp, Hourglass, X, CheckCircle, XCircle, AlertCircle, BookMarked, CreditCard } from 'lucide-react';
+import { BookOpen, GraduationCap, FileText, Award, User, Settings, LogOut, Menu, Bell, Users, Clock, Calendar, ChevronRight, ArrowLeft, TrendingUp, Hourglass, X, CheckCircle, XCircle, AlertCircle, BookMarked, CreditCard, Globe, Sun, Moon, Megaphone } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { logout, reset } from '../features/auth/authSlice';
+import { getActualites } from '../features/actualites/actualiteSlice';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import axios from 'axios';
@@ -70,7 +71,7 @@ function SessionDetailModal({ inscription, presenceData, onClose, onToggleCours 
                 <div className="sdm-header">
                     <div className="sdm-header-left">
                         <div className="sdm-badge">
-                            {inscription.statut === 'approuvee' ? 'EN COURS' : 'EN ATTENTE'}
+                            {inscription.statut === 'approuvee' ? t.statusInProgress : t.statusPending}
                         </div>
                         <h2 className="sdm-title">{session?.nomSession || 'Session'}</h2>
                         <p className="sdm-subtitle">
@@ -92,7 +93,7 @@ function SessionDetailModal({ inscription, presenceData, onClose, onToggleCours 
                     {/* ── Programme / Cours ── */}
                     {programme.length > 0 && (
                         <div className="sdm-section">
-                            <h3 className="sdm-section-title"><BookMarked size={16}/> Programme</h3>
+                            <h3 className="sdm-section-title"><BookMarked size={16}/> {t.program}</h3>
                             <div className="sdm-programme-list">
                                 {programme.map((p, i) => (
                                     <div key={i} className="sdm-programme-item">
@@ -111,12 +112,12 @@ function SessionDetailModal({ inscription, presenceData, onClose, onToggleCours 
 
                     {/* ── Séances par jour ── */}
                     <div className="sdm-section">
-                        <h3 className="sdm-section-title"><Calendar size={16}/> Jours et Horaires des Séances</h3>
+                        <h3 className="sdm-section-title"><Calendar size={16}/> {t.daysAndTimes}</h3>
                         {loadingSeances ? (
-                            <div className="sdm-loading-seances">Chargement des séances...</div>
+                            <div className="sdm-loading-seances">{t.loadingSessions}</div>
                         ) : seances.length === 0 ? (
                             <div className="sdm-empty-seances">
-                                <AlertCircle size={20}/> Aucune séance planifiée pour le moment.
+                                <AlertCircle size={20}/> {t.noSessionsScheduled}
                             </div>
                         ) : (
                             <div className="sdm-days-list">
@@ -132,7 +133,7 @@ function SessionDetailModal({ inscription, presenceData, onClose, onToggleCours 
                                                         <span className="sdm-seance-matiere">{seance.matiere.nomMatiere}</span>
                                                     )}
                                                     {seance.salle && seance.salle !== 'Non assignée' && (
-                                                        <span className="sdm-seance-salle">Salle: {seance.salle}</span>
+                                                        <span className="sdm-seance-salle">{t.room}{seance.salle}</span>
                                                     )}
                                                 </div>
                                             ))}
@@ -146,7 +147,7 @@ function SessionDetailModal({ inscription, presenceData, onClose, onToggleCours 
                     {/* ── Cours publiés ── */}
                     {cours.length > 0 && (
                         <div className="sdm-section">
-                            <h3 className="sdm-section-title"><FileText size={16}/> Cours Publiés ({cours.length})</h3>
+                            <h3 className="sdm-section-title"><FileText size={16}/> {t.publishedCourses} ({cours.length})</h3>
                             <div className="sdm-cours-list">
                                 {cours.map((c, i) => {
                                     const isDone = inscription.coursTermines?.includes(c._id);
@@ -176,10 +177,10 @@ function SessionDetailModal({ inscription, presenceData, onClose, onToggleCours 
 
                 <div className="sdm-footer">
                     <Link to="/presence" className="sdm-btn-presence">
-                        <TrendingUp size={16}/> Voir mon historique de présence
+                        <TrendingUp size={16}/> {t.viewAttendanceHistory}
                     </Link>
                     <Link to="/planning" className="sdm-btn-planning">
-                        <Calendar size={16}/> Mon emploi du temps
+                        <Calendar size={16}/> {t.myScheduleBtn}
                     </Link>
                 </div>
             </div>
@@ -199,6 +200,7 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
     const [attendanceStats, setAttendanceStats] = useState(null);
     const [parSession, setParSession] = useState([]);
     const [selectedInscription, setSelectedInscription] = useState(null);
+    const { actualites } = useSelector((state) => state.actualites);
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -240,8 +242,9 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
         if (authUser?.token && !fetchRef.current) {
             fetchRef.current = true;
             fetchData();
+            dispatch(getActualites());
         }
-    }, [authUser?.token]);
+    }, [authUser?.token, dispatch]);
 
     const fetchData = async () => {
         if (!authUser?.token) return;
@@ -295,9 +298,9 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
     const navItems = [
         { icon: <BookOpen size={20} />, label: t.formations, path: '/formations' },
         { icon: <GraduationCap size={20} />, label: t.myClasses, path: '/inscriptions' },
-        { icon: <Calendar size={20} />, label: 'Emploi du Temps', path: '/planning' },
-        {icon: <TrendingUp size={20} />, label: 'Mes Absences', path: '/presence' },
-        { icon: <CreditCard size={20} />, label: 'Mes Paiements', path: '/paiements' },
+        { icon: <Calendar size={20} />, label: t.mySchedule, path: '/planning' },
+        {icon: <TrendingUp size={20} />, label: t.myAbsences, path: '/presence' },
+        { icon: <CreditCard size={20} />, label: t.myPayments, path: '/paiements' },
         { icon: <FileText size={20} />, label: t.myExams, path: '/examens' },
         { icon: <Award size={20} />, label: t.myCertificates, path: '/certificats' },
     ];
@@ -363,7 +366,7 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                         <p className="profile-role">
                             {parentUser ? (
                                 <span className="supervisor-info">
-                                    <span className="supervisor-label">Supervisé par</span>
+                                    <span className="supervisor-label">{t.supervisedBy}</span>
                                     <div className="supervisor-badge">
                                         {parentUser.profileImage ? (
                                             <img src={parentUser.profileImage.startsWith('http') ? parentUser.profileImage : `http://localhost:5000${parentUser.profileImage}`} alt={parentUser.firstName} className="supervisor-img"/>
@@ -373,12 +376,12 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                                         <span className="supervisor-name">{parentUser.firstName}</span>
                                     </div>
                                 </span>
-                            ) : 'Compte Étudiant'}
+                            ) : t.studentAccount}
                         </p>
                     </div>
                     {parentUser?.children?.length > 1 && (
                         <div className="child-switcher">
-                            <label>Voir le profil de :</label>
+                            <label>{t.viewProfileOf}</label>
                             <select value={user._id} onChange={e => { const child = parentUser.children.find(c => c._id === e.target.value); if (child && onSwitchChild) onSwitchChild(child); }} className="child-select">
                                 {parentUser.children.map(child => <option key={child._id} value={child._id}>{child.firstName}</option>)}
                             </select>
@@ -389,12 +392,12 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                 <nav className="sidebar-nav">
                     <Link to="/" className="nav-item back-home-nav">
                         <span className="nav-icon"><ArrowLeft size={20}/></span>
-                        <span className="nav-label">Retour à l'accueil</span>
+                        <span className="nav-label">{t.backToHome}</span>
                     </Link>
                     <div className="nav-divider" style={{ margin:'10px 0', opacity:0.3 }}/>
                     <Link to="/dashboard" className={`nav-item ${window.location.pathname === '/dashboard' ? 'active' : ''}`}>
                         <span className="nav-icon"><User size={20}/></span>
-                        <span className="nav-label">Mon Tableau de Bord</span>
+                        <span className="nav-label">{t.myDashboard}</span>
                     </Link>
                     {navItems.map((item, i) => (
                         <Link key={i} to={item.path} className={`nav-item ${window.location.pathname === item.path ? 'active' : ''}`}>
@@ -405,13 +408,13 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                     <div className="nav-divider"/>
                     <Link to="/profile" className="nav-item">
                         <span className="nav-icon"><Settings size={20}/></span>
-                        <span className="nav-label">Paramètres</span>
+                        <span className="nav-label">{t.settings}</span>
                     </Link>
                 </nav>
 
                 <div className="sidebar-footer">
                     <button onClick={onLogout} className="btn-logout">
-                        <LogOut size={20}/><span>Déconnexion</span>
+                        <LogOut size={20}/><span>{t.logout}</span>
                     </button>
                 </div>
             </aside>
@@ -421,9 +424,31 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                 <header className="content-header">
                     <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}><Menu size={24}/></button>
                     <div className="header-actions">
+                        <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '2px 8px', marginRight: '8px' }}>
+                            <Globe size={16} style={{ color: 'var(--text-color)', marginRight: '6px' }} />
+                            <select
+                                value={lang}
+                                onChange={(e) => setLang(e.target.value)}
+                                style={{
+                                    background: 'transparent',
+                                    color: 'var(--text-color)',
+                                    border: 'none',
+                                    padding: '4px 0',
+                                    outline: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '13px',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                <option value="fr" style={{color: '#000'}}>Français</option>
+                                <option value="ar" style={{color: '#000'}}>العربية</option>
+                                <option value="en" style={{color: '#000'}}>English</option>
+                            </select>
+                        </div>
+
                         <button className="icon-btn theme-toggle-btn" onClick={toggleTheme} title={isDarkMode ? 'Mode Clair' : 'Mode Sombre'}
                             style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'36px', height:'36px', borderRadius:'50%', border:'none', background:'transparent', color:'var(--text-color)', cursor:'pointer', transition:'all 0.2s ease' }}>
-                            {isDarkMode ? '☀️' : '🌙'}
+                            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                         </button>
                         <NotificationCenter />
                         <div className="user-badge" onClick={() => navigate('/profile')}>
@@ -442,17 +467,67 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                 {user.status !== 'active' ? (
                     <div className="content-inner centered-message">
                         <div className="empty-dashboard">
-                            <h2>Compte en attente</h2>
-                            <p>Le compte de {user.firstName} est en attente de validation par l&apos;administration.</p>
+                            <h2>{t.accountPending}</h2>
+                            <p>{t.accountPendingDesc}</p>
                         </div>
                     </div>
                 ) : (
                     <div className="content-inner">
+                        {/* ── Today's Event Highlight ── */}
+                        {(() => {
+                            const today = new Date();
+                            const todaysEvent = actualites?.find(a => {
+                                if (!a.dateEvenement) return false;
+                                const d = new Date(a.dateEvenement);
+                                return d.getDate() === today.getDate() &&
+                                       d.getMonth() === today.getMonth() &&
+                                       d.getFullYear() === today.getFullYear();
+                            });
+
+                            if (!todaysEvent) return null;
+
+                            return (
+                                <div className="todays-event-banner" style={{
+                                    background: 'linear-gradient(135deg, #d9ae5a 0%, #b8892f 100%)',
+                                    borderRadius: '16px',
+                                    padding: '20px 24px',
+                                    marginBottom: '28px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '20px',
+                                    color: '#121614',
+                                    boxShadow: '0 8px 30px rgba(217, 174, 90, 0.2)',
+                                    animation: 'pulse 2s infinite'
+                                }}>
+                                    <div style={{
+                                        background: 'rgba(18, 22, 20, 0.1)',
+                                        padding: '12px',
+                                        borderRadius: '12px'
+                                    }}>
+                                        <Megaphone size={28} />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8 }}>
+                                            {t.todaysEvent}
+                                        </div>
+                                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '4px 0' }}>{todaysEvent.titre}</h2>
+                                        <p style={{ fontSize: '0.9rem', margin: 0, opacity: 0.9 }}>{todaysEvent.description}</p>
+                                    </div>
+                                    {todaysEvent.image && (
+                                        <img 
+                                            src={todaysEvent.image.startsWith('http') ? todaysEvent.image : `http://localhost:5000${todaysEvent.image}`} 
+                                            alt={todaysEvent.titre}
+                                            style={{ width: '80px', height: '80px', borderRadius: '12px', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.2)' }}
+                                        />
+                                    )}
+                                </div>
+                            );
+                        })()}
 
                         {/* ── Greeting ── */}
                         <div className="sd-greeting">
-                            <h1 className="sd-greeting-title">As-salamou alaykoum, {user?.firstName}.</h1>
-                            <p className="sd-greeting-sub">Votre voyage spirituel continue aujourd'hui. Voici votre progression.</p>
+                            <h1 className="sd-greeting-title">{t.greeting} {user?.firstName}.</h1>
+                            <p className="sd-greeting-sub">{t.greetingSub}</p>
                         </div>
 
                         {/* ── Notification Activation Banner ── */}
@@ -467,10 +542,10 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                                 <div style={{ fontSize: '24px', flexShrink: 0 }}>🔔</div>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ fontWeight: 700, color: '#10b981', fontSize: '14px', marginBottom: '2px' }}>
-                                        Activez vos notifications push
+                                        {t.activatePush}
                                     </div>
                                     <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
-                                        Recevez immédiatement les alertes d'inscription, paiement et cours directement sur votre navigateur.
+                                        {t.activatePushDesc}
                                     </div>
                                 </div>
                                 <button onClick={handleActivateNotifs} disabled={isSubscribing} style={{
@@ -478,7 +553,7 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                                     padding: '8px 16px', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
                                     whiteSpace: 'nowrap', flexShrink: 0
                                 }}>
-                                    {isSubscribing ? 'Activation...' : 'Activer'}
+                                    {isSubscribing ? t.activating : t.activateBtn}
                                 </button>
                                 <button onClick={() => setNotifBannerDismissed(true)} style={{
                                     background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.4)',
@@ -493,34 +568,34 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                         <div className="sd-top-row">
                             {/* Ayat du Jour */}
                             <div className="sd-ayat-card">
-                                <div className="sd-ayat-label">★ AYAT DU JOUR</div>
-                                <div className="sd-ayat-arabic">وَقُل رَّبِّ زِدْنِي عِلْمًا</div>
-                                <p className="sd-ayat-translation">"Et dis : Ô mon Seigneur, accrois mes connaissances."</p>
-                                <div className="sd-ayat-ref">— Sourate Ta-Ha, 114</div>
+                                <div className="sd-ayat-label">{t.ayatOfTheDay}</div>
+                                <div className="sd-ayat-arabic">{t.ayatText}</div>
+                                <p className="sd-ayat-translation">{t.ayatTranslation}</p>
+                                <div className="sd-ayat-ref">{t.ayatRef}</div>
                             </div>
 
                             {/* Suivi de Présence */}
                             <div className="hero-presence-card" onClick={() => navigate('/presence')} style={{ cursor:'pointer' }}>
                                 <div className="hero-presence-left">
-                                    <div className="hero-presence-label">VOTRE PERFORMANCE GLOBALE</div>
-                                    <h2 className="hero-presence-title">Suivi de Présence</h2>
+                                    <div className="hero-presence-label">{t.globalPerformance}</div>
+                                    <h2 className="hero-presence-title">{t.attendanceTracking}</h2>
                                     <p className="hero-presence-desc">
-                                        Continuez ainsi ! Votre régularité est la clé de votre réussite académique et spirituelle.
+                                        {t.attendanceSub}
                                     </p>
                                     <div className="hero-presence-stats">
                                         <div className="hp-stat-item">
                                             <span className="hp-stat-value">{attendanceStats?.presents ?? 0}</span>
-                                            <span className="hp-stat-label">Présences</span>
+                                            <span className="hp-stat-label">{t.presents}</span>
                                         </div>
                                         <div className="hp-stat-item divider"/>
                                         <div className="hp-stat-item">
                                             <span className="hp-stat-value">{attendanceStats?.absents ?? 0}</span>
-                                            <span className="hp-stat-label">Absences</span>
+                                            <span className="hp-stat-label">{t.absences}</span>
                                         </div>
                                         <div className="hp-stat-item divider"/>
                                         <div className="hp-stat-item">
                                             <span className="hp-stat-value">{attendanceStats?.retards ?? 0}</span>
-                                            <span className="hp-stat-label">Retards</span>
+                                            <span className="hp-stat-label">{t.tardies}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -552,22 +627,22 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                             <div className="kpi-card">
                                 <div className="kpi-icon kpi-icon--blue"><Calendar size={22}/></div>
                                 <span className="kpi-value">{myInscriptions.filter(i => i.statut === 'approuvee').length}</span>
-                                <span className="kpi-label">SESSIONS</span>
+                                <span className="kpi-label">{t.sessionsLabel}</span>
                             </div>
                             <div className="kpi-card">
                                 <div className="kpi-icon kpi-icon--amber"><Hourglass size={22}/></div>
                                 <span className="kpi-value">{myInscriptions.filter(i => i.statut === 'en_attente').length}</span>
-                                <span className="kpi-label">ATTENTES</span>
+                                <span className="kpi-label">{t.pendingLabel}</span>
                             </div>
                             <div className="kpi-card">
                                 <div className="kpi-icon kpi-icon--emerald"><BookMarked size={22}/></div>
                                 <span className="kpi-value">{myInscriptions.reduce((acc, ins) => acc + (ins.coursTermines?.length || 0), 0)}</span>
-                                <span className="kpi-label">COURS</span>
+                                <span className="kpi-label">{t.coursesLabel}</span>
                             </div>
                             <div className="kpi-card">
                                 <div className="kpi-icon kpi-icon--violet"><Award size={22}/></div>
                                 <span className="kpi-value">0</span>
-                                <span className="kpi-label">CERTIFICATS</span>
+                                <span className="kpi-label">{t.certificatesLabel}</span>
                             </div>
                         </div>
 
@@ -577,21 +652,21 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                             <div className="lum-col-left">
                                 <section className="sd-classes-section lum-section">
                                     <div className="sd-section-header lum-section-header">
-                                        <h2 className="sd-section-title lum-title">Mes Sessions Inscrites</h2>
-                                        <Link to="/inscriptions" className="sd-see-all lum-link">Voir tout</Link>
+                                        <h2 className="sd-section-title lum-title">{t.myEnrolledSessions}</h2>
+                                        <Link to="/inscriptions" className="sd-see-all lum-link">{t.viewAll}</Link>
                                     </div>
 
                                     {inscriptionsLoading ? (
                                         <div style={{ textAlign:'center', padding:'40px', color:'var(--text-muted)' }}>
-                                            <p>Chargement de vos sessions...</p>
+                                            <p>{t.loadingMySessions}</p>
                                         </div>
                                     ) : !myInscriptions || myInscriptions.length === 0 ? (
                                         <div className="sd-no-class">
                                             <div className="sd-no-class__icon">🎓</div>
-                                            <h3>Aucune session inscrite</h3>
-                                            <p>Vous n'êtes encore inscrit à aucune session. Découvrez nos programmes disponibles !</p>
+                                            <h3>{t.noEnrolledSessions}</h3>
+                                            <p>{t.noEnrolledSessionsDesc}</p>
                                             <Link to="/formations" className="sd-enroll-link">
-                                                <GraduationCap size={16}/> Voir les sessions disponibles
+                                                <GraduationCap size={16}/> {t.viewAvailableSessions}
                                             </Link>
                                         </div>
                                     ) : (
@@ -656,7 +731,7 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                                                                                     <div className="lum-progress-bar" style={{ width: `${pct}%` }}/>
                                                                                 </div>
                                                                                 <div className="sd-progress-footer">
-                                                                                    <span className="sd-progress-pct-text">{pct}% COMPLÉTÉ</span>
+                                                                                    <span className="sd-progress-pct-text">{pct}% {t.completedPercentage}</span>
                                                                                     <button 
                                                                                         className="sd-btn-rejoindre"
                                                                                         onClick={(e) => {
@@ -664,7 +739,7 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                                                                                             navigate('/inscriptions', { state: { selectedId: inscription._id } });
                                                                                         }}
                                                                                     >
-                                                                                        Rejoindre
+                                                                                        {t.joinBtn}
                                                                                     </button>
                                                                                 </div>
                                                                             </>
@@ -675,7 +750,7 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
 
                                                             {inscription.statut === 'en_attente' && (
                                                                 <div className="sd-pending-overlay-text">
-                                                                    En attente d'approbation
+                                                                    {t.pendingApproval}
                                                                 </div>
                                                             )}
                                                         </div>
@@ -691,13 +766,53 @@ function StudentDashboard({ effectiveUser, parentUser, onSwitchChild, successMes
                             <div className="lum-col-right">
                                 {/* Prochains Examens */}
                                 <div className="lum-widget">
-                                    <h3 className="lum-title mb-4">Prochains Examens</h3>
+                                    <h3 className="lum-title mb-4">{t.upcomingExams}</h3>
                                     <div className="lum-empty-card">
                                         <div className="lum-empty-icon"><Calendar size={24}/></div>
-                                        <h4>Aucun examen prévu</h4>
-                                        <p>Les dates de tests seront affichées ici.</p>
-                                        <Link to="/examens" className="lum-link-gold">Parcourir le calendrier</Link>
+                                        <h4>{t.noExamsScheduled}</h4>
+                                        <p>{t.examsDesc}</p>
+                                        <Link to="/examens" className="lum-link-gold">{t.browseCalendar}</Link>
                                     </div>
+                                </div>
+
+                                {/* Annonces & Événements */}
+                                <div className="lum-widget mt-4">
+                                    <h3 className="lum-title mb-4">{t.announcementsEvents}</h3>
+                                    {actualites.length === 0 ? (
+                                        <div className="lum-empty-card" style={{ minHeight: '120px' }}>
+                                            <div className="lum-empty-icon"><Megaphone size={20}/></div>
+                                            <p style={{ fontSize: '13px', marginTop: '8px' }}>{t.noAnnouncements}</p>
+                                        </div>
+                                    ) : (
+                                        <div className="lum-event-list">
+                                            {actualites
+                                                .filter(a => {
+                                                    if (!a.dateEvenement) return false; // Ne garde que ceux avec une date
+                                                    const d = new Date(a.dateEvenement);
+                                                    const today = new Date();
+                                                    today.setHours(0,0,0,0);
+                                                    d.setHours(0,0,0,0);
+                                                    return d >= today; // Aujourd'hui ou futur
+                                                })
+                                                .slice(0, 3)
+                                                .map((a, i) => (
+                                                    <div key={i} className="lum-event-card">
+                                                        <div className="lum-event-icon">
+                                                            {a.dateEvenement ? <Calendar size={18}/> : <Megaphone size={18}/>}
+                                                        </div>
+                                                        <div className="lum-event-content">
+                                                            <h4 className="lum-event-name">{a.titre}</h4>
+                                                            {a.dateEvenement && (
+                                                                <div className="lum-event-date">
+                                                                    {t.eventFor} {new Date(a.dateEvenement).toLocaleDateString(lang === 'ar' ? 'ar-TN' : lang === 'en' ? 'en-US' : 'fr-FR')}
+                                                                </div>
+                                                            )}
+                                                            <p className="lum-event-desc">{a.description.substring(0, 60)}...</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    )}
                                 </div>
 
 

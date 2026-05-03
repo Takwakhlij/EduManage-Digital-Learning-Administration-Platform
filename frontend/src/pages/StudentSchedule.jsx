@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay, addDays, setHours, setMinutes } from 'date-fns';
+import { format, parse, startOfWeek, getDay, addDays, setHours, setMinutes, isAfter, startOfDay } from 'date-fns';
 import fr from 'date-fns/locale/fr';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -112,25 +112,55 @@ const StudentSchedule = () => {
         if (authUser?.token && (selectedSession || isGlobalView)) fetchSeances();
     }, [selectedSession, isGlobalView, authUser, inscriptions]);
 
-    // 3. Map Seances to Calendar Events
+    // 3. Map Seances to Calendar Events (bounded recurring)
     const events = useMemo(() => {
-        const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
-        
-        return seances.map(s => {
-            const dayOffset = jourToIndex[s.jour] === 0 ? 6 : jourToIndex[s.jour] - 1;
-            const eventDate = addDays(startOfCurrentWeek, dayOffset);
-            
-            const [startH, startM] = s.heureDebut.split(':').map(Number);
-            const [endH, endM] = s.heureFin.split(':').map(Number);
-            
-            return {
-                id: s._id,
-                title: s.matiere?.nomMatiere,
-                start: setMinutes(setHours(eventDate, startH), startM),
-                end: setMinutes(setHours(eventDate, endH), endM),
-                resource: s
-            };
+        const now = new Date();
+        const results = [];
+
+        seances.forEach(s => {
+            const dayIdx = jourToIndex[s.jour];
+            const [startH, startM] = (s.heureDebut || '08:00').split(':').map(Number);
+            const [endH, endM]   = (s.heureFin   || '09:00').split(':').map(Number);
+
+            const sessionDateDebut = s.session?.dateDebut;
+            const sessionDateFin   = s.session?.dateFin;
+
+            if (sessionDateDebut && sessionDateFin) {
+                // ── BOUNDED: generate all weekly occurrences within the session range ──
+                const rangeStart = startOfDay(new Date(sessionDateDebut));
+                const rangeEnd   = startOfDay(new Date(sessionDateFin));
+
+                let cursor = new Date(rangeStart);
+                while (cursor.getDay() !== dayIdx) cursor = addDays(cursor, 1);
+
+                let idx = 0;
+                while (!isAfter(cursor, rangeEnd)) {
+                    results.push({
+                        id: `${s._id}_${idx}`,
+                        title: s.matiere?.nomMatiere,
+                        start: setMinutes(setHours(new Date(cursor), startH), startM),
+                        end:   setMinutes(setHours(new Date(cursor), endH),   endM),
+                        resource: s
+                    });
+                    cursor = addDays(cursor, 7);
+                    idx++;
+                }
+            } else {
+                // ── FREE MODE: project on current week ──
+                const startOfCurrentWeek = startOfWeek(now, { weekStartsOn: 1 });
+                const dayOffset = dayIdx === 0 ? 6 : dayIdx - 1;
+                const eventDate = addDays(startOfCurrentWeek, dayOffset);
+                results.push({
+                    id: s._id,
+                    title: s.matiere?.nomMatiere,
+                    start: setMinutes(setHours(eventDate, startH), startM),
+                    end:   setMinutes(setHours(eventDate, endH),   endM),
+                    resource: s
+                });
+            }
         });
+
+        return results;
     }, [seances]);
 
     // 4. Color map for subjects

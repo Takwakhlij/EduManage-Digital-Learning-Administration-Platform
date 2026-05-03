@@ -6,7 +6,7 @@ import {
     CheckCircle, XCircle, Clock, TrendingUp, ArrowLeft,
     BookOpen, Calendar, AlertCircle, Award, Filter,
     ChevronRight, Activity, Star, Shield, CreditCard, 
-    User, Settings, LogOut, Menu, Bell, GraduationCap, FileText, X
+    User, Settings, LogOut, Menu, Bell, GraduationCap, FileText, X, Globe, Sun, Moon
 } from 'lucide-react';
 import { logout, reset } from '../features/auth/authSlice';
 import { useTheme } from '../context/ThemeContext';
@@ -59,10 +59,10 @@ function StudentPresence() {
         if (t >= 60) return '#f59e0b';
         return '#ef4444';
     };
-    const getTauxLabel = (t) => {
-        if (t >= 80) return 'Excellent';
-        if (t >= 60) return 'Passable';
-        return 'Insuffisant';
+    const getTauxLabel = (t_val) => {
+        if (t_val >= 80) return t.excellent;
+        if (t_val >= 60) return t.passable;
+        return t.insufficient;
     };
     const getTauxGrade = (t) => {
         if (t >= 90) return 'A+';
@@ -86,9 +86,9 @@ function StudentPresence() {
     const navItems = [
         { icon: <BookOpen size={20} />, label: t.formations, path: '/formations' },
         { icon: <GraduationCap size={20} />, label: t.myClasses, path: '/inscriptions' },
-        { icon: <Calendar size={20} />, label: 'Emploi du Temps', path: '/planning' },
-        { icon: <TrendingUp size={20} />, label: 'Mes Absences', path: '/presence' },
-        { icon: <CreditCard size={20} />, label: 'Mes Paiements', path: '/paiements' },
+        { icon: <Calendar size={20} />, label: t.mySchedule, path: '/planning' },
+        { icon: <TrendingUp size={20} />, label: t.myAbsences, path: '/presence' },
+        { icon: <CreditCard size={20} />, label: t.myPayments, path: '/paiements' },
         { icon: <FileText size={20} />, label: t.myExams, path: '/examens' },
         { icon: <Award size={20} />, label: t.myCertificates, path: '/certificats' },
     ];
@@ -97,7 +97,7 @@ function StudentPresence() {
         return (
             <div className="sp2-loading">
                 <div className="sp2-spinner" />
-                <p>Chargement de votre assiduité...</p>
+                <p>{t.loadingAttendance}</p>
             </div>
         );
     }
@@ -109,10 +109,10 @@ function StudentPresence() {
     const dash = (taux / 100) * circ;
 
     const filterOpts = [
-        { key: 'all',     label: 'Tout',    icon: <Activity size={13}/>,     count: history.length },
-        { key: 'Present', label: 'Présent', icon: <CheckCircle size={13}/>,  count: stats?.presents ?? 0, color: '#10b981' },
-        { key: 'Absent',  label: 'Absent',  icon: <XCircle size={13}/>,      count: stats?.absents ?? 0,  color: '#ef4444' },
-        { key: 'Retard',  label: 'Retard',  icon: <Clock size={13}/>,        count: stats?.retards ?? 0,  color: '#f59e0b' },
+        { key: 'all',     label: t.all,    icon: <Activity size={13}/>,     count: history.length },
+        { key: 'Present', label: t.presents, icon: <CheckCircle size={13}/>,  count: stats?.presents ?? 0, color: '#10b981' },
+        { key: 'Absent',  label: t.absences,  icon: <XCircle size={13}/>,      count: stats?.absents ?? 0,  color: '#ef4444' },
+        { key: 'Retard',  label: t.tardies,  icon: <Clock size={13}/>,        count: stats?.retards ?? 0,  color: '#f59e0b' },
     ];
 
     return (
@@ -137,19 +137,19 @@ function StudentPresence() {
                     </div>
                     <div className="profile-info">
                         <h3>{authUser?.firstName} {authUser?.lastName}</h3>
-                        <p className="profile-role">Compte Étudiant</p>
+                        <p className="profile-role">{t.studentAccount}</p>
                     </div>
                 </div>
 
                 <nav className="sidebar-nav">
                     <Link to="/" className="nav-item back-home-nav">
                         <span className="nav-icon"><ArrowLeft size={20}/></span>
-                        <span className="nav-label">Retour à l'accueil</span>
+                        <span className="nav-label">{t.backToHome}</span>
                     </Link>
                     <div className="nav-divider" style={{ margin:'10px 0', opacity:0.3 }}/>
                     <Link to="/dashboard" className="nav-item">
                         <span className="nav-icon"><User size={20}/></span>
-                        <span className="nav-label">Mon Tableau de Bord</span>
+                        <span className="nav-label">{t.myDashboard}</span>
                     </Link>
                     {navItems.map((item, i) => (
                         <Link key={i} to={item.path} className={`nav-item ${window.location.pathname === item.path ? 'active' : ''}`}>
@@ -160,13 +160,13 @@ function StudentPresence() {
                     <div className="nav-divider"/>
                     <Link to="/profile" className="nav-item">
                         <span className="nav-icon"><Settings size={20}/></span>
-                        <span className="nav-label">Paramètres</span>
+                        <span className="nav-label">{t.settings}</span>
                     </Link>
                 </nav>
 
                 <div className="sidebar-footer">
                     <button onClick={onLogout} className="btn-logout">
-                        <LogOut size={20}/><span>Déconnexion</span>
+                        <LogOut size={20}/><span>{t.logout}</span>
                     </button>
                 </div>
             </aside>
@@ -176,9 +176,34 @@ function StudentPresence() {
                 <header className="content-header">
                     <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}><Menu size={24}/></button>
                     <div className="header-actions">
+                        <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '2px 8px', marginRight: '8px' }}>
+                            <Globe size={16} style={{ color: 'var(--text-color)', marginRight: '6px' }} />
+                            <select
+                                value={lang}
+                                onChange={(e) => {
+                                    const newLang = e.target.value;
+                                    setLang(newLang);
+                                    localStorage.setItem('app-lang', newLang);
+                                }}
+                                style={{
+                                    background: 'transparent',
+                                    color: 'var(--text-color)',
+                                    border: 'none',
+                                    padding: '4px 0',
+                                    outline: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '13px',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                <option value="fr" style={{color: '#000'}}>Français</option>
+                                <option value="ar" style={{color: '#000'}}>العربية</option>
+                                <option value="en" style={{color: '#000'}}>English</option>
+                            </select>
+                        </div>
                         <button className="icon-btn theme-toggle-btn" onClick={toggleTheme} title={isDarkMode ? 'Mode Clair' : 'Mode Sombre'}
                             style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'36px', height:'36px', borderRadius:'50%', border:'none', background:'transparent', color:'var(--text-color)', cursor:'pointer', transition:'all 0.2s ease' }}>
-                            {isDarkMode ? '☀️' : '🌙'}
+                            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                         </button>
                         <NotificationCenter />
                         <div className="user-badge" onClick={() => navigate('/profile')}>
@@ -200,29 +225,29 @@ function StudentPresence() {
                     <div className="sp2-hero">
                         <div className="sp2-hero-left">
                             <div className="sp2-arabic">بِسْمِ ٱللَّٰهِ</div>
-                            <h1 className="sp2-hero-title">Mes Absences</h1>
-                            <p className="sp2-hero-subtitle">Votre régularité est le reflet de votre engagement spirituel.</p>
+                            <h1 className="sp2-hero-title">{t.myAbsences}</h1>
+                            <p className="sp2-hero-subtitle">{t.presenceHeroSubtitle}</p>
                             
                             <div className="sp2-hero-kpis">
                                 <div className="sp2-hero-kpi sp2-kpi-present">
                                     <CheckCircle size={18}/>
                                     <div className="sp2-hero-kpi-info">
                                         <span className="sp2-hero-kpi-val">{stats?.presents ?? 0}</span>
-                                        <span className="sp2-hero-kpi-lbl">Présences</span>
+                                        <span className="sp2-hero-kpi-lbl">{t.presents}</span>
                                     </div>
                                 </div>
                                 <div className="sp2-hero-kpi sp2-kpi-absent">
                                     <XCircle size={18}/>
                                     <div className="sp2-hero-kpi-info">
                                         <span className="sp2-hero-kpi-val">{stats?.absents ?? 0}</span>
-                                        <span className="sp2-hero-kpi-lbl">Absences</span>
+                                        <span className="sp2-hero-kpi-lbl">{t.absences}</span>
                                     </div>
                                 </div>
                                 <div className="sp2-hero-kpi sp2-kpi-retard">
                                     <Clock size={18}/>
                                     <div className="sp2-hero-kpi-info">
                                         <span className="sp2-hero-kpi-val">{stats?.retards ?? 0}</span>
-                                        <span className="sp2-hero-kpi-lbl">Retards</span>
+                                        <span className="sp2-hero-kpi-lbl">{t.tardies}</span>
                                     </div>
                                 </div>
                             </div>
@@ -243,7 +268,7 @@ function StudentPresence() {
                                     <span className="sp2-donut-label">{getTauxLabel(taux)}</span>
                                 </div>
                             </div>
-                            <p className="sp2-seances-count">{stats?.total || 0} séances enregistrées</p>
+                            <p className="sp2-seances-count">{stats?.total || 0} {t.recordedSessions}</p>
                         </div>
                     </div>
 
@@ -252,13 +277,13 @@ function StudentPresence() {
                         {taux < 60 && stats?.total > 0 && (
                             <div className="sp2-alert">
                                 <AlertCircle size={18}/>
-                                <span>Taux d'assiduité insuffisant ({taux}%) — Veuillez contacter votre enseignant ou l'administration pour régulariser votre situation.</span>
+                                <span>{t.insufficientAttendance} ({taux}%) {t.contactAdmin}</span>
                             </div>
                         )}
                         {taux >= 80 && stats?.total > 0 && (
                             <div className="sp2-congrats">
                                 <Star size={18}/>
-                                <span>Excellent travail, {authUser?.firstName} ! Votre assiduité exemplaire favorise grandement votre apprentissage.</span>
+                                <span>{t.congratsAttendance}{authUser?.firstName}{t.congratsSub}</span>
                             </div>
                         )}
                     </div>
@@ -267,11 +292,11 @@ function StudentPresence() {
                     <div className="sp2-top-tabs">
                         <button className={`sp2-top-tab ${activeTab === 'timeline' ? 'active' : ''}`}
                             onClick={() => setActiveTab('timeline')}>
-                            <Calendar size={15}/> Historique
+                            <Calendar size={15}/> {t.history}
                         </button>
                         <button className={`sp2-top-tab ${activeTab === 'sessions' ? 'active' : ''}`}
                             onClick={() => setActiveTab('sessions')}>
-                            <BookOpen size={15}/> Par Session
+                            <BookOpen size={15}/> {t.bySession}
                         </button>
                     </div>
 
@@ -310,8 +335,8 @@ function StudentPresence() {
                                     return (
                                         <div className="sp2-empty">
                                             <Award size={42}/>
-                                            <h3>Aucune présence enregistrée</h3>
-                                            <p>Aucune séance ne correspond à ce filtre.</p>
+                                            <h3>{t.noPresenceRecord}</h3>
+                                            <p>{t.noSessionFilter}</p>
                                         </div>
                                     );
                                 }
@@ -321,15 +346,15 @@ function StudentPresence() {
                                         <table className="sp2-grid-table">
                                             <thead>
                                                 <tr>
-                                                    <th rowSpan="2" className="th-date">Date et Jour</th>
-                                                    <th rowSpan="2" className="th-remarks">Observations</th>
-                                                    <th colSpan={colCount} className="th-seances">Séances du jour</th>
-                                                    <th rowSpan="2" className="th-total">Abs.</th>
-                                                    <th rowSpan="2" className="th-late">Retard</th>
+                                                    <th rowSpan="2" className="th-date">{t.dateAndDay}</th>
+                                                    <th rowSpan="2" className="th-remarks">{t.remarks}</th>
+                                                    <th colSpan={colCount} className="th-seances">{t.sessionsOfDay}</th>
+                                                    <th rowSpan="2" className="th-total">{t.absences}</th>
+                                                    <th rowSpan="2" className="th-late">{t.tardies}</th>
                                                 </tr>
                                                 <tr>
                                                     {Array.from({ length: colCount }, (_, i) => (
-                                                        <th key={i} className="th-sub">S.{i + 1}</th>
+                                                        <th key={i} className="th-sub">{lang === 'ar' ? 'ح.' : 'S.'}{i + 1}</th>
                                                     ))}
                                                 </tr>
                                             </thead>
@@ -337,8 +362,9 @@ function StudentPresence() {
                                                 {sortedDates.map(dateKey => {
                                                     const dayPresences = grouped[dateKey];
                                                     const dateObj = new Date(dateKey);
-                                                    const formattedDate = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                                                    const dayName = dateObj.toLocaleDateString('fr-FR', { weekday: 'long' });
+                                                    const locale = lang === 'ar' ? 'ar-TN' : lang === 'en' ? 'en-US' : 'fr-FR';
+                                                    const formattedDate = dateObj.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                                    const dayName = dateObj.toLocaleDateString(locale, { weekday: 'long' });
                                                     const remarks = dayPresences.filter(p => p.remarque).map(p => p.remarque).join(' • ');
                                                     const sortedPres = [...dayPresences].sort((a, b) => (a.seance?.heureDebut || '').localeCompare(b.seance?.heureDebut || ''));
                                                     const dayAbsent = dayPresences.filter(p => p.statut === 'Absent').length;
@@ -381,27 +407,27 @@ function StudentPresence() {
 
                             {/* ── Résumé ── */}
                             <div className="sp2-resume-container">
-                                <h3 className="resume-title">Résumé de Présence</h3>
+                                <h3 className="resume-title">{t.attendanceSummaryTitle}</h3>
                                 <table className="sp2-resume-table">
                                     <thead>
                                         <tr>
-                                            <th>Type</th>
-                                            <th>Nombre</th>
-                                            <th>Sur un total de</th>
+                                            <th>{t.type}</th>
+                                            <th>{t.number}</th>
+                                            <th>{t.outOfTotal}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td className="row-label">Présences</td>
+                                            <td className="row-label">{t.presents}</td>
                                             <td style={{ color: '#10b981', fontWeight: 800 }}>{stats?.presents || 0}</td>
-                                            <td rowSpan="3" className="td-total-seances">{stats?.total || 0} séances</td>
+                                            <td rowSpan="3" className="td-total-seances">{stats?.total || 0} {t.sessions}</td>
                                         </tr>
                                         <tr>
-                                            <td className="row-label">Absences</td>
+                                            <td className="row-label">{t.absences}</td>
                                             <td style={{ color: '#ef4444', fontWeight: 800 }}>{stats?.absents || 0}</td>
                                         </tr>
                                         <tr className="row-total">
-                                            <td className="row-label">Retards</td>
+                                            <td className="row-label">{t.tardies}</td>
                                             <td style={{ color: '#f59e0b', fontWeight: 800 }}>{stats?.retards || 0}</td>
                                         </tr>
                                     </tbody>
@@ -416,8 +442,8 @@ function StudentPresence() {
                             {parSession.length === 0 ? (
                                 <div className="sp2-empty">
                                     <Award size={52}/>
-                                    <h3>Aucune donnée</h3>
-                                    <p>Vos présences par session apparaîtront ici.</p>
+                                    <h3>{t.noData}</h3>
+                                    <p>{t.presenceBySessionEmpty}</p>
                                 </div>
                             ) : (
                                 parSession.map(s => {
@@ -429,11 +455,11 @@ function StudentPresence() {
                                         <div key={s.sessionId} className="sp2-session-card">
                                             <div className="sp2-scard-left">
                                                 <h3 className="sp2-scard-name">{s.nomSession}</h3>
-                                                <p className="sp2-scard-total">{s.total} séances</p>
+                                                <p className="sp2-scard-total">{s.total} {t.sessions}</p>
                                                 <div className="sp2-scard-stats">
-                                                    <span style={{color:'#10b981'}}><CheckCircle size={12}/> {s.presents} Présents</span>
-                                                    <span style={{color:'#f59e0b'}}><Clock size={12}/> {s.retards} Retards</span>
-                                                    <span style={{color:'#ef4444'}}><XCircle size={12}/> {s.absents} Absents</span>
+                                                    <span style={{color:'#10b981'}}><CheckCircle size={12}/> {s.presents} {t.presents}</span>
+                                                    <span style={{color:'#f59e0b'}}><Clock size={12}/> {s.retards} {t.tardies}</span>
+                                                    <span style={{color:'#ef4444'}}><XCircle size={12}/> {s.absents} {t.absences}</span>
                                                 </div>
                                                 <div className="sp2-scard-bar-bg">
                                                     <div className="sp2-scard-bar" style={{ width: `${s.taux}%`, background: color }}/>

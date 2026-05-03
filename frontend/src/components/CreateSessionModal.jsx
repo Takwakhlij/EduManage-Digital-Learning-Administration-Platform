@@ -122,6 +122,11 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        if (!dateDebut || !dateFin) {
+            toast.error('Veuillez définir la date de début et la date de fin de la session.');
+            return;
+        }
+
         if (dateDebut && dateFin) {
             const start = new Date(dateDebut);
             const end = new Date(dateFin);
@@ -245,15 +250,15 @@ const CreateSessionModal = ({ isOpen, onClose }) => {
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                             <div className="islamic-form-group" style={{ marginBottom: 0 }}>
-                                <label htmlFor="dateDebut">DATE DE DÉBUT</label>
+                                <label htmlFor="dateDebut">DATE DE DÉBUT <span className="required">*</span></label>
                                 <div className="islamic-input-wrapper">
-                                    <input type="date" id="dateDebut" name="dateDebut" value={dateDebut} onChange={handleChange} className="islamic-input" />
+                                    <input type="date" id="dateDebut" name="dateDebut" required value={dateDebut} onChange={handleChange} className="islamic-input" />
                                 </div>
                             </div>
                             <div className="islamic-form-group" style={{ marginBottom: 0 }}>
-                                <label htmlFor="dateFin">DATE DE FIN</label>
+                                <label htmlFor="dateFin">DATE DE FIN <span className="required">*</span></label>
                                 <div className="islamic-input-wrapper">
-                                    <input type="date" id="dateFin" name="dateFin" value={dateFin} onChange={handleChange} className="islamic-input" />
+                                    <input type="date" id="dateFin" name="dateFin" required value={dateFin} onChange={handleChange} className="islamic-input" />
                                 </div>
                             </div>
                         </div>

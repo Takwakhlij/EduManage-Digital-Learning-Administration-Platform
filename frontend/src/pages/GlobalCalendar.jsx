@@ -6,7 +6,7 @@ import _withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 import {
     format, parse, startOfWeek, getDay, addDays, setHours, setMinutes,
     startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay,
-    addMonths, subMonths
+    addMonths, subMonths, isBefore, isAfter, startOfDay
 } from 'date-fns';
 import fr from 'date-fns/locale/fr';
 import { getAllSeances, createSeance, deleteSeance, updateSeance } from '../features/seances/seanceSlice';
@@ -477,21 +477,64 @@ function GlobalCalendar() {
         });
     }, [seances, filterSessionId, filterMode, filterClasseId, filterEnseignantId]);
 
-    /* ── Convert seances to calendar events ── */
+    /* ── Convert seances to calendar events (bounded recurring) ── */
     const events = useMemo(() => {
         const now = new Date();
-        const mondayOfWeek = startOfWeek(now, { weekStartsOn: 1 });
-        return filteredSeances.map((seance) => {
-            const dayIdx = jourToIndex[seance.jour];
-            let offset = dayIdx - 1;
-            if (offset < 0) offset += 7;
-            const eventDate = addDays(mondayOfWeek, offset);
+        const results = [];
+
+        filteredSeances.forEach((seance) => {
             const [startH, startM] = (seance.heureDebut || '08:00').split(':').map(Number);
             const [endH, endM] = (seance.heureFin || '09:00').split(':').map(Number);
-            const start = setMinutes(setHours(eventDate, startH), startM);
-            const end = setMinutes(setHours(eventDate, endH), endM);
-            return { id: seance._id, title: seance.matiere?.nomMatiere || 'Séance', start, end, resource: seance };
+            const dayIdx = jourToIndex[seance.jour]; // 0=Sun … 6=Sat
+
+            // ── BOUNDED MODE: session has dateDebut & dateFin ──
+            const sessionDateDebut = seance.session?.dateDebut;
+            const sessionDateFin   = seance.session?.dateFin;
+
+            if (sessionDateDebut && sessionDateFin) {
+                const rangeStart = startOfDay(new Date(sessionDateDebut));
+                const rangeEnd   = startOfDay(new Date(sessionDateFin));
+
+                // Find the first occurrence of the correct weekday >= rangeStart
+                let cursor = new Date(rangeStart);
+                while (cursor.getDay() !== dayIdx) {
+                    cursor = addDays(cursor, 1);
+                }
+
+                // Walk every 7 days until rangeEnd
+                let occurrenceIndex = 0;
+                while (!isAfter(cursor, rangeEnd)) {
+                    const start = setMinutes(setHours(new Date(cursor), startH), startM);
+                    const end   = setMinutes(setHours(new Date(cursor), endH),   endM);
+                    results.push({
+                        id: `${seance._id}_${occurrenceIndex}`,
+                        title: seance.matiere?.nomMatiere || 'Séance',
+                        start,
+                        end,
+                        resource: seance,
+                    });
+                    cursor = addDays(cursor, 7);
+                    occurrenceIndex++;
+                }
+            } else {
+                // ── FREE MODE: no dates on session → show on current week only ──
+                const mondayOfWeek = startOfWeek(now, { weekStartsOn: 1 });
+                let offset = dayIdx - 1;
+                if (offset < 0) offset += 7;
+                const eventDate = addDays(mondayOfWeek, offset);
+                const start = setMinutes(setHours(eventDate, startH), startM);
+                const end   = setMinutes(setHours(eventDate, endH),   endM);
+                results.push({
+                    id: seance._id,
+                    title: seance.matiere?.nomMatiere || 'Séance',
+                    start,
+                    end,
+                    resource: seance,
+                });
+            }
         });
+
+        return results;
     }, [filteredSeances]);
 
     /* ── onSelectSlot: Ouvre le modal avec données pré-remplies ── */

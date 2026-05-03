@@ -406,10 +406,7 @@ function TeacherDashboard() {
                         <Users size={18} /> <span>{t.myStudents}</span>
                     </button>
                     <button className="td-nav-link" onClick={() => navigate('/profile')}><User size={18} /> <span>{t.profile}</span></button>
-                    <div style={{display:'flex', alignItems:'center', gap:'8px', padding:'10px 16px'}}>
-                        <NotificationCenter />
-                        <span style={{fontSize:'14px', opacity:0.7}}>Notifications</span>
-                    </div>
+
                     <button className="td-nav-link"><Settings size={18} /> <span>{t.settings}</span></button>
                 </nav>
             </aside>
