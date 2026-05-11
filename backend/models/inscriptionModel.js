@@ -40,9 +40,17 @@ const inscriptionSchema = new mongoose.Schema({
     },
     coursTermines: [{
         type: mongoose.Schema.Types.ObjectId,
-        // Referencing the ID from the session's coursPublies sub-documents
-        // No explicit ref here as they are sub-documents of Session
-    }]
+    }],
+    itqanScore: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+    souratesMemorisees: {
+        type: Number,
+        default: 0
+    }
 }, { timestamps: true });
 
 // Bloquer les doublons: E-taleb maynajamch y9ayed fi nafs el session marrtin

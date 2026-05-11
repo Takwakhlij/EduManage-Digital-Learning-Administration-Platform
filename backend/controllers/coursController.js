@@ -11,37 +11,40 @@ import { sendPushNotification } from './notificationController.js';
 const getCours = asyncHandler(async (req, res) => {
     let query = {};
 
-    if (req.user.role === 'teacher') {
-        // L'enseignant ne voit que ses propres cours
-        query.professeur = req.user._id;
-    } else if (req.user.role === 'student' || req.user.role === 'parent') {
-        // Utiliser studentId (fourni par le frontend, ex: parent consultant l'enfant)
-        // ou l'ID de l'utilisateur connecté lui-même (étudiant direct)
-        const targetUserId = req.query.studentId || req.user._id;
-
-        // ✅ Chercher les sessions où l'étudiant a une inscription APPROUVÉE
-        const inscriptions = await Inscription.find({
-            etudiant: targetUserId,
-            statut: 'approuvee'
-        }).select('session');
-
-        const sessionIds = inscriptions.map(i => i.session);
-
-        // Si aucune inscription approuvée, retourner tableau vide
-        if (sessionIds.length === 0) {
-            return res.status(200).json({ success: true, count: 0, data: [] });
-        }
-
-        query.session = { $in: sessionIds };
-        query.statut = 'Publié';
-    }
-
-    if (req.query.classeId) {
-        query.session = req.query.classeId; // Backward compat
-    }
+    // 1. Appliquer les filtres de base (Session / Classe)
     if (req.query.sessionId) {
         query.session = req.query.sessionId;
+    } else if (req.query.classeId) {
+        query.session = req.query.classeId;
     }
+
+    // 2. Filtres de sécurité et de rôle
+    if (req.user.role === 'teacher') {
+        // Si on n'est pas dans une session spécifique, le prof ne voit que ses cours
+        if (!query.session) {
+            query.professeur = req.user._id;
+        }
+    } else if (req.user.role === 'student' || req.user.role === 'parent') {
+        // Les étudiants/parents ne voient que les cours PUBLIÉS
+        query.statut = 'Publié';
+
+        // Si on n'a pas de sessionId, on cherche toutes les sessions de l'étudiant
+        if (!query.session) {
+            const targetUserId = req.query.studentId || req.user._id;
+            const inscriptions = await Inscription.find({
+                etudiant: targetUserId,
+                statut: 'approuvee'
+            }).select('session');
+
+            const sessionIds = inscriptions.map(i => i.session);
+
+            if (sessionIds.length === 0) {
+                return res.status(200).json({ success: true, count: 0, data: [] });
+            }
+            query.session = { $in: sessionIds };
+        }
+    }
+
     if (req.query.matiereId) {
         query.matiere = req.query.matiereId;
     }

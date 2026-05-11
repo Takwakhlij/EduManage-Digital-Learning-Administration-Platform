@@ -3,6 +3,7 @@ import Session from '../models/sessionModel.js';
 import Classe from '../models/classeModel.js';
 import Inscription from '../models/inscriptionModel.js';
 import Matiere from '../models/matiereModel.js';
+import { createCertificateRecord } from './certificateController.js';
 
 // 1. @desc    Créer une nouvelle session
 // @route   POST /api/sessions
@@ -147,7 +148,9 @@ export const getPublishedSessions = asyncHandler(async (req, res) => {
 // @route   GET /api/sessions/teacher
 // @access  Private (Teacher)
 export const getTeacherSessions = asyncHandler(async (req, res) => {
-    const sessionsRaw = await Session.find({ enseignants: req.user._id })
+    // Si Admin, on retourne toutes les sessions pour faciliter les tests sur mobile
+    const query = req.user.role === 'admin' ? {} : { enseignants: req.user._id };
+    const sessionsRaw = await Session.find(query)
         .populate({
             path: 'classe',
             select: 'nomClasse niveau matieres',
@@ -385,9 +388,23 @@ export const completeSession = asyncHandler(async (req, res) => {
     session.statut = 'Terminée';
     await session.save();
 
+    // --- GÉNÉRATION AUTOMATIQUE DES CERTIFICATS ---
+    // On cherche toutes les inscriptions approuvées pour cette session
+    const inscriptions = await Inscription.find({ 
+        session: session._id, 
+        statut: 'approuvee' 
+    });
+
+    let autoIssuedCount = 0;
+    for (const ins of inscriptions) {
+        // createCertificateRecord vérifie lui-même si c'est payé
+        const result = await createCertificateRecord(ins._id, req.user._id);
+        if (result.success) autoIssuedCount++;
+    }
+
     res.status(200).json({
         success: true,
-        message: "Session marquée comme terminée",
+        message: `Session terminée. ${autoIssuedCount} certificats émis automatiquement.`,
         session: session.toObject()
     });
 });

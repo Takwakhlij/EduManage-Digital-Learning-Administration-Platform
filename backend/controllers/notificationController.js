@@ -1,4 +1,5 @@
 import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
 import webpush from 'web-push';
 import PushSubscription from '../models/pushSubscriptionModel.js';
 import Notification from '../models/notificationModel.js';
@@ -33,6 +34,28 @@ const subscribeUser = asyncHandler(async (req, res) => {
     }
 
     res.status(201).json({ message: 'Abonnement enregistré avec succès' });
+});
+
+// @desc    Enregistrer un token Expo Push (Native)
+// @route   POST /api/notifications/save-token
+// @access  Private
+const savePushToken = asyncHandler(async (req, res) => {
+    const { token } = req.body;
+    
+    if (!token) {
+        res.status(400);
+        throw new Error('Token is required');
+    }
+
+    const user = await mongoose.model('User').findById(req.user._id);
+    if (user) {
+        user.expoPushToken = token;
+        await user.save();
+        res.json({ message: 'Push token saved successfully' });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
 });
 
 // @desc    Récupérer les notifications de l'utilisateur connecté
@@ -113,14 +136,42 @@ const sendPushNotification = async (userId, payload) => {
         });
 
         await Promise.all(notificationsPromises);
+
+        // 4. Envoyer le Push NATIVE (Expo) si le token existe
+        const user = await mongoose.model('User').findById(userId);
+        if (user && user.expoPushToken) {
+            console.log(`[NOTIF DEBUG] Tentative d'envoi NATIVE à l'utilisateur: ${userId}`);
+            try {
+                const response = await fetch('https://exp.host/--/api/v2/push/send', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Accept-encoding': 'gzip, deflate',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        to: user.expoPushToken,
+                        sound: 'default',
+                        title: payload.title,
+                        body: payload.body,
+                        data: { url: payload.url || null, ...payload.data },
+                    }),
+                });
+                const data = await response.json();
+                console.log('[NOTIF DEBUG] Expo Push Response:', data);
+            } catch (expoErr) {
+                console.error('[NOTIF DEBUG] Erreur lors de l\'envoi Expo Push:', expoErr);
+            }
+        }
     } catch (error) {
         console.error('[NOTIF DEBUG ERROR] Erreur globale sendPushNotification:', error);
     }
 };
 
 export {
-    subscribeUser,
     getUserNotifications,
     markAsRead,
-    sendPushNotification
+    sendPushNotification,
+    savePushToken,
+    subscribeUser
 };

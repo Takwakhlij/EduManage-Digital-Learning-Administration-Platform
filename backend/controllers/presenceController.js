@@ -12,19 +12,24 @@ const isEditable = (date) => {
     const now = new Date();
     const presenceDate = new Date(date);
     
-    // 1. Bloquer si la date est dans le futur (lendemain ou plus)
-    const startOfTomorrow = new Date();
-    startOfTomorrow.setHours(0, 0, 0, 0);
-    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+    // Normaliser presenceDate à minuit LOCAL pour la comparaison
+    const presenceStartOfDay = new Date(presenceDate.getFullYear(), presenceDate.getMonth(), presenceDate.getDate());
+
+    // 1. Bloquer si la date est dans le futur (demain ou plus)
+    const startOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
     
-    if (presenceDate >= startOfTomorrow) {
+    if (presenceDate.getTime() >= startOfTomorrow.getTime()) {
+        console.log(`[Presence] Bloqué: Date dans le futur (${date})`);
         return false;
     }
 
     // 2. Bloquer si le délai de 48h est dépassé
-    const diffMs = now - presenceDate;
+    // On calcule à partir de MAINTENANT par rapport au début du jour de présence
+    const diffMs = now.getTime() - presenceStartOfDay.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
     
+    console.log(`[Presence Check] Date: ${date}, DiffHours: ${diffHours.toFixed(2)}h, Now: ${now.toISOString()}`);
+
     return diffHours <= 48;
 };
 

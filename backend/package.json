@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^2.2.2",
     "cors": "^2.8.5",
@@ -26,6 +27,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^8.0.7",
     "pdfkit": "^0.18.0",
     "stripe": "^22.0.1",

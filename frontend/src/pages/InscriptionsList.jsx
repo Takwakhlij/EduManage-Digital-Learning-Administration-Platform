@@ -1,19 +1,23 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllInscriptions, updateInscriptionStatut, deleteInscription } from '../features/inscriptions/inscriptionSlice';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import CreateInscriptionModal from '../components/CreateInscriptionModal';
 import PaiementModal from '../components/PaiementModal';
 import {
     Plus, CreditCard, BarChart2, Search, Edit2, CheckCircle2,
     XCircle, History, Mail, Folder, BookOpen, CheckCircle,
-    Clock, X, Trash2, AlertTriangle, DollarSign, Users, TrendingUp, Filter
+    Clock, X, Trash2, AlertTriangle, DollarSign, Users, TrendingUp, Filter,
+    Award, Loader2, Bell, FileText
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './InscriptionsList.css';
 
+
 const InscriptionsList = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isPaiementModalOpen, setIsPaiementModalOpen] = useState(false);
     const [selectedInscription, setSelectedInscription] = useState(null);
@@ -23,8 +27,11 @@ const InscriptionsList = () => {
     const [filterSession, setFilterSession] = useState('toutes');
     const [filterClasse, setFilterClasse] = useState('toutes');
     const [showDebiteurs, setShowDebiteurs] = useState(false);
+    const [issuingCert, setIssuingCert] = useState(null);
+    const [sendingRelance, setSendingRelance] = useState(null);
 
     const { inscriptions, isLoading } = useSelector((state) => state.inscriptions);
+    const { user: authUser } = useSelector((state) => state.auth);
     const location = useLocation();
 
     useEffect(() => {
@@ -59,6 +66,39 @@ const InscriptionsList = () => {
             } else {
                 toast.error(msg);
             }
+        }
+    };
+
+    const handleIssueCertificate = async (inscriptionId, studentName) => {
+        if (!window.confirm(`Voulez-vous émettre manuellement le certificat pour ${studentName} ?`)) return;
+
+        try {
+            setIssuingCert(inscriptionId);
+            const config = { headers: { Authorization: `Bearer ${authUser?.token}` } };
+            
+            const res = await axios.post(`/api/certificates/issue/${inscriptionId}`, {}, config);
+            
+            if (res.data.success) {
+                toast.success(`🎖️ Certificat émis pour ${studentName} !`);
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Erreur lors de l'émission du certificat.");
+        } finally {
+            setIssuingCert(null);
+        }
+    };
+
+    const handleRelance = async (inscriptionId, studentName) => {
+        if (!window.confirm(`Envoyer un rappel de paiement à ${studentName} (et ses parents) ?`)) return;
+        try {
+            setSendingRelance(inscriptionId);
+            const config = { headers: { Authorization: `Bearer ${authUser?.token}` } };
+            const res = await axios.post(`/api/paiements/relance/${inscriptionId}`, {}, config);
+            toast.success(`🔔 ${res.data.message}`);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Erreur lors de l\'envoi du rappel.');
+        } finally {
+            setSendingRelance(null);
         }
     };
 
@@ -120,10 +160,6 @@ const InscriptionsList = () => {
     // ── KPIs ──
     const totalInscriptions = inscriptions?.length || 0;
     const totalDebiteurs = (inscriptions || []).filter(i => i.statutPaiement !== 'Payé' && i.statut === 'approuvee').length;
-    const totalEncaisse = (inscriptions || []).reduce((sum, i) => sum + (i.montantVerseTotal || 0), 0);
-    const totalReliquat = (inscriptions || []).reduce((sum, i) => sum + (i.resteAPayer || 0), 0);
-    const payeCount = (inscriptions || []).filter(i => i.statutPaiement === 'Payé').length;
-    const tauxPaiement = totalInscriptions > 0 ? Math.round((payeCount / totalInscriptions) * 100) : 0;
 
     // ── Filtrage ──
     const filteredInscriptions = (inscriptions || []).filter(ins => {
@@ -171,82 +207,75 @@ const InscriptionsList = () => {
 
 
             {/* Header */}
-            <div className="inscriptions-header">
-                <h1>Inscriptions & Paiements</h1>
-                <p>Gérez les inscriptions et encaissez les paiements en temps réel</p>
+            <div className="inscriptions-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <div>
+                    <h1>Inscriptions & Paiements</h1>
+                    <p>Gérez les inscriptions et encaissez les paiements en temps réel</p>
+                </div>
+                <button
+                    onClick={() => navigate('/admin/rapport-ia')}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        color: '#10b981',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        borderRadius: '10px',
+                        padding: '10px 20px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        whiteSpace: 'nowrap',
+                        backdropFilter: 'blur(10px)'
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                >
+                    <BarChart2 size={16} />
+                   Générer votre Rapport Financier IA — {new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
+                </button>
             </div>
 
-            {/* ── KPI Cards ── */}
-            <div className="ins-kpi-grid">
+
+
+            {/* ── Dashboard Stats (3 Cards) ── */}
+            <div className="ins-kpi-grid-three">
                 <div className="ins-kpi-card">
                     <div className="ins-kpi-icon" style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
-                        <Users size={20} />
+                        <Users size={22} />
                     </div>
                     <div>
                         <div className="ins-kpi-value">{totalInscriptions}</div>
                         <div className="ins-kpi-label">Total Inscriptions</div>
                     </div>
                 </div>
-                <div className="ins-kpi-card">
-                    <div className="ins-kpi-icon" style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
-                        <DollarSign size={20} />
-                    </div>
-                    <div>
-                        <div className="ins-kpi-value">{totalEncaisse.toFixed(0)} <span style={{ fontSize: '13px', fontWeight: 500 }}>TND</span></div>
-                        <div className="ins-kpi-label">Total Encaissé</div>
-                    </div>
-                </div>
-                <div className="ins-kpi-card">
-                    <div className="ins-kpi-icon" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>
-                        <AlertTriangle size={20} />
-                    </div>
-                    <div>
-                        <div className="ins-kpi-value" style={{ color: '#f59e0b' }}>{totalDebiteurs}</div>
-                        <div className="ins-kpi-label">Débiteurs</div>
-                    </div>
-                </div>
-                <div className="ins-kpi-card">
-                    <div className="ins-kpi-icon" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa' }}>
-                        <TrendingUp size={20} />
-                    </div>
-                    <div>
-                        <div className="ins-kpi-value" style={{ color: '#a78bfa' }}>{tauxPaiement}%</div>
-                        <div className="ins-kpi-label">Taux de Paiement</div>
-                        <div className="ins-kpi-bar-bg">
-                            <div className="ins-kpi-bar-fill" style={{ width: `${tauxPaiement}%` }} />
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            {/* ── Quick Actions ── */}
-            <div className="inscriptions-quick-actions">
-                <div className="action-card" onClick={() => setIsCreateModalOpen(true)}>
-                    <div className="action-icon"><Edit2 size={18} /></div>
-                    <div className="action-info">
-                        <h3>Nouvelle Inscription</h3>
-                        <p>Inscrire un étudiant</p>
-                    </div>
-                </div>
-
-                <div className={`action-card ${showDebiteurs ? 'active-filter' : ''}`}
+                <div className={`ins-kpi-card clickable ${showDebiteurs ? 'active-filter' : ''}`}
                     onClick={() => setShowDebiteurs(!showDebiteurs)}>
-                    <div className="action-icon" style={showDebiteurs ? { background: 'rgba(245,158,11,0.2)', color: '#f59e0b' } : {}}>
-                        <AlertTriangle size={18} />
+                    <div className="ins-kpi-icon" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>
+                        <AlertTriangle size={22} />
                     </div>
-                    <div className="action-info">
-                        <h3>Débiteurs {totalDebiteurs > 0 && <span className="debiteur-count">{totalDebiteurs}</span>}</h3>
-                        <p>{showDebiteurs ? 'Filtre actif — Cliquer pour désactiver' : 'Afficher les impayés'}</p>
+                    <div>
+                        <div className="ins-kpi-value">{totalDebiteurs}</div>
+                        <div className="ins-kpi-label">Débiteurs {showDebiteurs && " (Filtré)"}</div>
                     </div>
                 </div>
 
-                <div className="action-card">
-                    <div className="action-icon"><BarChart2 size={18} /></div>
-                    <div className="action-info">
-                        <h3>Reliquat Total</h3>
-                        <p style={{ color: totalReliquat > 0 ? '#f59e0b' : '#10b981', fontWeight: 700 }}>
-                            {totalReliquat.toFixed(2)} TND
-                        </p>
+                <div className="ins-kpi-card clickable action" onClick={() => setIsCreateModalOpen(true)}>
+                    <div className="ins-kpi-icon" style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6' }}>
+                        <Plus size={22} />
+                    </div>
+                    <div>
+                        <div className="ins-kpi-value" style={{ fontSize: '18px' }}>Nouvelle</div>
+                        <div className="ins-kpi-label">Inscription</div>
                     </div>
                 </div>
             </div>
@@ -455,6 +484,7 @@ const InscriptionsList = () => {
                                                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                                                     {/* Bouton Encaisser */}
                                                     {inscription.statut === 'approuvee' && inscription.statutPaiement !== 'Payé' && (
+                                                        <>
                                                         <button
                                                             title="Enregistrer un paiement"
                                                             onClick={() => handleOpenPaiement(inscription)}
@@ -467,6 +497,24 @@ const InscriptionsList = () => {
                                                             }}>
                                                             <CreditCard size={15} />
                                                         </button>
+                                                        {/* Bouton Relance */}
+                                                        <button
+                                                            title="Envoyer un rappel de paiement"
+                                                            disabled={sendingRelance === inscription._id}
+                                                            onClick={() => handleRelance(inscription._id, studentName)}
+                                                            style={{
+                                                                background: 'rgba(99,102,241,0.15)', color: '#818cf8',
+                                                                border: '1px solid rgba(99,102,241,0.3)', borderRadius: '8px',
+                                                                width: '32px', height: '32px', display: 'flex',
+                                                                alignItems: 'center', justifyContent: 'center',
+                                                                cursor: sendingRelance === inscription._id ? 'not-allowed' : 'pointer',
+                                                                transition: 'all 0.2s', opacity: sendingRelance === inscription._id ? 0.5 : 1
+                                                            }}>
+                                                            {sendingRelance === inscription._id
+                                                                ? <Loader2 size={15} className="animate-spin" />
+                                                                : <Bell size={15} />}
+                                                        </button>
+                                                        </>
                                                     )}
                                                     {/* Voir historique si déjà payé */}
                                                     {inscription.statutPaiement === 'Payé' && (
@@ -481,6 +529,25 @@ const InscriptionsList = () => {
                                                                 cursor: 'pointer', transition: 'all 0.2s'
                                                             }}>
                                                             <History size={15} />
+                                                        </button>
+                                                    )}
+
+                                                    {/* BOUTON ÉMETTRE CERTIFICAT (MANUEL) */}
+                                                    {inscription.statut === 'approuvee' && 
+                                                     inscription.statutPaiement === 'Payé' && 
+                                                     inscription.session?.statut === 'Terminée' && (
+                                                        <button
+                                                            title="Émettre un certificat"
+                                                            disabled={issuingCert === inscription._id}
+                                                            onClick={() => handleIssueCertificate(inscription._id, studentName)}
+                                                            style={{
+                                                                background: 'rgba(201,168,76,0.15)', color: '#c9a84c',
+                                                                border: '1px solid rgba(201,168,76,0.3)', borderRadius: '8px',
+                                                                width: '32px', height: '32px', display: 'flex',
+                                                                alignItems: 'center', justifyContent: 'center',
+                                                                cursor: 'pointer', transition: 'all 0.2s'
+                                                            }}>
+                                                            {issuingCert === inscription._id ? <Loader2 size={15} className="animate-spin" /> : <Award size={15} />}
                                                         </button>
                                                     )}
 

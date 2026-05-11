@@ -239,7 +239,7 @@ export const getAllInscriptions = asyncHandler(async (req, res) => {
         .populate('etudiant', 'firstName lastName email profileImage')
         .populate({
             path: 'session',
-            select: 'nomSession montant duree',
+            select: 'nomSession montant duree statut',
             populate: {
                 path: 'enseignants',
                 select: 'firstName lastName'

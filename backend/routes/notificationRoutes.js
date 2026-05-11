@@ -1,9 +1,10 @@
 import express from 'express';
 const router = express.Router();
 import {
-    subscribeUser,
     getUserNotifications,
-    markAsRead
+    markAsRead,
+    savePushToken,
+    subscribeUser
 } from '../controllers/notificationController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -13,5 +14,7 @@ router.route('/')
 router.post('/subscribe', protect, subscribeUser);
 
 router.put('/:id/read', protect, markAsRead);
+
+router.post('/save-token', protect, savePushToken);
 
 export default router;

@@ -212,7 +212,12 @@ export const translations = {
         announcementsEvents: 'الإعلانات والأحداث',
         noAnnouncements: 'لا توجد إعلانات حاليا.',
         eventFor: 'حدث يوم:',
-        todaysEvent: 'حدث اليوم'
+        todaysEvent: 'حدث اليوم',
+        // Certificates
+        certificatesSubtitle: 'شهاداتك في الجلسات المكتملة.',
+        certSession: 'الدورة',
+        noCertificates: 'لا توجد شهادات بعد',
+        noCertificatesDesc: 'ستظهر شهاداتك هنا بعد إتمام الجلسة وسداد الرسوم بالكامل.'
     },
     fr: {
         dir: 'ltr',
@@ -410,7 +415,12 @@ export const translations = {
         announcementsEvents: 'Annonces & Événements',
         noAnnouncements: 'Aucune annonce pour le moment.',
         eventFor: 'Événement pour le',
-        todaysEvent: 'Événement d\'aujourd\'hui'
+        todaysEvent: 'Événement d\'aujourd\'hui',
+        // Certificates
+        certificatesSubtitle: 'Vos attestations de réussite pour les sessions complétées.',
+        certSession: 'Session',
+        noCertificates: 'Aucun certificat pour le moment',
+        noCertificatesDesc: 'Vos certificats apparaîtront ici après avoir complété et réglé une session avec succès.'
     },
     en: {
         dir: 'ltr',
@@ -608,7 +618,12 @@ export const translations = {
         announcementsEvents: 'Announcements & Events',
         noAnnouncements: 'No announcements at the moment.',
         eventFor: 'Event for',
-        todaysEvent: 'Today\'s Event'
+        todaysEvent: 'Today\'s Event',
+        // Certificates
+        certificatesSubtitle: 'Your certificates of completion for finished sessions.',
+        certSession: 'Session',
+        noCertificates: 'No certificates yet',
+        noCertificatesDesc: 'Your certificates will appear here after completing and fully paying for a session.'
     },
 };
 

@@ -35,9 +35,10 @@ const protect = asyncHandler(async (req, res, next) => {
 
 // Admin middleware
 const admin = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin')) {
         next();
     } else {
+        console.log(`[AUTH] Admin access denied for user: ${req.user?._id}, role: ${req.user?.role}`);
         res.status(401);
         throw new Error('Not authorized as an admin');
     }
@@ -45,7 +46,7 @@ const admin = (req, res, next) => {
 
 // Teacher middleware
 const teacher = (req, res, next) => {
-    if (req.user && req.user.role === 'teacher') {
+    if (req.user && (req.user.role === 'teacher' || req.user.role === 'admin')) {
         next();
     } else {
         res.status(401);

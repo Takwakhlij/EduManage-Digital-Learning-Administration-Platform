@@ -57,6 +57,10 @@ const userSchema = mongoose.Schema(
         dateOfBirth: {
             type: Date,
         },
+        expoPushToken: {
+            type: String,
+            default: null,
+        },
     },
     {
         timestamps: true,

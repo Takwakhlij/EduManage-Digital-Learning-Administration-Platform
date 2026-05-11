@@ -6,6 +6,7 @@ import Session from '../models/sessionModel.js';
 import { generateReceiptPDF, generateHistoryPDF } from '../utils/receiptGenerator.js';
 import User from '../models/userModel.js';
 import { sendPushNotification } from './notificationController.js';
+import { createCertificateRecord } from './certificateController.js';
 
 // Initialisation de Stripe
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -24,9 +25,17 @@ const recalculerStatutPaiement = async (inscription, prixSession) => {
         inscription.statutPaiement = 'Non Payé';
     } else if (reste <= 0 && total > 0) {
         inscription.statutPaiement = 'Payé';
+        
         // ✅ ─── Auto-Approbation ─── Si paiement total, on approuve automatiquement
         if (inscription.statut === 'en_attente') {
             inscription.statut = 'approuvee';
+        }
+
+        // ✅ ─── GÉNÉRATION AUTO CERTIFICAT ───
+        // Si la session est déjà terminée, on émet le certificat maintenant
+        const session = await Session.findById(inscription.session);
+        if (session && session.statut === 'Terminée') {
+            await createCertificateRecord(inscription._id);
         }
     } else if (total > 0) {
         inscription.statutPaiement = 'Avance';
@@ -629,4 +638,62 @@ export const handleStripeWebhook = asyncHandler(async (req, res) => {
     }
 
     res.json({ received: true });
+});
+
+// ─── Envoyer une relance de paiement (Admin) ────────────────────────────────
+// @desc    Envoyer une notification de rappel à un débiteur (Étudiant + Parents)
+// @route   POST /api/paiements/relance/:inscriptionId
+// @access  Private (Admin)
+export const envoyerRelance = asyncHandler(async (req, res) => {
+    const inscription = await Inscription.findById(req.params.inscriptionId)
+        .populate('etudiant', 'firstName lastName _id')
+        .populate('session', 'nomSession montant');
+
+    if (!inscription) {
+        res.status(404);
+        throw new Error('Inscription non trouvée.');
+    }
+
+    if (inscription.statutPaiement === 'Payé') {
+        res.status(400);
+        throw new Error("Cet étudiant a déjà réglé l'intégralité de son paiement.");
+    }
+
+    const studentName = `${inscription.etudiant.firstName} ${inscription.etudiant.lastName}`;
+    const sessionName = inscription.session?.nomSession || 'la session';
+    const resteAPayer = inscription.resteAPayer?.toFixed(2) || '?';
+
+    const notifPayload = {
+        title: '⚠️ Rappel de Paiement',
+        body: `Bonjour ${inscription.etudiant.firstName}, un solde de ${resteAPayer} TND reste dû pour la session "${sessionName}". Veuillez régulariser votre situation.`,
+        type: 'paiement',
+        senderId: req.user._id,
+        url: '/mes-inscriptions',
+        relatedId: inscription._id,
+    };
+
+    // 1. Notifier l'ÉTUDIANT
+    await sendPushNotification(inscription.etudiant._id, notifPayload).catch(err =>
+        console.error('Erreur relance (étudiant):', err)
+    );
+
+    // 2. Notifier les PARENTS
+    const parents = await User.find({ children: inscription.etudiant._id, role: 'parent' }).select('_id firstName');
+    for (const parent of parents) {
+        const parentPayload = {
+            ...notifPayload,
+            title: '⚠️ Rappel de Paiement — Votre enfant',
+            body: `Un solde de ${resteAPayer} TND reste dû pour ${studentName} (session "${sessionName}"). Veuillez régulariser votre situation.`,
+        };
+        await sendPushNotification(parent._id, parentPayload).catch(err =>
+            console.error('Erreur relance (parent):', err)
+        );
+    }
+
+    console.log(`[RELANCE] Rappel envoyé à ${studentName} (+ ${parents.length} parent(s)) pour inscription ${inscription._id}`);
+
+    res.status(200).json({
+        success: true,
+        message: `Rappel de paiement envoyé à ${studentName}${parents.length > 0 ? ` et ${parents.length} parent(s)` : ''}.`,
+    });
 });

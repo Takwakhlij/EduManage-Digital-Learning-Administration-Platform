@@ -13,7 +13,7 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['cours', 'paiement', 'absence', 'retard', 'inscription', 'systeme', 'planning', 'actualite', 'autre'],
+        enum: ['cours', 'paiement', 'absence', 'retard', 'inscription', 'systeme', 'planning', 'actualite', 'certificat', 'autre'],
         required: true
     },
     title: {
@@ -39,6 +39,9 @@ const notificationSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
+// Index TTL pour supprimer les notifications après 24 heures (86400 secondes)
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 });
 
 const Notification = mongoose.model('Notification', notificationSchema);
 

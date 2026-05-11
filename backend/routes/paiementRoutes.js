@@ -10,7 +10,8 @@ import {
     handleStripeWebhook,
     getMyPaiements,
     getPaymentReport,
-    getStudentFullReport
+    getStudentFullReport,
+    envoyerRelance
 } from '../controllers/paiementController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -31,6 +32,9 @@ router.route('/inscription/:inscriptionId').get(protect, admin, getPaiementsParI
 // 📄 Rapports PDF (Admin)
 router.route('/report/:inscriptionId').get(protect, admin, getPaymentReport);
 router.route('/report/student/:studentId').get(protect, admin, getStudentFullReport);
+
+// 🔔 Envoyer une relance de paiement (Rappel) à un débiteur (Admin)
+router.post('/relance/:inscriptionId', protect, admin, envoyerRelance);
 
 // 🗑️ Supprimer un paiement — correction d'erreur (Admin)
 router.route('/:id').delete(protect, admin, deletePaiement);

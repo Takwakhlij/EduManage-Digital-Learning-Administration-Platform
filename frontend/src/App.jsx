@@ -33,6 +33,8 @@ import EnseignantCalendar from './pages/EnseignantCalendar';
 import StudentSchedule from './pages/StudentSchedule';
 import StudentPresence from './pages/StudentPresence';
 import StudentPaiements from './pages/StudentPaiements';
+import StudentCertificates from './pages/StudentCertificates';
+import AiRapport from './pages/AiRapport';
 import AdminLayout from './components/AdminLayout'; // Composant qui structure l'interface Admin (Sidebar + NavBar)
 
 function App() {
@@ -108,6 +110,9 @@ function App() {
             {/* Historique Paiements Étudiant */}
             <Route path="/paiements" element={<StudentPaiements />} />
 
+            {/* Mes Certificats */}
+            <Route path="/certificats" element={<StudentCertificates />} />
+
             {/* Routes d'administration "Imbriquées" avec un Layout commun (Sidebar partagée) */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} /> 
@@ -119,6 +124,7 @@ function App() {
               <Route path="presences-enseignants" element={<AdminTeacherPresences />} />
               <Route path="presences-etudiants" element={<AdminStudentPresences />} />
               <Route path="actualites" element={<AdminActualites />} />
+              <Route path="rapport-ia" element={<AiRapport />} />
             </Route>
 
             <Route path="/profile" element={<Profile />} />

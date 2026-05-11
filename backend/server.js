@@ -16,6 +16,9 @@ import teacherPresenceRoutes from './routes/teacherPresenceRoutes.js';
 import paiementRoutes from './routes/paiementRoutes.js'; 
 import notificationRoutes from './routes/notificationRoutes.js'; 
 import actualiteRoutes from './routes/actualiteRoutes.js';
+import certificateRoutes from './routes/certificateRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+import startRelanceJob from './jobs/relanceJob.js';
 
 import fs from 'fs';
 import path from 'path';
@@ -54,6 +57,8 @@ app.use('/api/teacher-presences', teacherPresenceRoutes);
 app.use('/api/paiements', paiementRoutes); 
 app.use('/api/notifications', notificationRoutes); 
 app.use('/api/actualites', actualiteRoutes);
+app.use('/api/certificates', certificateRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -70,6 +75,8 @@ const startServer = async () => {
         const PORT = process.env.PORT || 5000;
         app.listen(PORT, () => {
             console.log(`Server started on port ${PORT}`);
+            // Démarrer le job de relance automatique
+            startRelanceJob();
         });
     } catch (error) {
         console.error(`Error starting server: ${error.message}`);

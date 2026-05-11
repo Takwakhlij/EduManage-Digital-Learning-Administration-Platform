@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BookOpen, CreditCard, XCircle, Clock, UserPlus, Calendar, Megaphone } from 'lucide-react';
+import { Bell, BookOpen, CreditCard, XCircle, Clock, UserPlus, Calendar, Megaphone, Award } from 'lucide-react';
 import { getMyNotifications, markNotificationAsRead } from '../features/notifications/notificationSlice';
 import './NotificationCenter.css';
 
@@ -81,6 +81,8 @@ const NotificationCenter = () => {
             navigate('/');
         } else if (notif.type === 'systeme') {
             navigate('/dashboard');
+        } else if (notif.type === 'certificat') {
+            navigate('/certificats');
         } else {
             navigate('/dashboard');
         }
@@ -95,6 +97,7 @@ const NotificationCenter = () => {
             case 'inscription': return <div className="notif-type-icon notif-icon-inscription"><UserPlus size={16} /></div>;
             case 'planning':    return <div className="notif-type-icon notif-icon-planning" style={{background:'rgba(16,185,129,0.15)',color:'#10b981'}}><Calendar size={16} /></div>;
             case 'actualite':   return <div className="notif-type-icon" style={{background:'rgba(245,158,11,0.15)',color:'#f59e0b'}}><Megaphone size={16} /></div>;
+            case 'certificat':  return <div className="notif-type-icon" style={{background:'rgba(201,168,76,0.15)',color:'#c9a84c'}}><Award size={16} /></div>;
             default:            return <div className="notif-type-icon notif-icon-default"><Bell size={16} /></div>;
         }
     };
