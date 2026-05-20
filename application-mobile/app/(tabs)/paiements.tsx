@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
-import TeacherPresence from '../../components/teacher/TeacherPresence';
-import StudentPresence from '../../components/student/StudentPresence';
+import StudentPaymentHistory from '../../components/student/StudentPaymentHistory';
 
-export default function PresenceScreen() {
+export default function PaiementsScreen() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -15,10 +14,14 @@ export default function PresenceScreen() {
     );
   }
 
+  // Seul l'étudiant a cet onglet pour l'instant
   if (user?.role === 'student') {
-    return <StudentPresence />;
+    return <StudentPaymentHistory />;
   }
 
-  // Default to Teacher 
-  return <TeacherPresence />;
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="#0d6645ff" />
+    </View>
+  );
 }

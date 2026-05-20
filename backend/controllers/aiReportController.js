@@ -39,16 +39,34 @@ export const genererRapportFinancier = asyncHandler(async (req, res) => {
         parSession[nomSession].etudiants += 1;
     });
 
-    // 3. Prompt
+    // 3. Prompt Structuré 
     const prompt = `
-Tu es un expert comptable pour une association coranique. Analyse :
-- Étudiants: ${totalInscriptions}
-- Encaissé: ${totalEncaisse.toFixed(3)} TND / Attendu: ${totalAttendu.toFixed(3)} TND
-- Reste: ${totalRestant.toFixed(3)} TND (Taux: ${tauxRecouvrement}%)
-Génère un rapport professionnel en français avec résumé, analyse et recommandations.
-`;
+Tu es un expert comptable certifié spécialisé dans la gestion des associations.
+Analyse les données financières suivantes de l'association coranique :
 
-    // 4. Appel API Direct (Plus stable pour ton environnement)
+DONNÉES CLÉS :
+- Nombre total d'étudiants inscrits : ${totalInscriptions}
+- Total des montants attendus (Chiffre d'affaires théorique) : ${totalAttendu.toFixed(3)} TND
+- Total effectivement encaissé : ${totalEncaisse.toFixed(3)} TND
+- Reste à percevoir (Dette étudiante) : ${totalRestant.toFixed(3)} TND
+- Taux de recouvrement actuel : ${tauxRecouvrement}%
+
+DÉTAILS DES PAIEMENTS :
+- Paiements complets : ${etudiantsPaids} étudiants
+- Paiements partiels (Avances) : ${etudiantsAvance} étudiants
+- Non payés : ${etudiantsNonPaids} étudiants
+
+MISSION :
+Génère un rapport financier professionnel et stratégique en français. Le rapport doit être structuré comme suit :
+1. RÉSUMÉ EXÉCUTIF : Une vue d'ensemble de la situation financière actuelle.
+2. ANALYSE DES ÉCARTS : Analyse détaillée du manque à gagner et des retards de paiement.
+3. IDENTIFICATION DES RISQUES : Quels sont les risques pour la trésorerie de l'association ?
+4. RECOMMANDATIONS STRATÉGIQUES : Propose 3 à 5 actions concrètes pour améliorer le recouvrement et optimiser la gestion financière
+(ex: relances, remises pour paiement anticipé, etc.).
+
+Utilise un style professionnel, encourageant et expert.
+`;
+    // 4. Appel API Direct
     let rapport;
     try {
         const apiKey = process.env.GEMINI_API_KEY.trim();

@@ -107,8 +107,11 @@ export default function NotificationsScreen() {
           !item.isRead && { backgroundColor: theme.unreadBg }
         ]}
         onPress={() => {
+          //1. mark as read via API 
           if (!item.isRead) markAsRead(item._id);
-          if (item.url) router.push(item.url as any);
+          //2. navigate to the correct page (Deep linking)
+          if (item.url)
+             router.push(item.url as any); // naviagte direct ll page 
         }}
       >
         <View style={[styles.iconContainer, { backgroundColor: `${icon.color}15` }]}>

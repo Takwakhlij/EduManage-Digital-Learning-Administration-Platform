@@ -11,7 +11,8 @@ import {
     getMyPaiements,
     getPaymentReport,
     getStudentFullReport,
-    envoyerRelance
+    envoyerRelance,
+    mobileDemoStripe
 } from '../controllers/paiementController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -46,6 +47,9 @@ router.route('/create-payment-intent').post(protect, createStripePaymentIntent);
 
 // ✅ Confirmer un paiement Stripe
 router.route('/confirm-stripe-payment').post(protect, confirmStripePayment);
+
+// 📱 Simuler un paiement en ligne (Mobile PFE)
+router.route('/mobile-demo-stripe').post(protect, mobileDemoStripe);
 
 // 👤 Mes paiements (Étudiant)
 router.route('/my').get(protect, getMyPaiements);

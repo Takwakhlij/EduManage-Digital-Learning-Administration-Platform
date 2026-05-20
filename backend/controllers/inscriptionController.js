@@ -273,10 +273,10 @@ export const getMyInscriptions = asyncHandler(async (req, res) => {
             select: 'nomSession duree statut coursPublies imageCouverture montant',
             populate: [
                 { path: 'enseignants', select: 'firstName lastName profileImage' },
-                { path: 'classe', select: 'nomClasse niveau chapitresTemplate planning matieres', populate: { path: 'matieres', select: 'nomMatiere' } }
+                { path: 'classe', select: 'nomClasse niveau chapitresTemplate planning matieres', populate: { path: 'matieres', select: 'nomMatiere programme' } }
             ]
         })
-        .populate({ path: 'classe', select: 'nomClasse niveau chapitresTemplate planning matieres', populate: { path: 'matieres', select: 'nomMatiere' } })
+        .populate({ path: 'classe', select: 'nomClasse niveau chapitresTemplate planning matieres', populate: { path: 'matieres', select: 'nomMatiere programme' } })
         .sort({ createdAt: -1 });
 
     const daysOrder = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];

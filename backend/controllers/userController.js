@@ -43,57 +43,45 @@ const registerUser = asyncHandler(async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    let childId = null;
-    let childrenIds = [];
-
-    // Parent Logic: Create or Link Child
-    if (role === 'parent') {
-        if (childName) {
-            // Create new child account (e.g. Minor)
-            // Generate a placeholder email or username
-            const childEmailGenerated = `child.${Date.now()}@temp.com`; // Générer un email fictif
-            const childPassword = await bcrypt.hash('123456', salt); // Default password
-
-            // Allow childName to be "First Last" or just "First"
-            const nameParts = childName.trim().split(' ');
-            const cFirstName = nameParts[0];
-            const cLastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : lastName; // Default to parent's last name
-
-            const newChild = await User.create({
-                firstName: cFirstName,
-                lastName: cLastName,
-                email: childEmailGenerated,
-                password: childPassword,
-                role: 'student',
-                status: 'pending', // Child pending until parent approved (or approved separately)
-            });
-
-            if (newChild) {
-                childId = newChild._id;
-                childrenIds.push(childId);
-            }
-        }
-    }
-
-    // Create user
+    // Parent Logic: Stocker uniquement le nom de l'enfant (sans créer de compte fictif)
     const user = await User.create({
         firstName,
         lastName,
         email,
         password: hashedPassword,
         role: role || 'student',
-        status: 'pending', // Explicitly pending
+        status: 'pending',
         phoneNumber,
         dateOfBirth,
         specialization,
         experience,
-        children: childrenIds,
-        childrenNames: childName || '', // Keep for legacy or display
+        childrenNames: childName || '',
     });
 
     if (user) {
+        // Parent Logic: Créer le compte de l'élève mineur (sans email)
+        if (role === 'parent' && childName) {
+            const nameParts = childName.trim().split(' ');
+            const cFirstName = nameParts[0];
+            const cLastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : lastName;
+
+            const newChild = await User.create({
+                firstName: cFirstName,
+                lastName: cLastName,
+                password: hashedPassword, // Même password que le parent par défaut
+                role: 'student',
+                status: 'pending',
+                parentId: user._id, // Lien vers le parent
+            });
+
+            if (newChild) {
+                // Mettre à jour le parent avec l'ID de l'enfant
+                user.children = [newChild._id];
+                await user.save();
+            }
+        }
         // If we created a child, populate it for the return
-        if (role === 'parent' && childrenIds.length > 0) {
+        if (role === 'parent' && user.children.length > 0) {
             await user.populate('children', 'firstName lastName currentLevel status');
         }
 
@@ -214,7 +202,10 @@ const generateToken = (id) => {
 // @access  Private/Admin
 const getUsers = asyncHandler(async (req, res) => {
     // Get all users sorted by creation date (newest first)
-    const users = await User.find({}).sort({ createdAt: -1 }).select('-password');
+    const users = await User.find({})
+        .sort({ createdAt: -1 })
+        .select('-password')
+        .populate('parentId', 'firstName lastName phoneNumber'); // Afficher le nom du parent pour les mineurs
 
     // For student users, enrich with their latest approved inscription (classe + session)
     const studentIds = users
@@ -320,6 +311,12 @@ const updateUserStatus = asyncHandler(async (req, res) => {
         const previousStatus = user.status;
         user.status = req.body.status || user.status;
         const updatedUser = await user.save();
+
+        // ✅ Si c'est un élève mineur et qu'on l'active, on active aussi son parent automatiquement
+        if (updatedUser.role === 'student' && updatedUser.parentId && updatedUser.status === 'active') {
+            await User.findByIdAndUpdate(updatedUser.parentId, { status: 'active' });
+            console.log(`[DEBUG] Parent ${updatedUser.parentId} activé automatiquement pour l'élève ${updatedUser._id}`);
+        }
 
         // Envoi d'une notification à l'utilisateur si son statut a changé
         if (previousStatus !== updatedUser.status) {

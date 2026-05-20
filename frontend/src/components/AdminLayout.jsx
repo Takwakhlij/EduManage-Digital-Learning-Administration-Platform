@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../features/auth/authSlice';
 import logo from '../assets/logo.png';
@@ -72,7 +72,13 @@ const AdminLayout = () => {
         };
     };
 
-    if (!user) return null;
+    if (!user) {
+        return <Navigate to="/admin/login" replace />;
+    }
+
+    if (user.role !== 'admin') {
+        return <Navigate to="/login" replace />;
+    }
 
     // Check active route for highlighting
     const isActive = (path) => {

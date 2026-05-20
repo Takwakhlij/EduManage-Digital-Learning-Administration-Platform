@@ -319,6 +319,7 @@ function AdminMembers() {
                             <tr>
                                 <th>Profil</th>
                                 <th>Contact</th>
+                                <th>Téléphone</th>
                                 <th>Classe</th>
                                 <th>Session</th>
                                 <th>Rôle</th>
@@ -375,6 +376,11 @@ function AdminMembers() {
                                                     <span className="user-name">
                                                         {member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Utilisateur'}
                                                     </span>
+                                                    {member.parentId && (
+                                                        <span className="user-supervised" style={{ fontSize: '11px', color: '#ceaa5f', display: 'block', fontWeight: '500', marginTop: '2px' }}>
+                                                            Supervisé par: {member.parentId.firstName} {member.parentId.lastName}
+                                                        </span>
+                                                    )}
                                                     <span className="user-age">
                                                         {member.dateOfBirth
                                                             ? calculateAge(member.dateOfBirth)
@@ -384,9 +390,11 @@ function AdminMembers() {
                                             </div>
                                         </td>
                                         <td>
-                                            <div className="contact-info">
-                                                <div className="contact-email">{member.email}</div>
-                                                <div className="contact-phone">{member.phone || '-'}</div>
+                                            <div className="contact-email">{member.email || (member.role === 'student' && member.parentId ? 'Compte Mineur' : '-')}</div>
+                                        </td>
+                                        <td>
+                                            <div className="contact-phone">
+                                                {member.phoneNumber || (member.parentId?.phoneNumber ? `(P) ${member.parentId.phoneNumber}` : '-')}
                                             </div>
                                         </td>
                                         <td>

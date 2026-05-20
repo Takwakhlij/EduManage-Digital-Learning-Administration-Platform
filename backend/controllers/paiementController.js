@@ -436,6 +436,47 @@ export const confirmStripePayment = asyncHandler(async (req, res) => {
         console.error('Erreur notification paiement Stripe:', notifErr);
     }
 });
+
+// @desc    Simuler un paiement Stripe réussi (Spécial Demo Mobile PFE)
+// @route   POST /api/paiements/mobile-demo-stripe
+// @access  Private
+export const mobileDemoStripe = asyncHandler(async (req, res) => {
+    const { inscriptionId, montant } = req.body;
+
+    if (!inscriptionId || !montant) {
+        res.status(400);
+        throw new Error('Données manquantes (inscription ou montant).');
+    }
+
+    const inscription = await Inscription.findById(inscriptionId).populate('session', 'montant nomSession');
+    if (!inscription) {
+        res.status(404);
+        throw new Error('Inscription non trouvée.');
+    }
+
+    // Créer le paiement en base (simulé comme Stripe)
+    const paiement = await Paiement.create({
+        inscription: inscriptionId,
+        etudiant: inscription.etudiant,
+        session: inscription.session._id,
+        montant: parseFloat(montant),
+        modePaiement: 'Stripe',
+        note: `Simulation Mobile Stripe Transaction ID: mock_${Date.now()}`,
+        enregistrePar: req.user._id
+    });
+
+    const prixSession = inscription.session?.montant || 0;
+    inscription.montantVerseTotal = (inscription.montantVerseTotal || 0) + parseFloat(montant);
+    const inscriptionMaj = await recalculerStatutPaiement(inscription, prixSession);
+
+    res.status(201).json({
+        success: true,
+        message: 'Paiement en ligne simulé avec succès.',
+        paiement,
+        statutPaiement: inscriptionMaj.statutPaiement
+    });
+});
+
 // @desc    Obtenir l'historique des paiements de l'étudiant connecté
 // @route   GET /api/paiements/my
 // @access  Private (Student/Parent)

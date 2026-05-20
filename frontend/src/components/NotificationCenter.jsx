@@ -58,6 +58,11 @@ const NotificationCenter = () => {
         }
 
         if (targetUrl) {
+            // Mapping intelligent pour les sessions (Web vs Mobile)
+            if (targetUrl.startsWith('/session/') && user.role === 'teacher') {
+                targetUrl = targetUrl.replace('/session/', '/teacher/sessions/');
+            }
+
             if ((targetUrl === '/inscriptions' || targetUrl === '/admin/inscriptions' || targetUrl === '/admin/paiements') && notif.relatedId) {
                 navigate(targetUrl, { state: { selectedId: notif.relatedId } });
             } else {

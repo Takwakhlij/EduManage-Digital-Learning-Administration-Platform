@@ -21,13 +21,13 @@ const lightTheme = {
 };
 
 const TAB_TRANSLATIONS = {
-  fr: { home: 'Accueil', sessions: 'Sessions', planning: 'Planning', presence: 'Présence', profile: 'Profil' },
-  ar: { home: 'الرئيسية', sessions: 'الدورات', planning: 'الجدول', presence: 'الحضور', profile: 'ملفي' },
-  en: { home: 'Home', sessions: 'Sessions', planning: 'Planning', presence: 'Attendance', profile: 'Profile' },
+  fr: { home: 'Accueil', sessions: 'Sessions', planning: 'Planning', presence: 'Présence', profile: 'Profil', paiements: 'Paiements' },
+  ar: { home: 'الرئيسية', sessions: 'الدورات', planning: 'الجدول', presence: 'الحضور', profile: 'ملفي', paiements: 'الدفوعات' },
+  en: { home: 'Home', sessions: 'Sessions', planning: 'Planning', presence: 'Attendance', profile: 'Profile', paiements: 'Payments' },
 };
 
 export default function TabLayout() {
-  const { isDark, lang } = useAuth();
+  const { user, isDark, lang } = useAuth();
   const theme = isDark ? darkTheme : lightTheme;
   const t = (TAB_TRANSLATIONS as any)[lang] || TAB_TRANSLATIONS.fr;
 
@@ -76,6 +76,15 @@ export default function TabLayout() {
         options={{
           title: t.presence,
           tabBarIcon: ({ color }) => <Ionicons size={24} name="checkbox" color={color} />,
+          href: user?.role === 'teacher' ? '/presence' : '/presence' // Can customize later
+        }}
+      />
+      <Tabs.Screen
+        name="paiements"
+        options={{
+          title: t.paiements,
+          tabBarIcon: ({ color }) => <Ionicons size={24} name="wallet" color={color} />,
+          href: user?.role === 'student' ? '/paiements' : null // Only for students
         }}
       />
       <Tabs.Screen

@@ -4,6 +4,7 @@ import Classe from '../models/classeModel.js';
 import Inscription from '../models/inscriptionModel.js';
 import Matiere from '../models/matiereModel.js';
 import { createCertificateRecord } from './certificateController.js';
+import { sendPushNotification } from './notificationController.js';
 
 // 1. @desc    Créer une nouvelle session
 // @route   POST /api/sessions
@@ -77,6 +78,24 @@ export const createSession = asyncHandler(async (req, res) => {
         message: "Session créée avec succès",
         session: nouvelleSession
     });
+
+    // --- ENVOI DES NOTIFICATIONS AUX ENSEIGNANTS ---
+    try {
+        const classeDetails = await Classe.findById(classe);
+        const nomClasse = classeDetails ? classeDetails.nomClasse : '';
+
+        for (const teacherId of enseignants) {
+            await sendPushNotification(teacherId, {
+                title: 'Nouvelle Affectation 📚',
+                body: `Vous avez été assigné à la session "${nomSession}" pour la classe "${nomClasse}".`,
+                type: 'cours',
+                url: `/session/${nouvelleSession._id}`, // Route vers les détails de la session
+                senderId: req.user._id
+            });
+        }
+    } catch (notifErr) {
+        console.error('Erreur notification affectation:', notifErr.message);
+    }
 });
 
 // 2. @desc    Récupérer toutes les sessions (Filtré pour Etudiants / Complet pour Admin)
@@ -358,6 +377,26 @@ export const updateSession = asyncHandler(async (req, res) => {
             message: 'Session modifiée avec succès',
             session: updatedSession.toObject(),
         });
+
+        // --- NOTIFIER LES ENSEIGNANTS SI LE PROGRAMME/ENSEIGNANTS ONT CHANGÉ ---
+        if (req.body.programme || req.body.enseignants) {
+            try {
+                const classeDetails = await Classe.findById(updatedSession.classe);
+                const nomClasse = classeDetails ? classeDetails.nomClasse : '';
+                
+                for (const teacherId of updatedSession.enseignants) {
+                    await sendPushNotification(teacherId, {
+                        title: 'Mise à jour Affectation 📅',
+                        body: `Votre affectation pour la session "${updatedSession.nomSession}" (${nomClasse}) a été mise à jour.`,
+                        type: 'cours',
+                        url: `/session/${updatedSession._id}`,
+                        senderId: req.user._id
+                    });
+                }
+            } catch (notifErr) {
+                console.error('Erreur notification mise à jour affectation:', notifErr.message);
+            }
+        }
     } else {
         res.status(404);
         throw new Error('Session non trouvée');

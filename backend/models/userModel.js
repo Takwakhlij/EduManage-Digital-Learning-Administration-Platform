@@ -12,10 +12,15 @@ const userSchema = mongoose.Schema(
         },
         email: {
             type: String,
-            required: [true, 'Please add an email'],
             unique: true,
             lowercase: true,
             trim: true,
+            // On enlève le required ici pour gérer les mineurs sans email
+        },
+        parentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null,
         },
         password: {
             type: String,

@@ -57,12 +57,17 @@ export const getMyNotifications = createAsyncThunk(
     'notifications/getAll',
     async (_, thunkAPI) => {
         try {
-            const token = thunkAPI.getState().auth.user.token;
+            const token = thunkAPI.getState().auth.user?.token;
+            if (!token) return thunkAPI.rejectWithValue('No token');
             const config = { headers: { Authorization: `Bearer ${token}` } };
             const response = await axios.get(API_URL, config);
             return response.data;
         } catch (error) {
             const message = error.response?.data?.message || error.message || error.toString();
+            if (error.response?.status === 401) {
+                localStorage.removeItem('user');
+                thunkAPI.dispatch({ type: 'auth/logout/fulfilled' });
+            }
             return thunkAPI.rejectWithValue(message);
         }
     }

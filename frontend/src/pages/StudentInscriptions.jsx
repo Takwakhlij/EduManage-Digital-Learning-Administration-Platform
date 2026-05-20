@@ -898,34 +898,6 @@ function StudentInscriptions({ effectiveUser }) {
                                             return null;
                                         })()}
 
-                                        {/* Schedule */}
-                                        <section className="exa-section">
-                                            <h3 className="exa-section-title"><BookOpen size={24} strokeWidth={1.5} className="exa-sect-icon" /> {t.schedule}</h3>
-
-
-                                            {selectedClass?.planning?.length > 0 ? (
-                                                <div className="exa-schedule">
-                                                    {orderedDays.map(jour => {
-                                                        const slots = selectedClass.planning.filter(p => p.jour === jour).sort((a, b) => a.heureDebut.localeCompare(b.heureDebut));
-                                                        if (!slots.length) return null;
-                                                        return (
-                                                            <div key={jour} className="exa-day-group">
-                                                                <div className="exa-day-header"><span className="exa-dot" /> {t.days?.[jour] || jour}</div>
-                                                                {slots.map((slot, i) => (
-                                                                    <div key={i} className="exa-slot">
-                                                                        <div className="exa-slot-right"><Clock size={16} /> {slot.heureDebut} - {slot.heureFin}</div>
-                                                                        <div className="exa-slot-left">{typeof slot.matiere === 'object' ? slot.matiere?.nomMatiere : slot.matiere}</div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ) : (
-                                                <p className="exa-empty-text">{t.noSchedule}</p>
-                                            )}
-                                        </section>
-
                                         {/* Supports de cours */}
                                         <section className="exa-section">
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
