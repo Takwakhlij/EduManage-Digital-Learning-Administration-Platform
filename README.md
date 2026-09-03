@@ -17,7 +17,7 @@ Built using a modern full stack architecture, **EduManage** provides a unified p
 
 ## 🛠 Tech Stack
 
-| Domain | Technology / Tool |
+| Domain | Technology |
 | :--- | :--- |
 | **Backend** | Node.js, Express.js |
 | **Frontend (Web)** | React.js, Tailwind CSS |
